@@ -65,3 +65,9 @@ Los cinco PNG siguientes mantienen ese mismo contrato, sin alterar el original:
 
 Death se selecciona para cualquier último apuntado y oculta su visual al terminar;
 respawn reinicia el clip. Las variantes no suministradas mantienen fallback.
+
+Las poses estáticas `player_aim_up.png` y `player_aim_diagonalUp.png` son PNG RGBA
+32×32 de un frame, con alpha binario. Se registran como `player.idle_up` y
+`player.idle_diagonal`, usando la selección de apuntado existente mientras el
+personaje está de pie, quieto y sin disparar. Bottom-center, escala 1, offsets 0/0
+y flipX permanecen iguales; al disparar se seleccionan los clips shoot correspondientes.

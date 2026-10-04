@@ -41,6 +41,7 @@ describe('supplied player art', () => {
     view.dispose(); assets.dispose();
   });
   it.each([
+    ['idle', 'up', 0, 0, 1], ['idle', 'diagonal', 0, Math.SQRT1_2, Math.SQRT1_2],
     ['shoot', 'horizontal', 0, 1, 0], ['shoot', 'up', 0, 0, 1], ['shoot', 'diagonal', 0, Math.SQRT1_2, Math.SQRT1_2],
     ['runShoot', 'horizontal', 95, 1, 0], ['runShoot', 'up', 95, 0, 1],
     ['runShoot', 'diagonal', 95, Math.SQRT1_2, Math.SQRT1_2],
@@ -51,7 +52,7 @@ describe('supplied player art', () => {
       new Texture({ width: 192, height: 32 } as HTMLImageElement));
     const assets = new AssetManager(); await assets.preload();
     const player = new Player(62, 44), view = new PlayerView(assets);
-    player.grounded = animation !== 'jumpShoot'; player.shooting = true; player.velocity.x = speed;
+    player.grounded = animation !== 'jumpShoot'; player.shooting = animation !== 'idle'; player.velocity.x = speed;
     player.aimDirection.x = ax; player.aimDirection.y = ay;
     const expected = assets.getTexture(`player.${animation}_${aim}`);
     const position = { ...player.position }, bounds = { ...player.collisionBounds }, direction = { ...player.aimDirection };
