@@ -1,6 +1,6 @@
 # Iron Signal
 
-Run-and-gun web original inspirado en el ritmo del género arcade de 8 bits. No incluye código, mapas, música ni gráficos de Contra. **Entrega actual: FASE 10 — Gameplay polish y preparación gráfica.** El Complejo de Relevo tiene 9600 unidades de longitud, cuatro sectores y sala final, doce fosos, plataformas sólidas y one-way, 21 grupos de aparición y tres capas de parallax. Hay cuatro armas, seis portadores aéreos M/S/L entre diez voladores, tres vidas, seis checkpoints, score, récord persistente, menú, pausa, respawn, game over y un jefe original de tres fases: el Guardián Cenital. Derrotarlo completa la misión. Incluye sonidos originales sintetizados, partículas reutilizables, animaciones, flash de disparo, sacudidas breves y transiciones de interfaz. Las armas se obtienen destruyendo portadores: sus cápsulas caen físicamente. Collider y dimensiones visuales están separados; crouch permite esquivar tiros altos.
+Run-and-gun web original inspirado en el ritmo del género arcade de 8 bits. No incluye código, mapas, música ni gráficos de Contra. **Entrega actual: FASE 11 — Graphics pipeline y sistema de sprites.** El Complejo de Relevo tiene 9600 unidades de longitud, cuatro sectores y sala final, doce fosos, plataformas sólidas y one-way, 21 grupos de aparición y tres capas de parallax. Hay cuatro armas, seis portadores aéreos M/S/L entre diez voladores, tres vidas, seis checkpoints, score, récord persistente, menú, pausa, respawn, game over y un jefe original de tres fases: el Guardián Cenital. Derrotarlo completa la misión. Incluye sonidos originales sintetizados, partículas reutilizables, animaciones, flash de disparo, sacudidas breves y transiciones de interfaz. Las armas se obtienen destruyendo portadores: sus cápsulas caen físicamente. Collider y dimensiones visuales están separados; crouch permite esquivar tiros altos.
 
 ## Instalación y ejecución
 
@@ -45,6 +45,7 @@ El workflow `.github/workflows/pages.yml` publica automáticamente al hacer push
 | J | Disparar el arma actual; mantener para repetir a su cadencia |
 | Enter | Comenzar desde menú; nueva partida tras game over o completar la ruta; continuar desde pausa |
 | F1 | Mostrar debug y bounding boxes |
+| F2 | Mostrar sprite bounds, anchors y orígenes visuales |
 | Escape | Pausar / reanudar la partida |
 
 F1 muestra FPS, frecuencia de simulación, posición, velocidad, cámara, estado de partida y jugador, vidas, score, checkpoint, altura, soporte one-way, arma, apuntado, invulnerabilidad, enemigos activos y pendientes, triggers ejecutados, drops creados/activos/recogidos, proyectiles, impactos y bajas. Los contornos azules indican el collider de pie, ámbar el agachado y verde el activo; magenta indica colliders de proyectiles. Ambos colliders del jugador comparten los pies. Perder foco pausa una partida activa; cambiar de pestaña también suspende el loop. Al volver, Escape o Enter continúa con teclas limpias. Las letras M/S/L identifican la carga de los portadores y sus drops, no teclas de selección; S sigue siendo agacharse.
@@ -56,7 +57,8 @@ src/
   main.ts                       Arranque y errores WebGL
   style.css                     Presentación y escalado
   config/constants.ts           Valores de movimiento, combate, cámara y parallax
-  config/graphics.ts            Tamaños visuales, offsets, anchors y clips del jugador
+  config/graphics.ts            Configuración de placeholders
+  config/assets.ts              Manifest PNG/sheets/atlas, clips, visual config y Z layers
   core/Game.ts                  Composición y ciclo de vida
   core/GameLoop.ts               requestAnimationFrame y acumulador fijo
   core/InputManager.ts           Teclas sostenidas y pulsaciones por paso
@@ -90,7 +92,10 @@ src/
   rendering/LevelView.ts         Representación del terreno y debug
   rendering/ParallaxBackground.ts Tres capas geométricas originales
   rendering/PlayerView.ts        Animación independiente de física
-  rendering/SpriteAnimator.ts    Clips y frames reutilizables para sprite sheets
+  rendering/SpriteAnimator.ts    FPS, loop, flip, onComplete y compatibilidad de clips
+  rendering/SpriteVisual.ts      Planos/UV por instancia, anchors y fallback
+  rendering/FxSpritePool.ts      FX animados reutilizables
+  rendering/TiledVisual.ts       Fondos y tiles repetibles sin física
   rendering/ParticleManager.ts   Pool fijo, movimiento y expiración de partículas
   rendering/ParticleView.ts      Un InstancedMesh para chispas y explosiones
   rendering/ProjectileView.ts    InstancedMesh para balas
@@ -247,20 +252,20 @@ La lógica no importa Three.js ni calcula hitboxes desde sprites. PLAYER_COLLISI
 
 Todas las posiciones de gameplay conservan la esquina inferior izquierda del collider para reutilizar la física existente. Los orígenes **visuales** son bottom-center para Player, Soldier, Runner, Turret y WeaponPickup; FlyingEnemy usa center. Las vistas convierten la posición física a ese anchor. Los offsets desplazan únicamente el dibujo, nunca los contornos debug ni el disparo. Las dimensiones originales del placeholder solo normalizan su geometría dentro de la vista; no se derivan de su collider.
 
-PlayerView selecciona `idle`, `run`, `jump`, `fall`, `crouch`, `shoot`, `runShoot`, `jumpShoot` y `crouchShoot`, junto con `facing: 'left' | 'right'`. SpriteAnimator sigue devolviendo índices de frames independientes del movimiento. Ahora los clips comparten poses de placeholder; el futuro atlas puede asignar frames distintos por clip y dirección sin cambiar Player. AssetManager ya carga texturas originales con NearestFilter y sin mipmaps, y conserva su caché y liberación de recursos. PowerupIcon centraliza M/S/L para sustituir el indicador tanto en portadores como en drops. Esta entrega no genera ni reemplaza arte definitivo.
+PlayerView selecciona `idle`, `run`, `jump`, `fall`, `crouch`, `shoot`, `runShoot`, `jumpShoot` y `crouchShoot`, junto con `facing: 'left' | 'right'`. SpriteAnimator sigue devolviendo índices de frames independientes del movimiento. Ahora los clips comparten poses de placeholder; el manifest ya permite asignar frames distintos por clip y dirección sin cambiar Player. AssetManager ya carga texturas originales con NearestFilter y sin mipmaps, y conserva su caché y liberación de recursos. PowerupIcon centraliza M/S/L para sustituir el indicador tanto en portadores como en drops. Esta entrega no genera ni reemplaza arte definitivo.
 
 ## Extender el juego
 
 - **Enemigos:** extender Enemy e implementar `updateBehavior(dt, context)`. Restaurar timers propios en `resetBehavior()`. Añadir EnemyKind, constructor al registro de EnemyManager, representación a EnemyView y emplazamientos en los spawnGroups del nivel. La lógica no debe importar Three.js.
 - **Armas:** extender Weapon, definir nombre, cadencia, velocidad y daño e implementar `emit()` delegando balas al pool. Asignar la nueva instancia a `player.weapon`; Player no necesita condiciones específicas por arma.
 - **Niveles:** crear otro objeto que satisfaga LevelData: width, spawn, ground, platforms, spawnGroups, checkpoints, boss, sections, exitX y name. Para portar armas, colocar `{ kind: 'flying', x, y, weaponDrop: 'M' | 'S' | 'L' }` en un grupo; omitir weaponDrop para un volador ordinario. Distribuirlos sobre superficies alcanzables, evitando que los drops habituales caigan a fosos. Cada checkpoint usa `{ x, y, name }`; verificar que su collider esté sobre terreno seguro y fuera de sólidos. Boss usa `{ x, y, arenaLeft }`; situar la sala en las últimas 256 unidades y un checkpoint en su entrada. Reutilizar Level y LevelView. El trigger x usa la posición izquierda de cámara, no la del jugador. Separar fosos entre segmentos de ground y verificar su alcance con pruebas de recorrido.
-- **Assets:** añadir recursos originales a public/assets. AssetManager ofrece `texture(url)` con NearestFilter, sin mipmaps y color sRGB, y `sound(url, audioContext)` con caché y reintento tras errores. Sus promesas propagan fallos al llamador; `dispose()` libera texturas. SpriteAnimator entrega índices que pueden mapearse a celdas de una sprite sheet. La versión actual utiliza geometría y síntesis, por lo que no necesita cargar recursos al iniciar.
+- **Assets:** añadir recursos originales a public/assets. AssetManager ofrece `texture(url)` con NearestFilter, sin mipmaps y color sRGB, y `sound(url, audioContext)` con caché y reintento tras errores. Sus promesas propagan fallos al llamador; `dispose()` libera texturas. SpriteAnimator entrega índices que pueden mapearse a celdas de una sprite sheet. El juego conecta ahora AssetManager a todas las vistas; los IDs activados mediante url en config/assets.ts se precargan una vez y getTexture/getSpriteSheet consultan el registro. Recursos sin url o faltantes mantienen placeholders; ninguna entidad carga archivos.
 
 **FASE 10 implementada.** El graphics pass puede sustituir los placeholders usando la configuración visual y los anchors documentados; conviene conservar estas pruebas de gameplay durante ese trabajo.
 
 ## Validación
 
-Las 188 pruebas cubren entrada, AABB, cámara, movimiento, coyote time, buffering, cooldown, pooling, barridos, cuatro comportamientos enemigos, daño, invulnerabilidad y reinicio. También prueban one-way, crouch, fosos, triggers, parallax, recorrido de 9600 unidades en ambos sentidos, patrones de armas, saturación de Spread y pickups. Session comprueba vidas, estados, score y persistencia. Boss añade blindaje, transiciones, patrones, captura de apuntado, esquivas, body contact, primer impacto entre blancos, 5000 puntos sin duplicados, respawn de la batalla, límites de arena y ritmo. Las regresiones integran GameLoop a 30, 60 y 144 Hz para comprobar que la simulación no depende del render, incluidos los ataques del jefe y la caída de pickups. Feedback verifica reutilización y saturación del pool, pausa, límites y expiración de shake, clips, punto de impacto, apertura y limpieza de audio, mute, persistencia, restricciones del navegador y caché/reintentos de assets. Gameplay polish añade hitboxes con pies compartidos, tiros altos/bajos a través del combate real y torretas del laboratorio, techos, drops únicos por M/S/L, voladores sin carga, aterrizaje estable, caducidad, fosos y recogida. Las pruebas antiguas de pickups usan ahora drops dinámicos y verifican que la campaña comienza sin cápsulas en suelo.
+Las 212 pruebas cubren entrada, AABB, cámara, movimiento, coyote time, buffering, cooldown, pooling, barridos, cuatro comportamientos enemigos, daño, invulnerabilidad y reinicio. También prueban one-way, crouch, fosos, triggers, parallax, recorrido de 9600 unidades en ambos sentidos, patrones de armas, saturación de Spread y pickups. Session comprueba vidas, estados, score y persistencia. Boss añade blindaje, transiciones, patrones, captura de apuntado, esquivas, body contact, primer impacto entre blancos, 5000 puntos sin duplicados, respawn de la batalla, límites de arena y ritmo. Las regresiones integran GameLoop a 30, 60 y 144 Hz para comprobar que la simulación no depende del render, incluidos los ataques del jefe y la caída de pickups. Feedback verifica reutilización y saturación del pool, pausa, límites y expiración de shake, clips, punto de impacto, apertura y limpieza de audio, mute, persistencia, restricciones del navegador y caché/reintentos de assets. Gameplay polish añade hitboxes con pies compartidos, tiros altos/bajos a través del combate real y torretas del laboratorio, techos, drops únicos por M/S/L, voladores sin carga, aterrizaje estable, caducidad, fosos y recogida. Las pruebas antiguas de pickups usan ahora drops dinámicos y verifican que la campaña comienza sin cápsulas en suelo.
 
 Para la comprobación manual:
 
@@ -281,3 +286,78 @@ Para la comprobación manual:
 15. Deja un drop sin recoger: debe parpadear a los 8 s y desaparecer a los 10 s. Pausa durante la caída: posición, velocidad y tiempo restante se congelan. Un volador ordinario no deja cápsula.
 16. Abre ambos laboratorios y verifica tiro alto de pie HIT, alto agachado MISS y bajo agachado HIT. F1 permite comparar collider activo, standing, crouching y proyectiles.
 
+
+## Fase 11: pipeline gráfico
+
+El contrato completo está en [art-reference/sprite-spec.md](art-reference/sprite-spec.md).
+Se incluyen los PNG definitivos normalizados de Player idle/run/crouch; el resto conserva los placeholders de las
+fases anteriores. El pipeline ya acepta PNG simples, strips, grillas y atlases sin
+cambiar Player, Enemy, armas, físicas, colliders o datos de nivel.
+
+Para agregar un sprite, copiarlo a la carpeta prevista y definir `url` en su entrada
+`src/config/assets.ts`; `path` por sí solo documenta un archivo futuro. Para agregar
+una animación, registrar su ID, sheet, visual y clip (`frames`, `frameRate`, `loop`,
+`onComplete` opcional). Las vistas seleccionan estados visuales desde gameplay y
+mantienen fallback para clips incompletos. Cada instancia tiene UV propias sobre una
+textura compartida. No se usan texture.offset ni copias de textura por frame.
+
+Player y enemigos terrestres usan bottom-center; FlyingEnemy/proyectiles/FX usan
+center. width/height/offsetX/offsetY/scaleX/scaleY del manifest son visuales y el flip
+no cambia colliders ni origen del disparo. `includesWeapon` permite sustituir el cañón
+geométrico con arte; las variantes `player.<estado>_horizontal/_diagonal/_up` son
+opcionales. PowerupIcon usa el mismo recurso tanto en portadores como en drops, con
+M/S/L como fallback y una oscilación visual leve en el aire. Las muertes lógicas
+siguen siendo inmediatas; las vistas pueden conservar su animación sin contactos.
+
+F1 conserva el debug físico; F2 agrega contornos cyan de sprites, anchor amarillo y
+origen magenta. Sprite sheets recomendadas: PNG RGBA sin trimming, celdas uniformes;
+Player run 192×32, seis frames de 32×32 a 10 FPS. Player admite canvas 32×40;
+Soldier 32×32, Runner/Turret 24×24, Flying 32×24, pickups 16×16. Generar primero
+Player idle/run/crouch, Soldier idle/run, Flying fly y cápsulas M/S/L.
+
+Las tres capas de parallax aceptan PNG tileables y el entorno admite ground/platform,
+bordes, vegetación y decoraciones sin definir física. DRAW centraliza las capas Z.
+FX opcionales se reutilizan en un pool de 24 visuales; los proyectiles mantienen su
+pool y su representación instanciada cuando faltan texturas. Se mantienen 256×240,
+NearestFilter, mipmaps desactivados, pixelRatio 1, antialias false y escalado sin deformación.
+
+Los tests gráficos verifican scheduling, finalización única, UV con padding/atlas,
+strips incompletos, anchors, carga compartida/fallback, independencia entre instancias,
+colliders independientes del PNG y muerte visual sin entidad lógica activa.
+### Primer arte definitivo del Player
+
+Se integró la hoja adjunta de 1536×1024 RGBA como tres strips de celdas 32×32:
+idle 128×32 (4 frames, 6 FPS), run 192×32 (6 frames, 11 FPS) y crouch 64×32
+(2 frames de entrada a 7 FPS, mantener segundo). El source se conserva sin modificar
+en `art-reference/player/source.png`, junto al [informe de normalización](art-reference/player/README.md)
+y `normalization.json`, que registra recortes, alpha, ejes y baselines.
+
+La extracción por componentes separa las poses aunque sus bboxes se solapen. La
+escala común es 1/14, nearest neighbor y alpha binario; cada frame conserva el mismo
+anchor (16,32). La vista usa 32×32, offsets 0/0 y flipX; los colliders siguen 12×26
+/ 12×12. Las poses sin arte usan sus placeholders orientables.
+`includesWeapon` evita duplicar el rifle.
+
+`python scripts/normalize-player.py` reproduce los derivados con Pillow/NumPy y
+verifica número de frames, baseline, clipping e integridad del source. Python no es
+necesario para npm install/dev/build. La prueba player-art verifica crouch/flip,
+colliders intactos y fallbacks de disparo/salto con las nuevas texturas.
+### Nuevas animaciones del Player
+
+Se agregaron ocho PNG suministrados, sin modificar sus píxeles: jump/fall (64×32,
+2 frames a 6 FPS), shoot horizontal/up/diagonal (64×32, 2 frames a 12 FPS), y
+runShoot horizontal/up/diagonal (192×32, 6 frames a 11 FPS). Todos usan celdas
+32×32, bottom-center, offsets 0/0, includesWeapon y flipX. El manifest conserva
+los nombres de archivo diagonalUp y los mapea al sufijo visual `_diagonal`.
+
+Los controles siguen siendo los mismos: W+dirección produce diagonal; W quieto
+apunta verticalmente. La variante runShoot_up queda registrada para el estado visual,
+sin introducir un control nuevo.
+
+También se integraron jumpShoot horizontal/up/diagonal y crouchShoot horizontal
+(64×32, dos frames a 12 FPS), y death (192×32, seis frames a 10 FPS, sin loop).
+La muerte visual dura 0,6 segundos y no depende del último apuntado. El respawn
+reinicia el visual; la entidad lógica deja de colisionar inmediatamente, como antes.
+Todos los PNG adicionales se copian byte por byte, con alpha binario y celdas
+32×32; no se cambia escala, offsets, física ni hitboxes. Los clips ausentes o las
+texturas que no carguen conservan el fallback del pipeline. Hay 212 tests.

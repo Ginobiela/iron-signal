@@ -1,5 +1,5 @@
 import { Color, OrthographicCamera, Scene, WebGLRenderer } from 'three';
-import { CONTROLS, FEEDBACK, SCORE, VIEW } from '../config/constants';
+import { CONTROLS, FEEDBACK, PLAYER, SCORE, VIEW } from '../config/constants';
 import type { Action } from '../config/constants';
 import { CameraController } from '../camera/CameraController';
 import { CollisionSystem } from '../collision/CollisionSystem';
@@ -38,6 +38,8 @@ import { ParticleManager } from '../rendering/ParticleManager';
 import { ParticleView } from '../rendering/ParticleView';
 import { ScreenShakeManager } from '../camera/ScreenShakeManager';
 import type { Enemy } from '../entities/enemies/Enemy';
+import { AssetManager } from './AssetManager';
+import { FxSpritePool } from '../rendering/FxSpritePool';
 
 const actions = Object.keys(CONTROLS) as Action[];
 const lab = import.meta.env.DEV ? new URLSearchParams(location.search).get('lab') : null;
@@ -45,6 +47,8 @@ const levelData = lab === 'high' || lab === 'low' ? gameplayLab(lab) : SIGNAL_WO
 
 export class Game {
   private readonly scene = new Scene();
+  private readonly assets = new AssetManager();
+  private readonly fxSprites = new FxSpritePool(this.assets);
   private readonly camera = new OrthographicCamera(0, VIEW.width, VIEW.height, 0, 0.1, 100);
   private readonly renderer: WebGLRenderer;
   private readonly input: InputManager;
@@ -61,14 +65,14 @@ export class Game {
   private readonly levelView: LevelView;
   private readonly background: ParallaxBackground;
   private readonly player = new Player(levelData.spawn.x, levelData.spawn.y);
-  private readonly playerView = new PlayerView();
+  private readonly playerView = new PlayerView(this.assets);
   private readonly collision = new CollisionSystem();
   private readonly powerups = new PowerupManager(this.collision);
-  private readonly powerupView = new PowerupView(this.powerups);
+  private readonly powerupView = new PowerupView(this.powerups, this.assets);
   private readonly projectiles = new ProjectileManager(this.collision);
   private readonly enemies = new EnemyManager();
   private readonly boss = new Boss(levelData.boss);
-  private readonly bossView = new BossView(this.boss);
+  private readonly bossView = new BossView(this.boss, this.assets);
   private readonly enemyViews: EnemyView[] = [];
   private readonly spawner = new EnemySpawner(levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
   private readonly combat = new CombatSystem(this.collision, this.player, this.enemies.items,
@@ -79,12 +83,13 @@ export class Game {
   private readonly hud: CombatHUD;
   private readonly menu: Menu;
   private readonly bossHUD: BossHUD;
-  private readonly projectileView = new ProjectileView(this.projectiles.items.length);
+  private readonly projectileView = new ProjectileView(this.projectiles.items.length, this.assets);
   private readonly cameraController = new CameraController(levelData.width);
   private readonly controls: PlayerControls = { left: false, right: false, jumpPressed: false, up: false, shoot: false, down: false };
   private readonly loop: GameLoop;
   private readonly resizeObserver: ResizeObserver;
   private debugVisible = false;
+  private graphicsDebugVisible = false;
   private debugTimer = 0;
   private ticks = 0;
   private readonly volumeControl = document.querySelector<HTMLInputElement>('#audio-volume');
@@ -98,11 +103,13 @@ export class Game {
     viewport.prepend(this.renderer.domElement);
     this.scene.background = new Color(0x101e2c);
     this.camera.position.z = 10;
-    this.background = new ParallaxBackground(this.scene);
-    this.levelView = new LevelView(this.scene, this.level);
+    this.background = new ParallaxBackground(this.scene, this.assets);
+    this.levelView = new LevelView(this.scene, this.level, this.assets);
     this.scene.add(this.playerView.root, this.projectileView.mesh, this.powerupView.root, this.checkpointView.root, this.bossView.root);
     this.scene.add(this.particleView.mesh);
     this.scene.add(this.projectileView.bounds);
+    this.scene.add(this.projectileView.sprites, this.fxSprites.root);
+    void this.assets.preload();
     this.hud = new CombatHUD(status, notice);
     this.menu = new Menu(menu);
     this.bossHUD = new BossHUD(bossStatus);
@@ -134,6 +141,7 @@ export class Game {
     window.removeEventListener('blur', this.onBlur);
     this.volumeControl?.removeEventListener('input', this.onVolume);
     this.audio.dispose();
+    this.fxSprites.dispose();
     this.particleView.dispose();
     this.levelView.dispose();
     this.background.dispose();
@@ -145,6 +153,7 @@ export class Game {
     for (const view of this.enemyViews) view.dispose();
     this.scene.clear();
     this.renderer.dispose();
+    this.assets.dispose();
     this.renderer.domElement.remove();
   }
 
@@ -168,16 +177,18 @@ export class Game {
     const visualStep = this.states.state === 'PLAYING' ? dt : 0;
     const effectStep = this.states.state === 'PAUSED' || this.states.state === 'MENU' ? 0 : dt;
     this.particles.update(effectStep);
+    this.fxSprites.update(effectStep);
     this.shake.update(effectStep);
     if (this.reducedMotion.matches) this.shake.clear();
     this.particleView.update();
-    for (const view of this.enemyViews) view.update(visualStep);
+    for (const view of this.enemyViews) view.update(effectStep);
     this.updateHUD();
-    this.projectileView.update(this.projectiles);
-    this.powerupView.update();
+    this.projectileView.update(this.projectiles, visualStep);
+    this.powerupView.update(visualStep);
+    this.levelView.update(visualStep);
     this.checkpointView.update();
-    this.bossView.update();
-    this.playerView.update(this.player, visualStep);
+    this.bossView.update(effectStep);
+    this.playerView.update(this.player, effectStep);
     this.camera.position.x = Math.round(this.cameraController.x) + this.shake.offset.x;
     this.camera.position.y = this.shake.offset.y;
     this.background.update(this.cameraController.x);
@@ -220,9 +231,13 @@ export class Game {
     if (this.projectiles.playerSpawned !== shots) {
       this.audio.play(this.player.weapon.name === 'LASER' ? 'laser' : 'shoot');
       this.playerView.flashMuzzle();
+      this.fxSprites.spawn('fx.muzzle', this.player.position.x + this.player.width / 2 + this.player.aimDirection.x * PLAYER.muzzleDistance,
+        this.player.position.y + this.player.gunPivotY + this.player.aimDirection.y * PLAYER.muzzleDistance,
+        Math.atan2(this.player.aimDirection.y, this.player.aimDirection.x));
     }
     if (this.powerups.collectedCount !== collected) {
       this.audio.play('powerup');
+      this.fxSprites.spawn('fx.pickup', this.player.position.x + this.player.width / 2, this.player.position.y + this.player.height / 2);
       this.particles.burst(this.player.position.x + this.player.width / 2,
         this.player.position.y + this.player.height / 2, FEEDBACK.pickupCount, 0x99edff, true);
     }
@@ -251,6 +266,15 @@ export class Game {
   }
 
   private updateDebug(dt: number): void {
+    if (this.input.wasPressed('graphicsDebug')) {
+      this.graphicsDebugVisible = !this.graphicsDebugVisible;
+      this.playerView.setGraphicsDebug(this.graphicsDebugVisible);
+      this.powerupView.setGraphicsDebug(this.graphicsDebugVisible);
+      this.bossView.setGraphicsDebug(this.graphicsDebugVisible);
+      this.projectileView.setGraphicsDebug(this.graphicsDebugVisible);
+      this.levelView.setGraphicsDebug(this.graphicsDebugVisible);
+      for (const view of this.enemyViews) view.setGraphicsDebug(this.graphicsDebugVisible);
+    }
     if (this.input.wasPressed('debug')) {
       this.debugVisible = !this.debugVisible;
       this.debug.hidden = !this.debugVisible;
@@ -267,6 +291,7 @@ export class Game {
       this.debug.textContent = [
         `FPS ${this.loop.fps} | STEP 60 Hz`,
         `VIRTUAL ${VIEW.width}×${VIEW.height}`,
+        `GRAPHICS F2 ${this.graphicsDebugVisible ? 'ON' : 'OFF'} | CYAN bounds | YELLOW anchor | MAGENTA origin`,
         `CAMERA ${this.camera.position.x}, ${this.camera.position.y}`,
         `TICKS ${this.ticks}`,
         `GAME ${this.states.state} | LIVES ${this.states.lives}`,
@@ -298,6 +323,7 @@ export class Game {
   private resetRun(): void {
     this.audio.silence();
     this.particles.clear();
+    this.fxSprites.clear();
     this.shake.clear();
     this.playerView.resetFeedback();
     this.player.reset(levelData.spawn.x, levelData.spawn.y);
@@ -333,8 +359,9 @@ export class Game {
 
   private spawnEnemy(placement: EnemyPlacement): void {
     const enemy = this.enemies.spawn(placement);
-    const view = new EnemyView(enemy);
+    const view = new EnemyView(enemy, this.assets);
     view.setDebug(this.debugVisible);
+    view.setGraphicsDebug(this.graphicsDebugVisible);
     this.enemyViews.push(view);
     this.scene.add(view.root);
   }
@@ -343,6 +370,7 @@ export class Game {
     this.score.add(SCORE[enemy.kind]);
     if (enemy.kind === 'flying') this.powerups.dropFromEnemy(enemy);
     const boss = enemy.kind === 'boss';
+    this.fxSprites.spawn('fx.explosion', enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2);
     this.particles.burst(enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2,
       boss ? FEEDBACK.bossExplosionCount : FEEDBACK.explosionCount, 0xffc878, true);
     this.audio.play('enemyDeath');
@@ -351,6 +379,7 @@ export class Game {
   }
 
   private onImpact(target: Enemy | Boss | Player | null, x: number, y: number, damaged: boolean): void {
+    this.fxSprites.spawn('fx.hit', x, y);
     this.particles.burst(x, y, FEEDBACK.sparkCount, damaged ? 0xffe3a2 : 0x99edff);
     if (!target || !('kind' in target)) return;
     this.audio.play(damaged ? target.kind === 'boss' ? 'bossHit' : 'enemyHit' : 'shield');

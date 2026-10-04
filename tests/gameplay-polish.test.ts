@@ -36,7 +36,7 @@ describe('posture hitboxes', () => {
     expect(player.collisionBounds).toBe(crouching);
     expect(player.invulnerabilityTimer).toBe(0);
     expect(PLAYER_VISUAL.crouchHeight).not.toBe(PLAYER_COLLISION.crouching.height);
-    expect(Object.keys(PLAYER_ANIMATIONS)).toEqual(['idle', 'run', 'jump', 'fall', 'crouch', 'shoot', 'runShoot', 'jumpShoot', 'crouchShoot']);
+    expect(Object.keys(PLAYER_ANIMATIONS)).toEqual(['idle', 'run', 'jump', 'fall', 'crouch', 'shoot', 'runShoot', 'jumpShoot', 'crouchShoot', 'death']);
   });
 
   it('a torso shot intersects standing but clears crouching with the actual bullet radius', () => {

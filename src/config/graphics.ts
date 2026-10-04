@@ -4,6 +4,7 @@ import { FEEDBACK } from './constants';
 export type SpriteAnchor = 'bottom-center' | 'center';
 export interface VisualConfig {
   width: number; height: number; offsetX: number; offsetY: number; anchor: SpriteAnchor;
+  scaleX?: number; scaleY?: number;
 }
 export const PLAYER_VISUAL = {
   width: 12, height: 26, crouchHeight: 13, offsetX: 0, offsetY: 0, anchor: 'bottom-center',
@@ -19,11 +20,12 @@ export const ENEMY_VISUALS = {
 } as const satisfies Record<string, VisualConfig>;
 
 export type PlayerAnimation = 'idle' | 'run' | 'jump' | 'fall' | 'crouch' | 'shoot'
-  | 'runShoot' | 'jumpShoot' | 'crouchShoot';
+  | 'runShoot' | 'jumpShoot' | 'crouchShoot' | 'death';
 export const PLAYER_ANIMATIONS = {
   idle: { frames: [1], frameTime: 1 }, run: { frames: [0, 1, 2, 1], frameTime: FEEDBACK.runFrameTime },
   jump: { frames: [3], frameTime: 1 }, fall: { frames: [4], frameTime: 1 },
   crouch: { frames: [1], frameTime: 1 }, shoot: { frames: [1], frameTime: 1 },
   runShoot: { frames: [0, 1, 2, 1], frameTime: FEEDBACK.runFrameTime }, jumpShoot: { frames: [3], frameTime: 1 },
   crouchShoot: { frames: [1], frameTime: 1 },
+  death: { frames: [1], frameRate: 6, loop: false },
 } as const satisfies Record<PlayerAnimation, AnimationClip>;

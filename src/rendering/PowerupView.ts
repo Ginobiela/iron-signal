@@ -1,17 +1,18 @@
 import { Group } from 'three';
 import type { PowerupManager } from '../level/PowerupManager';
 import { POWERUPS } from '../config/constants';
-import { PICKUP_VISUAL } from '../config/graphics';
 import { PowerupIcon } from './PowerupIcon';
+import type { AssetManager } from '../core/AssetManager';
+import { DRAW } from '../config/assets';
 
 
 export class PowerupView {
   readonly root = new Group();
   private readonly capsules: PowerupIcon[] = [];
 
-  constructor(private readonly manager: PowerupManager) {
+  constructor(private readonly manager: PowerupManager, assets: AssetManager) {
     for (const pickup of manager.items) {
-      const capsule = new PowerupIcon();
+      const capsule = new PowerupIcon(assets);
       capsule.setKind(pickup.kind);
       capsule.root.visible = false;
       this.capsules.push(capsule);
@@ -19,7 +20,7 @@ export class PowerupView {
     }
   }
 
-  update(): void {
+  update(dt = 0): void {
     for (let i = 0; i < this.capsules.length; i++) {
       const capsule = this.capsules[i];
       const pickup = this.manager.items[i];
@@ -28,10 +29,12 @@ export class PowerupView {
         || Math.floor(pickup.lifeRemaining * POWERUPS.blinkRate) % 2 === 0);
       if (!pickup.active) continue;
       capsule.setKind(pickup.kind);
-      capsule.root.position.set(Math.round(pickup.x + pickup.width / 2 + PICKUP_VISUAL.offsetX),
-        Math.round(pickup.y + PICKUP_VISUAL.offsetY), 2.5);
+      capsule.update(dt, !pickup.grounded);
+      capsule.root.position.set(Math.round(pickup.x + pickup.width / 2), Math.round(pickup.y), DRAW.pickup);
     }
   }
+
+  setGraphicsDebug(visible: boolean): void { for (const capsule of this.capsules) capsule.setGraphicsDebug(visible); }
 
   dispose(): void {
     for (const capsule of this.capsules) capsule.dispose();

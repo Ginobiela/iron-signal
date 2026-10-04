@@ -1,3 +1,4 @@
+import { DRAW } from '../config/assets';
 import { Color, DynamicDrawUsage, InstancedMesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
 import type { ParticleManager } from './ParticleManager';
 
@@ -21,7 +22,7 @@ export class ParticleView {
     let count = 0;
     for (const particle of this.particles.items) {
       if (particle.life <= 0) continue;
-      this.transform.position.set(Math.round(particle.x), Math.round(particle.y), 5);
+      this.transform.position.set(Math.round(particle.x), Math.round(particle.y), DRAW.fx);
       const size = particle.life < particle.duration * 0.3 ? 1 : particle.size;
       this.transform.scale.set(size, size, 1);
       this.transform.updateMatrix();

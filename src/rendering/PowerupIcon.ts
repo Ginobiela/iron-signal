@@ -1,6 +1,11 @@
+import { DRAW } from '../config/assets';
 import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import { PICKUP_VISUAL } from '../config/graphics';
 import type { PowerupKind } from '../level/PowerupManager';
+import type { AssetManager } from '../core/AssetManager';
+import { SpriteVisual } from './SpriteVisual';
+import { GRAPHICS } from '../config/assets';
+import { POWERUPS } from '../config/constants';
 
 const glyphs = {
   M: ['10001', '11011', '10101', '10001', '10001'],
@@ -17,30 +22,46 @@ export class PowerupIcon {
   private readonly color = new MeshBasicMaterial();
   private readonly letters: Record<PowerupKind, Group> = { M: new Group(), S: new Group(), L: new Group() };
   private current: PowerupKind | null = null;
+  private readonly placeholder = new Group();
+  private readonly sprite: SpriteVisual;
+  private elapsed = 0;
 
-  constructor() {
+  constructor(assets: AssetManager) {
+    this.sprite = new SpriteVisual(assets, PICKUP_VISUAL, '', DRAW.pickup);
+    this.sprite.setEntityOrigin(-POWERUPS.size / 2, 0);
+    this.root.add(this.placeholder, this.sprite.root);
     const rect = (parent: Group, x: number, y: number, w: number, h: number,
       material: MeshBasicMaterial, z: number): void => {
       const mesh = new Mesh(this.geometry, material);
       mesh.position.set(x + w / 2, y + h / 2, z);
       mesh.scale.set(w, h, 1); parent.add(mesh);
     };
-    rect(this.root, -7, 0, 14, 14, this.color, 0);
-    rect(this.root, -6, 1, 12, 12, this.dark, 0.1);
-    rect(this.root, -6, 12, 12, 1, this.light, 0.2);
+    rect(this.placeholder, -7, 0, 14, 14, this.color, 0);
+    rect(this.placeholder, -6, 1, 12, 12, this.dark, DRAW.detail);
+    rect(this.placeholder, -6, 12, 12, 1, this.light, DRAW.trim);
     for (const kind of ['M', 'S', 'L'] as const) {
       const letter = this.letters[kind];
       const glyph = glyphs[kind];
       for (let row = 0; row < glyph.length; row++) {
         for (let col = 0; col < 5; col++) {
-          if (glyph[row]?.[col] === '1') rect(letter, -5 + col * 2, 2 + (4 - row) * 2, 2, 2, this.color, 0.2);
+          if (glyph[row]?.[col] === '1') rect(letter, -5 + col * 2, 2 + (4 - row) * 2, 2, 2, this.color, DRAW.trim);
         }
       }
-      this.root.add(letter);
+      this.placeholder.add(letter);
     }
-    this.root.scale.set(PICKUP_VISUAL.width / 14, PICKUP_VISUAL.height / 14, 1);
+    this.placeholder.scale.set(PICKUP_VISUAL.width / 14, PICKUP_VISUAL.height / 14, 1);
+    this.placeholder.position.set(PICKUP_VISUAL.offsetX, PICKUP_VISUAL.offsetY, 0);
     this.setKind('M');
   }
+
+  update(dt: number, airborne = false): void {
+    this.elapsed += dt;
+    this.placeholder.visible = !this.sprite.update(`pickup.${this.current ?? 'M'}`, dt);
+    const angle = airborne ? Math.sin(this.elapsed * GRAPHICS.pickupFrequency) * GRAPHICS.pickupRotation : 0;
+    this.placeholder.rotation.z = this.sprite.mesh.rotation.z = angle;
+  }
+
+  setGraphicsDebug(visible: boolean): void { this.sprite.setDebug(visible); }
 
   setKind(kind: PowerupKind): void {
     if (kind === this.current) return;
@@ -49,5 +70,5 @@ export class PowerupIcon {
     for (const name of ['M', 'S', 'L'] as const) this.letters[name].visible = name === kind;
   }
 
-  dispose(): void { this.geometry.dispose(); this.dark.dispose(); this.light.dispose(); this.color.dispose(); }
+  dispose(): void { this.sprite.dispose(); this.geometry.dispose(); this.dark.dispose(); this.light.dispose(); this.color.dispose(); }
 }

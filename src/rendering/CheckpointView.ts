@@ -1,3 +1,4 @@
+import { DRAW } from '../config/assets';
 import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import type { CheckpointManager } from '../level/Checkpoint';
 
@@ -12,10 +13,10 @@ export class CheckpointView {
   constructor(private readonly manager: CheckpointManager) {
     for (const checkpoint of manager.items) {
       const pole = new Mesh(this.geometry, this.poleMaterial);
-      pole.position.set(checkpoint.x + 1, checkpoint.y + 18, 2);
+      pole.position.set(checkpoint.x + 1, checkpoint.y + 18, DRAW.decoration);
       pole.scale.set(2, 36, 1);
       const flag = new Mesh(this.geometry, this.waitingMaterial);
-      flag.position.set(checkpoint.x + 9, checkpoint.y + 29, 2);
+      flag.position.set(checkpoint.x + 9, checkpoint.y + 29, DRAW.decoration);
       flag.scale.set(14, 10, 1);
       this.flags.push(flag);
       this.root.add(pole, flag);

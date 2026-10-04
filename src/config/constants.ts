@@ -25,6 +25,7 @@ export const CONTROLS = {
   start: ['Enter'],
   pause: ['Escape'],
   debug: ['F1'],
+  graphicsDebug: ['F2'],
 } as const;
 export type Action = keyof typeof CONTROLS;
 

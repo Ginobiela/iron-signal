@@ -40,7 +40,7 @@ export class InputManager {
   private readonly onDown = (event: KeyboardEvent): void => {
     const tag = (event.target as HTMLElement | null)?.tagName;
     if ((tag === 'INPUT' || tag === 'BUTTON' || tag === 'SELECT')
-      && event.code !== 'Escape' && event.code !== 'Enter' && event.code !== 'F1') return;
+      && event.code !== 'Escape' && event.code !== 'Enter' && event.code !== 'F1' && event.code !== 'F2') return;
     if (!handledCodes.has(event.code)) return;
     event.preventDefault();
     if (!event.repeat && !this.held.has(event.code)) this.pressed.add(event.code);

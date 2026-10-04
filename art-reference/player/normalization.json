@@ -1,0 +1,274 @@
+{
+  "sourceSize": [
+    1536,
+    1024
+  ],
+  "sourceMode": "RGBA",
+  "sourceSHA256": "7966bcda367a4b1d0bac9448ee871ce457a29fe73e82a84de879f465280f1a67",
+  "alpha": {
+    "zero": 1107627,
+    "semi": 465237,
+    "opaque": 0,
+    "max": 254
+  },
+  "alphaThreshold": 128,
+  "cell": [
+    32,
+    32
+  ],
+  "scale": 0.07142857142857142,
+  "origin": [
+    16.0,
+    32
+  ],
+  "rasterPhaseY": {
+    "idle": [
+      -3,
+      -3,
+      -3,
+      -3
+    ],
+    "run": [
+      3,
+      3,
+      4,
+      3,
+      3,
+      5
+    ],
+    "crouch": [
+      0,
+      0
+    ]
+  },
+  "animations": {
+    "idle": {
+      "sheetSize": [
+        128,
+        32
+      ],
+      "frames": [
+        {
+          "bbox": [
+            49,
+            111,
+            248,
+            399
+          ],
+          "area": 33058,
+          "originX": 133.0,
+          "baselineY": 399,
+          "normalizedBBox": [
+            10,
+            12,
+            24,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            298,
+            111,
+            505,
+            399
+          ],
+          "area": 33402,
+          "originX": 381.0,
+          "baselineY": 399,
+          "normalizedBBox": [
+            10,
+            12,
+            25,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            554,
+            111,
+            759,
+            399
+          ],
+          "area": 33375,
+          "originX": 637.0,
+          "baselineY": 399,
+          "normalizedBBox": [
+            10,
+            12,
+            25,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            807,
+            110,
+            1013,
+            399
+          ],
+          "area": 33565,
+          "originX": 890.0,
+          "baselineY": 399,
+          "normalizedBBox": [
+            10,
+            12,
+            25,
+            32
+          ]
+        }
+      ]
+    },
+    "run": {
+      "sheetSize": [
+        192,
+        32
+      ],
+      "frames": [
+        {
+          "bbox": [
+            25,
+            427,
+            299,
+            702
+          ],
+          "area": 34015,
+          "originX": 145.0,
+          "baselineY": 702,
+          "normalizedBBox": [
+            7,
+            12,
+            27,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            329,
+            427,
+            535,
+            702
+          ],
+          "area": 28211,
+          "originX": 401.0,
+          "baselineY": 702,
+          "normalizedBBox": [
+            11,
+            12,
+            26,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            517,
+            421,
+            800,
+            694
+          ],
+          "area": 33800,
+          "originX": 660.0,
+          "baselineY": 694,
+          "normalizedBBox": [
+            6,
+            12,
+            26,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            801,
+            428,
+            1046,
+            702
+          ],
+          "area": 33218,
+          "originX": 912.0,
+          "baselineY": 702,
+          "normalizedBBox": [
+            8,
+            12,
+            26,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            1066,
+            431,
+            1286,
+            704
+          ],
+          "area": 28845,
+          "originX": 1142.0,
+          "baselineY": 704,
+          "normalizedBBox": [
+            11,
+            12,
+            26,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            1265,
+            422,
+            1526,
+            694
+          ],
+          "area": 33495,
+          "originX": 1393.0,
+          "baselineY": 694,
+          "normalizedBBox": [
+            7,
+            12,
+            25,
+            32
+          ]
+        }
+      ]
+    },
+    "crouch": {
+      "sheetSize": [
+        64,
+        32
+      ],
+      "frames": [
+        {
+          "bbox": [
+            41,
+            808,
+            284,
+            1008
+          ],
+          "area": 29653,
+          "originX": 131.0,
+          "baselineY": 1008,
+          "normalizedBBox": [
+            10,
+            18,
+            27,
+            32
+          ]
+        },
+        {
+          "bbox": [
+            298,
+            807,
+            537,
+            1008
+          ],
+          "area": 29184,
+          "originX": 387.0,
+          "baselineY": 1008,
+          "normalizedBBox": [
+            10,
+            18,
+            27,
+            32
+          ]
+        }
+      ]
+    }
+  }
+}
