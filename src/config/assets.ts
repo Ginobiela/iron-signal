@@ -84,9 +84,14 @@ export const ASSETS: Record<string, SpriteAsset> = {
   'turret.idle': sprite('sprites/enemies/turret/idle', 24, 24),
   'turret.shoot': sprite('sprites/enemies/turret/shoot', 24, 24, 2, 10),
   'turret.death': sprite('sprites/enemies/turret/death', 24, 24, 4, 10, 'bottom-center', false),
-  'flying.fly': sprite('sprites/enemies/flying/fly', 32, 24, 4, 10, 'center'),
-  'flying.hit': sprite('sprites/enemies/flying/hit', 32, 24, 2, 12, 'center'),
-  'flying.death': sprite('sprites/enemies/flying/death', 32, 24, 4, 12, 'center', false),
+  'flying.fly': { ...sprite('sprites/enemies/flying/flying_fly', 32, 24, 4, 10, 'center'),
+    url: 'assets/sprites/enemies/flying/flying_fly.png' },
+  'flying.hit': { ...sprite('sprites/enemies/flying/flying_hit', 32, 24, 1, 12, 'center'),
+    url: 'assets/sprites/enemies/flying/flying_hit.png' },
+  'flying.death': { ...sprite('sprites/enemies/flying/flying_death', 32, 24, 6, 12, 'center', false),
+    url: 'assets/sprites/enemies/flying/flying_death.png' },
+  'flying.carrier.pod': { ...sprite('sprites/enemies/flying/flying_carrier_pod', 12, 10, 1, 1),
+    url: 'assets/sprites/enemies/flying/flying_carrier_pod.png' },
   'pickup.M': sprite('sprites/weapons/machinegun', 16, 16, 4, 8),
   'pickup.S': sprite('sprites/weapons/spread', 16, 16, 4, 8),
   'pickup.L': sprite('sprites/weapons/laser', 16, 16, 4, 8),
@@ -114,6 +119,13 @@ export const ASSETS: Record<string, SpriteAsset> = {
 for (const [id, asset] of Object.entries(ASSETS)) {
   if (id === 'player.run' || id.startsWith('player.runShoot_')) asset.clip.syncGroup = 'player.run';
   if (id.startsWith('background.') || id === 'environment.ground' || id === 'environment.platform') asset.tileable = true;
+}
+for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
+  ASSETS[`flying.carrier.${kind}`] = {
+    ...sprite('sprites/enemies/flying/flying_carrier_labels', 3, 5, 3, 1),
+    url: 'assets/sprites/enemies/flying/flying_carrier_labels.png',
+    visual: { ...visual(3, 5), offsetX: 0.5, offsetY: 3 }, clip: { frames: [frame], frameRate: 1, loop: true },
+  };
 }
 
 export const DRAW = {

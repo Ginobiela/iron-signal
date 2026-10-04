@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import type { Enemy } from '../entities/enemies/Enemy';
 import { ENEMY_VISUALS } from '../config/graphics';
-import { PowerupIcon } from './PowerupIcon';
+import { FlyingCargoVisual } from './FlyingCargoVisual';
 import type { AssetManager } from '../core/AssetManager';
 import { SpriteVisual } from './SpriteVisual';
 import { DRAW, GRAPHICS } from '../config/assets';
@@ -26,7 +26,7 @@ export class EnemyView {
   private readonly healthBar: Mesh;
   private readonly healthTrack: Mesh;
   private elapsed = 0;
-  private readonly cargo: PowerupIcon | null;
+  private readonly cargo: FlyingCargoVisual | null;
   private readonly sprite: SpriteVisual;
   private debugVisible = false;
   private lastAttackTimer: number;
@@ -90,11 +90,10 @@ export class EnemyView {
       this.healthTrack.position.y -= enemy.height / 2;
       this.healthBar.position.y -= enemy.height / 2;
     }
-    this.cargo = enemy.weaponDrop ? new PowerupIcon(assets) : null;
+    this.cargo = enemy.weaponDrop ? new FlyingCargoVisual(assets) : null;
     if (this.cargo && enemy.weaponDrop) {
       this.cargo.setKind(enemy.weaponDrop);
-      this.cargo.root.scale.multiplyScalar(0.7);
-      this.cargo.root.position.set(0, -visual.height / 2 - 10, DRAW.overlay);
+      this.cargo.root.position.set(0, -visual.height / 2 - 6, DRAW.overlay);
       this.root.add(this.cargo.root);
     }
     this.root.position.z = DRAW.entity;
