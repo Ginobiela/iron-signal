@@ -1,0 +1,47 @@
+:root {
+  font-family: "Courier New", monospace;
+  color: #dbe0ce;
+  background: #0a1018;
+  font-synthesis: none;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+#app { height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; padding: 20px; gap: 14px; }
+header, footer { width: min(100%, 820px); justify-self: center; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: bold; letter-spacing: 2px; }
+.badge { color: #d99758; font-size: 11px; letter-spacing: 1px; }
+#viewport { position: relative; display: grid; place-items: center; min-width: 0; min-height: 0; overflow: hidden; }
+canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 11px; color: #99acae; }
+footer p { width: 100%; margin: 0; font-size: 11px; line-height: 1.5; }
+.audio-control { display: inline-flex; align-items: center; gap: 8px; }
+#audio-volume { width: 85px; height: 14px; margin: 0; accent-color: #d99758; }
+#audio-volume:focus-visible { outline: 2px solid #ffe3a2; outline-offset: 3px; }
+#game-menu:not([hidden]) { animation: menu-enter 120ms ease-out; }
+#game-menu[data-state="PLAYER_DEAD"] { border-color: #ff776b; }
+#game-menu[data-state="LEVEL_COMPLETE"] { border-color: #99edff; }
+#powerup-notice:not([hidden]) { animation: notice-enter 100ms ease-out; }
+@keyframes menu-enter { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes notice-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  #game-menu:not([hidden]), #powerup-notice:not([hidden]) { animation: none; }
+}
+#combat-status { width: 100%; color: #e4c69b; line-height: 1.5; white-space: pre-line; }
+#boss-status { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: min(340px, 85%); padding: 6px 10px; background: #101e2cf0; color: #e4dbc5; font-size: 11px; text-align: center; white-space: pre-line; line-height: 1.5; }
+.boss-track { height: 6px; margin-top: 4px; border: 1px solid #456260; background: #172631; }
+.boss-fill { height: 100%; background: #99edff; }
+#boss-status:not([hidden]) ~ #powerup-notice { top: 76px; }
+#game-menu { position: absolute; max-width: min(360px, 90%); padding: 24px; background: #101e2cf0; border: 2px solid #e4c69b; color: #ffe3a2; font-size: 14px; line-height: 1.8; text-align: center; white-space: pre-line; pointer-events: none; }
+#powerup-notice { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); max-width: 95%; padding: 8px 12px; background: #172631; border: 1px solid #e4c69b; color: #ffe3a2; font-size: 12px; text-align: center; pointer-events: none; }
+#debug { position: absolute; top: 8px; left: 8px; margin: 0; padding: 10px; background: #080e18ed; color: #bdecc0; font-size: 12px; line-height: 1.6; pointer-events: none; }
+#error { position: absolute; max-width: 320px; padding: 20px; background: #331c22; line-height: 1.5; }
+[hidden] { display: none !important; }
+@media (max-width: 480px), (max-height: 450px) {
+  #app { padding: 8px; gap: 6px; }
+  header { font-size: 13px; letter-spacing: 1px; }
+  .badge, footer { font-size: 9px; }
+  footer p { display: none; }
+  #debug { font-size: 10px; padding: 6px; }
+  #game-menu { font-size: 10px; padding: 12px; line-height: 1.5; }
+}
