@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Mesh, NearestFilter, Texture, TextureLoader } from 'three';
+import { Mesh, MeshBasicMaterial, NearestFilter, Texture, TextureLoader } from 'three';
 import { AssetManager } from '../src/core/AssetManager';
 import type { SpriteAsset } from '../src/config/assets';
+import { ASSETS } from '../src/config/assets';
 import { SpriteAnimator } from '../src/rendering/SpriteAnimator';
 import { SpriteVisual } from '../src/rendering/SpriteVisual';
 import { spriteCenterY, writeFrameUV } from '../src/rendering/spriteFrames';
@@ -75,6 +76,48 @@ describe('sheet/atlas UVs and origins', () => {
 });
 
 describe('central texture loading and fallback', () => {
+  it('uses supplied soldier sheets for idle, run, shoot, death and flip without changing gameplay', async () => {
+    const load = vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async url =>
+      new Texture({ width: url.includes('_idle') ? 128 : url.includes('_shoot') ? 64 : 192, height: 32 } as HTMLImageElement));
+    const assets = new AssetManager(Object.fromEntries(Object.entries(ASSETS).filter(([id]) => id.startsWith('soldier.'))));
+    await assets.preload(); expect(load).toHaveBeenCalledTimes(4);
+    const enemy = new Soldier(120, 44); enemy.active = true;
+    const view = new EnemyView(enemy, assets);
+    const position = { ...enemy.position }, health = enemy.health;
+    const sprite = (): Mesh => {
+      let found: Mesh | undefined;
+      view.root.traverse(node => {
+        if (node instanceof Mesh && node.visible && !Array.isArray(node.material)
+          && node.material instanceof MeshBasicMaterial && node.material.map) found = node;
+      });
+      expect(found).toBeDefined(); return found!;
+    };
+    view.update(0); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(0.5 / 128);
+    expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('soldier.idle'));
+    view.update(0.18); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(32.5 / 128);
+    enemy.velocity.x = 32;
+    for (const direction of [1, -1] as const) {
+      enemy.direction = direction; view.update(0);
+      expect(sprite().scale.x).toBe(direction * 32);
+      expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('soldier.run'));
+    }
+    view.update(0.11); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(32.5 / 192);
+    enemy.attackTimer = 0; view.update(0); enemy.attackTimer = 1.6; view.update(0);
+    expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(0.5 / 64);
+    expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('soldier.shoot'));
+    expect(enemy.attackTimer).toBe(1.6); expect(enemy.position).toEqual(position);
+    expect(enemy.health).toBe(health); expect(enemy.width).toBe(12); expect(enemy.height).toBe(24);
+    enemy.hitFlashTimer = 0.1; view.update(0);
+    const mesh = sprite();
+    expect(mesh.material).toBeInstanceOf(MeshBasicMaterial);
+    if (mesh.material instanceof MeshBasicMaterial) expect(mesh.material.color.getHex()).toBe(0xfff3c4);
+    enemy.die(); view.update(0); expect(view.root.visible).toBe(true);
+    expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('soldier.death'));
+    expect(enemy.alive).toBe(false); expect(enemy.active).toBe(false);
+    view.update(0.2); expect(view.root.visible).toBe(true);
+    view.update(0.41); expect(view.root.visible).toBe(false);
+    view.dispose(); assets.dispose();
+  });
   it('loads a shared URL once, uses nearest filtering, and exposes a synchronous registry', async () => {
     const map = texture(); const load = vi.spyOn(TextureLoader.prototype, 'loadAsync').mockResolvedValue(map);
     const assets = new AssetManager({ idle: asset(), run: asset(), future: { ...asset(), url: undefined } });
