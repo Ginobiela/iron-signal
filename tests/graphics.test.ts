@@ -20,6 +20,17 @@ const asset = (url = 'assets/test.png'): SpriteAsset => ({
 const texture = (): Texture<HTMLImageElement> => new Texture({ width: 64, height: 32 } as HTMLImageElement);
 
 describe('sprite scheduling', () => {
+  it('preserves frame and partial frame time between compatible running variants', () => {
+    const clips = Object.fromEntries(['run', 'diagonal', 'up', 'shoot'].map(name =>
+      [name, { frames: [0, 1, 2, 3, 4, 5], frameRate: 11, syncGroup: 'run' }]));
+    const animator = new SpriteAnimator({ ...clips, idle: { frames: [0, 1], frameRate: 6 } });
+    animator.update('run', 0); animator.update('run', 4.5 / 11);
+    for (const name of ['diagonal', 'up', 'shoot', 'run']) {
+      animator.update(name, 0); expect(animator.frame).toBe(4);
+    }
+    animator.update('run', 0.6 / 11); expect(animator.frame).toBe(5);
+    animator.update('idle', 0); expect(animator.frame).toBe(0);
+  });
   it('play does not restart a clip, supports pause/flip and independent FPS', () => {
     const animator = new SpriteAnimator({ run: { frames: [0, 1, 2, 3], frameRate: 10 } });
     animator.play('run'); animator.tick(0.15); animator.play('run'); animator.tick(0.1);

@@ -8,6 +8,13 @@ import { SpriteVisual } from './SpriteVisual';
 import type { AssetManager } from '../core/AssetManager';
 import { DRAW } from '../config/assets';
 
+const groundedSprites: Partial<Record<PlayerAnimation, Record<'horizontal' | 'up' | 'diagonal', string>>> = {
+  idle: { horizontal: 'player.idle', up: 'player.idle_up', diagonal: 'player.idle_diagonal' },
+  run: { horizontal: 'player.run', up: 'player.runShoot_up', diagonal: 'player.runShoot_diagonal' },
+  shoot: { horizontal: 'player.shoot_horizontal', up: 'player.shoot_up', diagonal: 'player.shoot_diagonal' },
+  runShoot: { horizontal: 'player.runShoot_horizontal', up: 'player.runShoot_up', diagonal: 'player.runShoot_diagonal' },
+};
+
 export class PlayerView {
   readonly root = new Group();
   private readonly silhouette = new Group();
@@ -107,7 +114,8 @@ export class PlayerView {
     // Baked rifles cannot represent an unavailable shooting/airborne/upward pose correctly.
     const poseFallback = player.alive && player.grounded && !player.shooting && aim === 'horizontal';
     const baseMatchesAim = this.animation === 'death' || aim === 'horizontal' || !this.assets.getSpriteSheet(base)?.includesWeapon;
-    const hasSprite = this.sprite.update(`${base}_${aim}`, dt, player.direction < 0,
+    const spriteId = groundedSprites[this.animation]?.[aim] ?? `${base}_${aim}`;
+    const hasSprite = this.sprite.update(spriteId, dt, player.direction < 0,
       poseFallback ? fallback : '', baseMatchesAim ? base : '', poseFallback);
     this.silhouette.visible = !hasSprite;
     this.sprite.setPlaceholderBounds(PLAYER_VISUAL.width, player.crouching ? PLAYER_VISUAL.crouchHeight : PLAYER_VISUAL.height);

@@ -42,6 +42,7 @@ describe('supplied player art', () => {
   });
   it.each([
     ['idle', 'up', 0, 0, 1], ['idle', 'diagonal', 0, Math.SQRT1_2, Math.SQRT1_2],
+    ['run', 'up', 95, 0, 1], ['run', 'diagonal', 95, Math.SQRT1_2, Math.SQRT1_2],
     ['shoot', 'horizontal', 0, 1, 0], ['shoot', 'up', 0, 0, 1], ['shoot', 'diagonal', 0, Math.SQRT1_2, Math.SQRT1_2],
     ['runShoot', 'horizontal', 95, 1, 0], ['runShoot', 'up', 95, 0, 1],
     ['runShoot', 'diagonal', 95, Math.SQRT1_2, Math.SQRT1_2],
@@ -52,9 +53,12 @@ describe('supplied player art', () => {
       new Texture({ width: 192, height: 32 } as HTMLImageElement));
     const assets = new AssetManager(); await assets.preload();
     const player = new Player(62, 44), view = new PlayerView(assets);
-    player.grounded = animation !== 'jumpShoot'; player.shooting = animation !== 'idle'; player.velocity.x = speed;
+    player.grounded = animation !== 'jumpShoot'; player.shooting = animation !== 'idle' && animation !== 'run'; player.velocity.x = speed;
     player.aimDirection.x = ax; player.aimDirection.y = ay;
-    const expected = assets.getTexture(`player.${animation}_${aim}`);
+    const assetId = `player.${animation === 'run' ? 'runShoot' : animation}_${aim}`;
+    const expected = assets.getTexture(assetId);
+    const fire = vi.spyOn(player.weapon, 'fire'), cooldown = vi.spyOn(player.weapon, 'update');
+    const shooting = player.shooting;
     const position = { ...player.position }, bounds = { ...player.collisionBounds }, direction = { ...player.aimDirection };
     for (const facing of [1, -1] as const) {
       player.direction = facing; view.update(player, 1 / 60);
@@ -66,8 +70,9 @@ describe('supplied player art', () => {
       });
       expect(matchingSprite).toBe(true); expect(view.animation).toBe(animation);
       expect(player.position).toEqual(position); expect(player.collisionBounds).toEqual(bounds); expect(player.aimDirection).toEqual(direction);
+      expect(player.shooting).toBe(shooting); expect(fire).not.toHaveBeenCalled(); expect(cooldown).not.toHaveBeenCalled();
     }
-    expect(ASSETS[`player.${animation}_${aim}`]?.includesWeapon).toBe(true);
+    expect(ASSETS[assetId]?.includesWeapon).toBe(true);
     view.dispose(); assets.dispose();
   });
   it.each([[1, 0], [0, 1], [Math.SQRT1_2, Math.SQRT1_2]] as const)(

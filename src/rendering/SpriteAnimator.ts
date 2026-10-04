@@ -1,6 +1,7 @@
 export interface AnimationClip {
   frames: readonly number[]; frameTime?: number; frameRate?: number; loop?: boolean;
   onComplete?: () => void;
+  syncGroup?: string;
 }
 
 // Frame indices also map directly to cells in a sprite sheet; physics never reads them.
@@ -19,8 +20,12 @@ export class SpriteAnimator {
     const clip = this.clips[name];
     if (!clip || clip.frames.length === 0) return false;
     if (this.current === name) return true;
-    this.current = name; this.elapsed = 0; this.completed = false;
-    this.frame = clip.frames[0] ?? 0;
+    const previous = this.clips[this.current];
+    const synchronized = clip.syncGroup !== undefined && clip.syncGroup === previous?.syncGroup
+      && clip.loop !== false && previous.loop !== false && clip.frames.length === previous.frames.length
+      && clip.frameRate === previous.frameRate && clip.frameTime === previous.frameTime;
+    this.current = name; this.completed = false;
+    if (!synchronized) { this.elapsed = 0; this.frame = clip.frames[0] ?? 0; }
     return true;
   }
 

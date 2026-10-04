@@ -108,6 +108,7 @@ export const ASSETS: Record<string, SpriteAsset> = {
   'environment.decoration': sprite('sprites/environment/decoration', 32, 32),
 };
 for (const [id, asset] of Object.entries(ASSETS)) {
+  if (id === 'player.run' || id.startsWith('player.runShoot_')) asset.clip.syncGroup = 'player.run';
   if (id.startsWith('background.') || id === 'environment.ground' || id === 'environment.platform') asset.tileable = true;
 }
 
