@@ -9,6 +9,7 @@ import { spriteCenterY, writeFrameUV } from '../src/rendering/spriteFrames';
 import { Player } from '../src/entities/Player';
 import { PlayerView } from '../src/rendering/PlayerView';
 import { Soldier } from '../src/entities/enemies/Soldier';
+import { Runner } from '../src/entities/enemies/Runner';
 import { EnemyView } from '../src/rendering/EnemyView';
 import { CollisionSystem } from '../src/collision/CollisionSystem';
 
@@ -76,6 +77,37 @@ describe('sheet/atlas UVs and origins', () => {
 });
 
 describe('central texture loading and fallback', () => {
+  it('renders runner sheets and death without altering movement, hitbox or health', async () => {
+    vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async () =>
+      new Texture({ width: 144, height: 24 } as HTMLImageElement));
+    const assets = new AssetManager(Object.fromEntries(Object.entries(ASSETS).filter(([id]) => id.startsWith('runner.'))));
+    await assets.preload();
+    const enemy = new Runner(120, 44); enemy.active = true; enemy.velocity.x = 80;
+    const view = new EnemyView(enemy, assets);
+    const sprite = (): Mesh => {
+      let found: Mesh | undefined;
+      view.root.traverse(node => {
+        if (node instanceof Mesh && node.visible && node.material instanceof MeshBasicMaterial && node.material.map) found = node;
+      });
+      expect(found).toBeDefined(); return found!;
+    };
+    view.update(0); view.update(0.26);
+    expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(72.5 / 144);
+    for (const direction of [1, -1] as const) {
+      enemy.direction = direction; view.update(0); expect(sprite().scale.x).toBe(direction * 24);
+    }
+    expect(enemy.position).toEqual({ x: 120, y: 44 }); expect(enemy.velocity.x).toBe(80);
+    expect(enemy.width).toBe(14); expect(enemy.height).toBe(16); expect(enemy.health).toBe(enemy.maxHealth);
+    expect(view.root.position.x).toBe(127); expect(view.root.position.y).toBe(44); expect(sprite().position.y).toBe(12);
+    enemy.hitFlashTimer = 0.1; view.update(0);
+    const mesh = sprite();
+    if (mesh.material instanceof MeshBasicMaterial) expect(mesh.material.color.getHex()).toBe(0xfff3c4);
+    enemy.die(); view.update(0); expect(view.root.visible).toBe(true);
+    expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('runner.death'));
+    expect(enemy.active).toBe(false); expect(enemy.alive).toBe(false);
+    view.update(0.61); expect(view.root.visible).toBe(false);
+    view.dispose(); assets.dispose();
+  });
   it('uses supplied soldier sheets for idle, run, shoot, death and flip without changing gameplay', async () => {
     const load = vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async url =>
       new Texture({ width: url.includes('_idle') ? 128 : url.includes('_shoot') ? 64 : 192, height: 32 } as HTMLImageElement));
