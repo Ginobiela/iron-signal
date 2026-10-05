@@ -25,6 +25,13 @@ export class Menu {
     this.lastText = text;
     this.element.dataset.state = states.state;
     this.element.textContent = text;
+    if (states.state === 'MENU') {
+      const link = document.createElement('a');
+      link.href = './animation-viewer.html';
+      link.className = 'viewer-link';
+      link.textContent = 'ANIMATION VIEWER';
+      this.element.append(document.createElement('br'), link);
+    }
     this.element.hidden = text === '';
   }
 }

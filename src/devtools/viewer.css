@@ -1,0 +1,25 @@
+:root { font-family: 'Courier New', monospace; color: #dbe0ce; background: #0a1018; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1100px; margin: auto; padding: 20px; }
+header, .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+header { justify-content: space-between; } h1 { font-size: 20px; } a { color: #99edff; }
+button, select { background: #172631; color: inherit; border: 1px solid #456260; padding: 8px; font: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid #ffe3a2; outline-offset: 2px; }
+label { display: inline-flex; align-items: center; gap: 8px; } input[type=range] { width: 120px; }
+canvas { display: block; image-rendering: pixelated; }
+.preview-scroll, .sheet-scroll { overflow: auto; max-width: 100%; }
+.preview-scroll { border: 1px solid #456260; margin-bottom: 16px; }
+#preview { position: relative; margin: auto; flex-shrink: 0; }
+[data-background=checkerboard], #strip canvas, #sheet { background: repeating-conic-gradient(#263138 0% 25%, #192127 0% 50%) 0 0 / 16px 16px; }
+[data-background=black] { background: #000; } [data-background=white] { background: #fff; }
+.guide { position: absolute; pointer-events: none; z-index: 1; }
+.anchor { color: #ffdd55; transform: translate(-50%, -50%); font-weight: bold; line-height: 1; }
+.bounds { border: 1px solid #00eaff; } .baseline { border-top: 1px solid #b2cb97; width: 100%; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #101e2c; padding: 16px; line-height: 1.6; }
+#strip { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; }
+#strip button { flex-shrink: 0; } #strip button[aria-pressed=true] { border-color: #ffe3a2; }
+details { margin: 16px 0; } summary { cursor: pointer; color: #99edff; padding: 8px 0; }
+#sheet { max-width: none; } p { font-size: 12px; line-height: 1.6; }
+[hidden] { display: none !important; }
+@media (max-width: 480px) { main { padding: 10px; } h1 { font-size: 16px; } .controls { gap: 8px; } }

@@ -378,3 +378,12 @@ Tramo visual preparado: x=0..1024 (cuatro pantallas). Métrica 16x16 para ground
 Ground y plataformas ya usan 12 PNG dentro del slice; faltan los otros 18 PNG de walls/props/animated/background, con fallback conservado. Contrato exacto de 30 PNG, capas, anchors y activación: [environment-spec.md](art-reference/environment-spec.md). No se generaron imágenes ni se implementó el editor.
 
 Detalles de la primera entrega de tiles: [environment-tiles-integration.md](art-reference/environment-tiles-integration.md).
+## Animation Viewer
+
+Abre **ANIMATION VIEWER** desde el menú principal o visita `animation-viewer.html` (también funciona al refrescar en GitHub Pages). Es una entrada independiente de Vite: no importa Game ni inicia niveles, físicas, audio o combate. Carga solamente los sprites de personajes.
+
+Selecciona entidad y animación para reproducir, pausar, recorrer frames, cambiar FPS/escala, invertir horizontalmente y revisar anchor, bounds y baseline. Incluye comparación con Player idle, tira seleccionable de frames y textura completa/rectángulos de atlas. Los cambios afectan únicamente al preview. Los clips non-loop se detienen al terminar; PLAY vuelve a iniciarlos.
+
+Atajos: Space play/pause, izquierda/derecha frame, F flip, A anchor, B bounds y G baseline. Se ignoran cuando el foco está en inputs/selects. `LOADED` indica PNG real; `FALLBACK` una entrada prevista sin URL; `MISSING` una URL que no pudo cargar. Los dos últimos muestran un rectángulo de diagnóstico, sin sustituir silenciosamente otra animación.
+
+Las entidades y clips se descubren desde `ASSETS`, usando los paths `assets/sprites/player/`, `assets/sprites/enemies/` y `assets/sprites/boss/`. Un personaje nuevo con IDs `nombre.animación` y un path en esas carpetas aparece automáticamente; no requiere una clase de gameplay ni cambios en el visor. Para otros directorios, amplía el filtro de `src/devtools/animationViewerRegistry.ts`.

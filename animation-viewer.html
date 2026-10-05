@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Iron Signal · Animation Viewer</title></head>
+<body>
+<main>
+  <header><h1>ANIMATION VIEWER</h1><a href="./index.html">BACK TO GAME</a></header>
+  <div class="controls"><label>Entity <select id="entity"></select></label><label>Animation <select id="animation"></select></label><strong id="status" role="status">LOADING…</strong></div>
+  <div class="preview-scroll"><div id="preview" data-background="checkerboard"></div></div>
+  <div class="controls">
+    <button id="play">PAUSE</button><button id="previous">← PREVIOUS FRAME</button><button id="next">NEXT FRAME →</button><output id="frame"></output>
+    <label>FPS <input id="fps" type="range" min="1" max="30" /><output id="fps-value"></output></label><button id="reset-fps">RESET FPS</button>
+    <label>Scale <select id="scale"><option value="1">1x</option><option value="2">2x</option><option value="4" selected>4x</option><option value="8">8x</option></select></label>
+    <label><input id="flip" type="checkbox" /> Flip Horizontal</label>
+    <label>Background <select id="background"><option>checkerboard</option><option>black</option><option>white</option></select></label>
+  </div>
+  <div class="controls">
+    <label><input id="anchor" type="checkbox" checked /> SHOW ANCHOR</label><label><input id="bounds" type="checkbox" /> SHOW BOUNDS</label><label><input id="baseline" type="checkbox" checked /> SHOW BASELINE</label>
+    <label><input id="compare" type="checkbox" /> COMPARE SCALE (Player idle)</label>
+  </div>
+  <pre id="metadata"></pre>
+  <details open><summary>FRAME STRIP · click to select</summary><div id="strip"></div></details>
+  <details><summary>SHOW SPRITESHEET / ATLAS</summary><div class="sheet-scroll"><canvas id="sheet"></canvas></div><p id="sheet-info"></p></details>
+  <p>Space: Play/Pause · ←/→: frame · F: flip · A: anchor · B: bounds · G: baseline</p>
+  <p id="error" role="alert" hidden></p>
+</main>
+<script type="module" src="/src/devtools/main.ts"></script>
+</body></html>

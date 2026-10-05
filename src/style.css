@@ -37,6 +37,8 @@ footer p { width: 100%; margin: 0; font-size: 11px; line-height: 1.5; }
 #debug { position: absolute; top: 8px; left: 8px; margin: 0; padding: 10px; background: #080e18ed; color: #bdecc0; font-size: 12px; line-height: 1.6; pointer-events: none; }
 #error { position: absolute; max-width: 320px; padding: 20px; background: #331c22; line-height: 1.5; }
 [hidden] { display: none !important; }
+.viewer-link { display: inline-block; margin-top: 12px; padding: 6px 12px; border: 1px solid currentColor; color: #99edff; pointer-events: auto; text-decoration: none; }
+.viewer-link:focus-visible { outline: 2px solid #ffe3a2; outline-offset: 3px; }
 @media (max-width: 480px), (max-height: 450px) {
   #app { padding: 8px; gap: 6px; }
   header { font-size: 13px; letter-spacing: 1px; }
