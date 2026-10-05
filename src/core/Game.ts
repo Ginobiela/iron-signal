@@ -65,7 +65,7 @@ export class Game {
   private readonly playerHitPoint = { x: 0, y: 0 };
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   private readonly checkpoints = new CheckpointManager({ ...levelData.spawn, name: 'Inicio' }, levelData.checkpoints);
-  private readonly checkpointView = new CheckpointView(this.checkpoints);
+  private readonly checkpointView = new CheckpointView(this.checkpoints, this.assets);
   private readonly levelView: LevelView;
   private readonly background: ParallaxBackground;
   private readonly player = new Player(levelData.spawn.x, levelData.spawn.y);
@@ -190,7 +190,7 @@ export class Game {
     this.projectileView.update(this.projectiles, visualStep);
     this.powerupView.update(visualStep);
     this.levelView.update(visualStep);
-    this.checkpointView.update();
+    this.checkpointView.update(visualStep);
     this.bossView.update(effectStep);
     this.playerView.update(this.player, effectStep);
     this.camera.position.x = Math.round(this.cameraController.x) + this.shake.offset.x;
@@ -280,6 +280,7 @@ export class Game {
       this.bossView.setGraphicsDebug(this.graphicsDebugVisible);
       this.projectileView.setGraphicsDebug(this.graphicsDebugVisible);
       this.levelView.setGraphicsDebug(this.graphicsDebugVisible);
+      this.checkpointView.setGraphicsDebug(this.graphicsDebugVisible);
       for (const view of this.enemyViews) view.setGraphicsDebug(this.graphicsDebugVisible);
     }
     if (this.input.wasPressed('debug')) {

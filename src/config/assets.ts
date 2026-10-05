@@ -2,6 +2,8 @@ import type { AnimationClip } from '../rendering/SpriteAnimator';
 import type { VisualConfig } from './graphics';
 import { VFX_EFFECTS } from './vfx';
 import type { VfxConfig } from './vfx';
+import { ENVIRONMENT_ASSETS } from './environment';
+import type { EnvironmentAsset } from './environment';
 
 export interface AtlasFrame { x: number; y: number; width: number; height: number }
 export interface SpriteSheet {
@@ -125,6 +127,14 @@ for (const [id, effect] of Object.entries(VFX_EFFECTS)) {
   if (spec.enabled) asset.url = asset.path;
   ASSETS[id] = asset;
 }
+for (const [id, definition] of Object.entries(ENVIRONMENT_ASSETS)) {
+  const spec: EnvironmentAsset = definition;
+  const asset = sprite(`environment/${spec.file}`, spec.width, spec.height, spec.frames ?? 1,
+    spec.fps ?? 1, id.startsWith('background.') ? 'center' : 'bottom-center', (spec.frames ?? 1) > 1);
+  asset.tileable = spec.tileable;
+  if (spec.enabled) asset.url = asset.path;
+  ASSETS[id] = asset;
+}
 for (const [id, asset] of Object.entries(ASSETS)) {
   if (id === 'player.run' || id.startsWith('player.runShoot_')) asset.clip.syncGroup = 'player.run';
   if (id.startsWith('background.') || id === 'environment.ground' || id === 'environment.platform') asset.tileable = true;
@@ -140,6 +150,7 @@ for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
 export const DRAW = {
   backgroundFar: -6, backgroundMid: -4, backgroundNear: -2,
   level: 0, levelSurface: 1, decoration: 2, pickup: 2.5, entity: 3,
+  levelBackDecor: -0.5, levelTiles: 1.2,
   projectile: 4, fxBehind: 2.8, fx: 5, foreground: 6, debug: 7,
   detail: 0.1, trim: 0.2, overlay: 0.3, collider: 0.4, topDetail: 0.5,
 } as const;

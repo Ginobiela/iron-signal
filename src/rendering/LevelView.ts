@@ -4,6 +4,8 @@ import type { AssetManager } from '../core/AssetManager';
 import { TiledVisual } from './TiledVisual';
 import { SpriteVisual } from './SpriteVisual';
 import { DRAW } from '../config/assets';
+import { EnvironmentView } from './EnvironmentView';
+import { ENVIRONMENT } from '../config/environment';
 
 export class LevelView {
   private readonly geometry = new PlaneGeometry(1, DRAW.levelSurface);
@@ -12,9 +14,12 @@ export class LevelView {
   private readonly debugMeshes: Mesh[] = [];
   private readonly ground: TiledVisual;
   private readonly platforms: TiledVisual;
+  private readonly environment: EnvironmentView;
   private readonly decorations: { sprite: SpriteVisual; id: string }[] = [];
 
   constructor(scene: Scene, level: Level, assets: AssetManager) {
+    this.environment = new EnvironmentView(assets);
+    scene.add(this.environment.root);
     this.ground = new TiledVisual(assets, 'environment.ground');
     this.platforms = new TiledVisual(assets, 'environment.platform');
     scene.add(this.ground.root, this.platforms.root);
@@ -36,7 +41,9 @@ export class LevelView {
     };
 
     for (const solid of level.solids) {
-      this.ground.add(solid.x, solid.y, solid.width, solid.height, DRAW.levelSurface + DRAW.trim);
+      this.environment.addGround(solid);
+      const legacyStart = Math.max(solid.x, ENVIRONMENT.sliceEnd);
+      if (solid.x + solid.width > legacyStart) this.ground.add(legacyStart, solid.y, solid.x + solid.width - legacyStart, solid.height, DRAW.levelTiles);
       rect(solid.x, solid.y, solid.width, solid.height, 0x456260);
       rect(solid.x, solid.y + solid.height - 4, solid.width, 4, 0x8ca18b, DRAW.levelSurface);
       const bounds = new Mesh(this.geometry, this.debugMaterial);
@@ -47,7 +54,8 @@ export class LevelView {
       scene.add(bounds);
     }
     for (const platform of level.oneWays) {
-      this.platforms.add(platform.x, platform.y, platform.width, platform.height, DRAW.levelSurface + DRAW.trim);
+      this.environment.addPlatform(platform);
+      if (platform.x >= ENVIRONMENT.sliceEnd) this.platforms.add(platform.x, platform.y, platform.width, platform.height, DRAW.levelTiles);
       rect(platform.x, platform.y, platform.width, platform.height, 0x407e85, DRAW.levelSurface);
       rect(platform.x, platform.y + platform.height - 2, platform.width, 2, 0xa0dbcb, DRAW.levelSurface + DRAW.detail);
       for (let x = platform.x + 4; x < platform.x + platform.width; x += 8) {
@@ -68,6 +76,7 @@ export class LevelView {
       if (ground.x + ground.width < level.data.width) rect(ground.x + ground.width - 6, ground.height - 4, 6, 4, 0xde7967, DRAW.levelSurface + DRAW.detail);
     }
     for (const section of level.data.sections) {
+      if (section.x < ENVIRONMENT.sliceEnd) continue;
       decoration('environment.vegetationBack', section.x + 52, 44, DRAW.level);
       decoration('environment.decoration', section.x + 80, 44, DRAW.decoration);
       decoration('environment.vegetationFront', section.x + 110, 44, DRAW.foreground);
@@ -85,17 +94,22 @@ export class LevelView {
   }
 
   update(dt: number): void {
+    this.environment.update(dt);
     this.ground.update(); this.platforms.update();
     for (const { sprite, id } of this.decorations) sprite.update(id, dt);
   }
 
-  setGraphicsDebug(visible: boolean): void { for (const item of this.decorations) item.sprite.setDebug(visible); }
+  setGraphicsDebug(visible: boolean): void {
+    this.environment.setDebug(visible);
+    for (const item of this.decorations) item.sprite.setDebug(visible);
+  }
 
   setDebug(visible: boolean): void {
     for (const bounds of this.debugMeshes) bounds.visible = visible;
   }
 
   dispose(): void {
+    this.environment.dispose();
     this.geometry.dispose();
     this.ground.dispose(); this.platforms.dispose();
     for (const item of this.decorations) item.sprite.dispose();

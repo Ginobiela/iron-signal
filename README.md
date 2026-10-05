@@ -265,7 +265,7 @@ PlayerView selecciona `idle`, `run`, `jump`, `fall`, `crouch`, `shoot`, `runShoo
 
 ## Validación
 
-Las 230 pruebas cubren entrada, AABB, cámara, movimiento, coyote time, buffering, cooldown, pooling, barridos, cuatro comportamientos enemigos, daño, invulnerabilidad y reinicio. También prueban one-way, crouch, fosos, triggers, parallax, recorrido de 9600 unidades en ambos sentidos, patrones de armas, saturación de Spread y pickups. Session comprueba vidas, estados, score y persistencia. Boss añade blindaje, transiciones, patrones, captura de apuntado, esquivas, body contact, primer impacto entre blancos, 5000 puntos sin duplicados, respawn de la batalla, límites de arena y ritmo. Las regresiones integran GameLoop a 30, 60 y 144 Hz para comprobar que la simulación no depende del render, incluidos los ataques del jefe y la caída de pickups. Feedback verifica reutilización y saturación del pool, pausa, límites y expiración de shake, clips, punto de impacto, apertura y limpieza de audio, mute, persistencia, restricciones del navegador y caché/reintentos de assets. Gameplay polish añade hitboxes con pies compartidos, tiros altos/bajos a través del combate real y torretas del laboratorio, techos, drops únicos por M/S/L, voladores sin carga, aterrizaje estable, caducidad, fosos y recogida. Las pruebas antiguas de pickups usan ahora drops dinámicos y verifican que la campaña comienza sin cápsulas en suelo.
+Las 238 pruebas cubren entrada, AABB, cámara, movimiento, coyote time, buffering, cooldown, pooling, barridos, cuatro comportamientos enemigos, daño, invulnerabilidad y reinicio. También prueban one-way, crouch, fosos, triggers, parallax, recorrido de 9600 unidades en ambos sentidos, patrones de armas, saturación de Spread y pickups. Session comprueba vidas, estados, score y persistencia. Boss añade blindaje, transiciones, patrones, captura de apuntado, esquivas, body contact, primer impacto entre blancos, 5000 puntos sin duplicados, respawn de la batalla, límites de arena y ritmo. Las regresiones integran GameLoop a 30, 60 y 144 Hz para comprobar que la simulación no depende del render, incluidos los ataques del jefe y la caída de pickups. Feedback verifica reutilización y saturación del pool, pausa, límites y expiración de shake, clips, punto de impacto, apertura y limpieza de audio, mute, persistencia, restricciones del navegador y caché/reintentos de assets. Gameplay polish añade hitboxes con pies compartidos, tiros altos/bajos a través del combate real y torretas del laboratorio, techos, drops únicos por M/S/L, voladores sin carga, aterrizaje estable, caducidad, fosos y recogida. Las pruebas antiguas de pickups usan ahora drops dinámicos y verifican que la campaña comienza sin cápsulas en suelo.
 
 Para la comprobación manual:
 
@@ -360,7 +360,7 @@ La muerte visual dura 0,6 segundos y no depende del último apuntado. El respawn
 reinicia el visual; la entidad lógica deja de colisionar inmediatamente, como antes.
 Todos los PNG adicionales se copian byte por byte, con alpha binario y celdas
 32×32; no se cambia escala, offsets, física ni hitboxes. Los clips ausentes o las
-texturas que no carguen conservan el fallback del pipeline. Hay 230 tests.
+texturas que no carguen conservan el fallback del pipeline. Hay 238 tests.
 
 Las poses aim up/diagonal se registran como player.idle_up/player.idle_diagonal: un frame 32×32 para apuntar quieto sin disparar, manteniendo anchor, escala y flipX. Al disparar se utilizan los clips shoot existentes.
 
@@ -369,3 +369,12 @@ Las poses aim up/diagonal se registran como player.idle_up/player.idle_diagonal:
 Player y los cuatro enemigos ya tienen sus PNG integrados. El pool existente de 24 VFX ahora tiene fallbacks, flashes por disparo, sparks, explosiones y feedback de drops/pickups/hit/death. Se mantienen 192 partículas pooled; F1 cuenta VFX y F2 muestra bounds/orígenes. Los impactos normales no generan shake. Gameplay, AI, colisiones y respawn permanecen independientes de los efectos.
 
 Configuración y muzzles: src/config/vfx.ts. Los 11 PNG de VFX están activos en public/assets/sprites/fx/. Especificaciones: [contrato de combat VFX](art-reference/combat-vfx.md). No se generaron imágenes nuevas.
+
+
+### Fase 15: kit modular de environment
+
+Tramo visual preparado: x=0..1024 (cuatro pantallas). Métrica 16x16 para ground y 16x8 visual para metal platforms; collider independiente. EnvironmentView reutiliza TiledVisual/SpriteVisual; top variants deterministas, props sin colisión, checkpoint visual y parallax .15/.40/.75. NEAR corregido para renderizar detrás del gameplay. El resto del nivel conserva el estilo anterior.
+
+Ground y plataformas ya usan 12 PNG dentro del slice; faltan los otros 18 PNG de walls/props/animated/background, con fallback conservado. Contrato exacto de 30 PNG, capas, anchors y activación: [environment-spec.md](art-reference/environment-spec.md). No se generaron imágenes ni se implementó el editor.
+
+Detalles de la primera entrega de tiles: [environment-tiles-integration.md](art-reference/environment-tiles-integration.md).
