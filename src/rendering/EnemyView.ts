@@ -32,7 +32,8 @@ export class EnemyView {
   private lastAttackTimer: number;
   private shootPoseTimer = 0;
 
-  constructor(private readonly enemy: Enemy, private readonly assets: AssetManager) {
+  constructor(private readonly enemy: Enemy, private readonly assets: AssetManager,
+    private readonly onVisualFire?: (enemy: Enemy) => void) {
     const visual = ENEMY_VISUALS[enemy.kind];
     this.lastAttackTimer = this.readAttackTimer();
     this.sprite = new SpriteVisual(assets, visual, `${enemy.kind}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' ? 'run' : 'idle'}`);
@@ -104,7 +105,10 @@ export class EnemyView {
     const enemy = this.enemy;
     const attackTimer = this.readAttackTimer();
     this.shootPoseTimer = Math.max(0, this.shootPoseTimer - dt);
-    if (enemy.alive && attackTimer > this.lastAttackTimer) this.shootPoseTimer = GRAPHICS.shootPoseTime;
+    if (enemy.alive && attackTimer > this.lastAttackTimer) {
+      this.shootPoseTimer = GRAPHICS.shootPoseTime;
+      this.onVisualFire?.(enemy);
+    }
     this.lastAttackTimer = attackTimer;
     const animation = !enemy.alive ? 'death' : enemy.kind === 'flying'
       ? (enemy.hitFlashTimer > 0 ? 'hit' : 'fly') : enemy.warning || this.shootPoseTimer > 0 ? 'shoot' : enemy.velocity.x !== 0 ? 'run' : 'idle';

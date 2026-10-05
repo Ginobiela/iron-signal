@@ -1,5 +1,5 @@
 import { Color, OrthographicCamera, Scene, WebGLRenderer } from 'three';
-import { CONTROLS, FEEDBACK, PLAYER, SCORE, VIEW } from '../config/constants';
+import { CONTROLS, SCORE, VIEW } from '../config/constants';
 import type { Action } from '../config/constants';
 import { CameraController } from '../camera/CameraController';
 import { CollisionSystem } from '../collision/CollisionSystem';
@@ -40,6 +40,8 @@ import { ScreenShakeManager } from '../camera/ScreenShakeManager';
 import type { Enemy } from '../entities/enemies/Enemy';
 import { AssetManager } from './AssetManager';
 import { FxSpritePool } from '../rendering/FxSpritePool';
+import { enemyMuzzle, playerMuzzle } from '../rendering/vfxOrigins';
+import { VFX_SHAKE, WEAPON_VFX } from '../config/vfx';
 
 const actions = Object.keys(CONTROLS) as Action[];
 const lab = import.meta.env.DEV ? new URLSearchParams(location.search).get('lab') : null;
@@ -48,7 +50,6 @@ const levelData = lab === 'high' || lab === 'low' ? gameplayLab(lab) : SIGNAL_WO
 export class Game {
   private readonly scene = new Scene();
   private readonly assets = new AssetManager();
-  private readonly fxSprites = new FxSpritePool(this.assets);
   private readonly camera = new OrthographicCamera(0, VIEW.width, VIEW.height, 0, 0.1, 100);
   private readonly renderer: WebGLRenderer;
   private readonly input: InputManager;
@@ -59,6 +60,9 @@ export class Game {
   private readonly particles = new ParticleManager();
   private readonly particleView = new ParticleView(this.particles);
   private readonly shake = new ScreenShakeManager();
+  private readonly fxSprites = new FxSpritePool(this.assets, this.particles, this.shake);
+  private readonly muzzlePoint = { x: 0, y: 0, angle: 0 };
+  private readonly playerHitPoint = { x: 0, y: 0 };
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   private readonly checkpoints = new CheckpointManager({ ...levelData.spawn, name: 'Inicio' }, levelData.checkpoints);
   private readonly checkpointView = new CheckpointView(this.checkpoints);
@@ -202,6 +206,7 @@ export class Game {
     const collected = this.powerups.collectedCount;
     const checkpoint = this.checkpoints.current;
     const shots = this.projectiles.playerSpawned;
+    const playerHits = this.combat.playerHits;
     const bossState = this.boss.state;
     const bossPhase = this.boss.phase;
     this.controls.left = this.input.isDown('left');
@@ -211,6 +216,8 @@ export class Game {
     this.controls.down = this.input.isDown('down');
     this.controls.shoot = this.input.isDown('shoot') || this.input.wasPressed('shoot');
     this.player.update(dt, this.controls, this.collision, this.level.solids, levelData.width, this.level.oneWays);
+    this.playerHitPoint.x = this.player.position.x + this.player.width / 2;
+    this.playerHitPoint.y = this.player.position.y + this.player.height / 2;
     if (this.player.jumpCount !== jumps) this.audio.play('jump');
     this.cameraController.update(this.player.position.x + this.player.width / 2);
     if (this.player.alive) {
@@ -231,24 +238,23 @@ export class Game {
     if (this.projectiles.playerSpawned !== shots) {
       this.audio.play(this.player.weapon.name === 'LASER' ? 'laser' : 'shoot');
       this.playerView.flashMuzzle();
-      this.fxSprites.spawn('fx.muzzle', this.player.position.x + this.player.width / 2 + this.player.aimDirection.x * PLAYER.muzzleDistance,
-        this.player.position.y + this.player.gunPivotY + this.player.aimDirection.y * PLAYER.muzzleDistance,
-        Math.atan2(this.player.aimDirection.y, this.player.aimDirection.x));
+      playerMuzzle(this.player, this.assets, this.muzzlePoint);
+      this.fxSprites.spawn(WEAPON_VFX[this.player.weapon.name] ?? 'fx.muzzle.rifle',
+        this.muzzlePoint.x, this.muzzlePoint.y, this.muzzlePoint.angle);
     }
     if (this.powerups.collectedCount !== collected) {
       this.audio.play('powerup');
-      this.fxSprites.spawn('fx.pickup', this.player.position.x + this.player.width / 2, this.player.position.y + this.player.height / 2);
-      this.particles.burst(this.player.position.x + this.player.width / 2,
-        this.player.position.y + this.player.height / 2, FEEDBACK.pickupCount, 0x99edff, true);
+      this.fxSprites.spawn('fx.pickup.collect', this.player.position.x + this.player.width / 2, this.player.position.y + this.player.height / 2);
     }
     if (this.checkpoints.current !== checkpoint) this.audio.play('checkpoint');
     if (this.boss.state === 'TELEGRAPH' && bossState !== 'TELEGRAPH') this.audio.play('bossWarning');
-    if (this.boss.phase !== bossPhase) this.shake.trigger(FEEDBACK.bossShake);
+    if (this.combat.playerHits !== playerHits) this.fxSprites.spawn('fx.hit.player', this.playerHitPoint.x, this.playerHitPoint.y);
+    if (this.boss.phase !== bossPhase) this.shake.trigger(VFX_SHAKE.boss, VFX_SHAKE.bossTime);
     if (!this.player.alive) {
       this.audio.play('playerDeath');
-      this.particles.burst(this.player.position.x + this.player.width / 2,
-        Math.max(8, this.player.position.y + this.player.height / 2), FEEDBACK.explosionCount, 0xff776b, true);
-      this.shake.trigger(FEEDBACK.deathShake);
+      this.fxSprites.spawn('fx.explosion.small', this.player.position.x + this.player.width / 2,
+        Math.max(8, this.player.position.y + this.player.height / 2));
+      this.shake.trigger(VFX_SHAKE.playerDeath, VFX_SHAKE.playerDeathTime);
       this.states.playerDied();
       this.projectiles.clear(false);
       this.powerups.dismissNotice();
@@ -269,6 +275,7 @@ export class Game {
     if (this.input.wasPressed('graphicsDebug')) {
       this.graphicsDebugVisible = !this.graphicsDebugVisible;
       this.playerView.setGraphicsDebug(this.graphicsDebugVisible);
+      this.fxSprites.setDebug(this.graphicsDebugVisible);
       this.powerupView.setGraphicsDebug(this.graphicsDebugVisible);
       this.bossView.setGraphicsDebug(this.graphicsDebugVisible);
       this.projectileView.setGraphicsDebug(this.graphicsDebugVisible);
@@ -314,6 +321,7 @@ export class Game {
         `SHOTS ${this.projectiles.playerSpawned} | ENEMY SHOTS ${this.projectiles.enemySpawned}`,
         `FIRING ${this.player.shooting}`,
         `PARTICLES ${this.particles.activeCount}/${this.particles.items.length}`,
+        `VFX ${this.fxSprites.activeCount}/${this.fxSprites.capacity} | TOTAL ${this.fxSprites.spawnedCount} | SKIPPED ${this.fxSprites.droppedCount}`,
         `SHAKE ${this.shake.offset.x}, ${this.shake.offset.y} | AUDIO ${Math.round(this.audio.volume * 100)}%`,
       ].join('\n');
       this.debugTimer = 0.1;
@@ -359,7 +367,7 @@ export class Game {
 
   private spawnEnemy(placement: EnemyPlacement): void {
     const enemy = this.enemies.spawn(placement);
-    const view = new EnemyView(enemy, this.assets);
+    const view = new EnemyView(enemy, this.assets, this.onEnemyVisualFire);
     view.setDebug(this.debugVisible);
     view.setGraphicsDebug(this.graphicsDebugVisible);
     this.enemyViews.push(view);
@@ -368,22 +376,31 @@ export class Game {
 
   private onEnemyKilled(enemy: Enemy | Boss): void {
     this.score.add(SCORE[enemy.kind]);
-    if (enemy.kind === 'flying') this.powerups.dropFromEnemy(enemy);
+    if (enemy.kind === 'flying') {
+      const drop = this.powerups.dropFromEnemy(enemy);
+      if (drop) this.fxSprites.spawn('fx.pickup.drop', drop.x + drop.width / 2, drop.y + drop.height / 2);
+    }
     const boss = enemy.kind === 'boss';
-    this.fxSprites.spawn('fx.explosion', enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2);
-    this.particles.burst(enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2,
-      boss ? FEEDBACK.bossExplosionCount : FEEDBACK.explosionCount, 0xffc878, true);
+    this.fxSprites.spawn(boss || enemy.kind === 'flying' ? 'fx.explosion.medium' : 'fx.explosion.small',
+      enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2);
     this.audio.play('enemyDeath');
-    this.shake.trigger(boss ? FEEDBACK.bossShake : FEEDBACK.explosionShake,
-      boss ? FEEDBACK.bossShakeTime : FEEDBACK.shakeTime);
+    if (boss) this.shake.trigger(VFX_SHAKE.boss, VFX_SHAKE.bossTime);
   }
 
   private onImpact(target: Enemy | Boss | Player | null, x: number, y: number, damaged: boolean): void {
-    this.fxSprites.spawn('fx.hit', x, y);
-    this.particles.burst(x, y, FEEDBACK.sparkCount, damaged ? 0xffe3a2 : 0x99edff);
+    if (target === this.player && damaged) {
+      this.playerHitPoint.x = x; this.playerHitPoint.y = y;
+      return;
+    }
+    this.fxSprites.spawn(target && damaged ? 'fx.hit.enemy' : 'fx.impact.default', x, y);
     if (!target || !('kind' in target)) return;
     this.audio.play(damaged ? target.kind === 'boss' ? 'bossHit' : 'enemyHit' : 'shield');
   }
+
+  private readonly onEnemyVisualFire = (enemy: Enemy): void => {
+    enemyMuzzle(enemy, this.assets, this.muzzlePoint);
+    this.fxSprites.spawn('fx.muzzle.rifle', this.muzzlePoint.x, this.muzzlePoint.y, this.muzzlePoint.angle);
+  };
 
   private readonly onVolume = (): void => {
     if (this.volumeControl) this.audio.setVolume(Number(this.volumeControl.value));

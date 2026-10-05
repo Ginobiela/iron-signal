@@ -16,7 +16,7 @@ export class ParticleManager {
     return count;
   }
 
-  burst(x: number, y: number, count: number, color: number, explosion = false): void {
+  burst(x: number, y: number, count: number, color: number, explosion = false, lifetime?: number): void {
     for (const particle of this.items) {
       if (count <= 0) break;
       if (particle.life > 0) continue;
@@ -24,7 +24,7 @@ export class ParticleManager {
       const speed = explosion ? 25 + Math.random() * 65 : 15 + Math.random() * 35;
       particle.x = x; particle.y = y;
       particle.vx = Math.cos(angle) * speed; particle.vy = Math.sin(angle) * speed + (explosion ? 25 : 0);
-      particle.duration = (explosion ? FEEDBACK.explosionLife : FEEDBACK.sparkLife) * (0.7 + Math.random() * 0.3);
+      particle.duration = (lifetime ?? (explosion ? FEEDBACK.explosionLife : FEEDBACK.sparkLife)) * (0.7 + Math.random() * 0.3);
       particle.life = particle.duration;
       particle.size = explosion ? 2 : 1;
       particle.color = color;

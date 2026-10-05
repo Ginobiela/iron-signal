@@ -265,7 +265,7 @@ PlayerView selecciona `idle`, `run`, `jump`, `fall`, `crouch`, `shoot`, `runShoo
 
 ## Validación
 
-Las 214 pruebas cubren entrada, AABB, cámara, movimiento, coyote time, buffering, cooldown, pooling, barridos, cuatro comportamientos enemigos, daño, invulnerabilidad y reinicio. También prueban one-way, crouch, fosos, triggers, parallax, recorrido de 9600 unidades en ambos sentidos, patrones de armas, saturación de Spread y pickups. Session comprueba vidas, estados, score y persistencia. Boss añade blindaje, transiciones, patrones, captura de apuntado, esquivas, body contact, primer impacto entre blancos, 5000 puntos sin duplicados, respawn de la batalla, límites de arena y ritmo. Las regresiones integran GameLoop a 30, 60 y 144 Hz para comprobar que la simulación no depende del render, incluidos los ataques del jefe y la caída de pickups. Feedback verifica reutilización y saturación del pool, pausa, límites y expiración de shake, clips, punto de impacto, apertura y limpieza de audio, mute, persistencia, restricciones del navegador y caché/reintentos de assets. Gameplay polish añade hitboxes con pies compartidos, tiros altos/bajos a través del combate real y torretas del laboratorio, techos, drops únicos por M/S/L, voladores sin carga, aterrizaje estable, caducidad, fosos y recogida. Las pruebas antiguas de pickups usan ahora drops dinámicos y verifican que la campaña comienza sin cápsulas en suelo.
+Las 230 pruebas cubren entrada, AABB, cámara, movimiento, coyote time, buffering, cooldown, pooling, barridos, cuatro comportamientos enemigos, daño, invulnerabilidad y reinicio. También prueban one-way, crouch, fosos, triggers, parallax, recorrido de 9600 unidades en ambos sentidos, patrones de armas, saturación de Spread y pickups. Session comprueba vidas, estados, score y persistencia. Boss añade blindaje, transiciones, patrones, captura de apuntado, esquivas, body contact, primer impacto entre blancos, 5000 puntos sin duplicados, respawn de la batalla, límites de arena y ritmo. Las regresiones integran GameLoop a 30, 60 y 144 Hz para comprobar que la simulación no depende del render, incluidos los ataques del jefe y la caída de pickups. Feedback verifica reutilización y saturación del pool, pausa, límites y expiración de shake, clips, punto de impacto, apertura y limpieza de audio, mute, persistencia, restricciones del navegador y caché/reintentos de assets. Gameplay polish añade hitboxes con pies compartidos, tiros altos/bajos a través del combate real y torretas del laboratorio, techos, drops únicos por M/S/L, voladores sin carga, aterrizaje estable, caducidad, fosos y recogida. Las pruebas antiguas de pickups usan ahora drops dinámicos y verifican que la campaña comienza sin cápsulas en suelo.
 
 Para la comprobación manual:
 
@@ -360,6 +360,12 @@ La muerte visual dura 0,6 segundos y no depende del último apuntado. El respawn
 reinicia el visual; la entidad lógica deja de colisionar inmediatamente, como antes.
 Todos los PNG adicionales se copian byte por byte, con alpha binario y celdas
 32×32; no se cambia escala, offsets, física ni hitboxes. Los clips ausentes o las
-texturas que no carguen conservan el fallback del pipeline. Hay 214 tests.
+texturas que no carguen conservan el fallback del pipeline. Hay 230 tests.
 
 Las poses aim up/diagonal se registran como player.idle_up/player.idle_diagonal: un frame 32×32 para apuntar quieto sin disparar, manteniendo anchor, escala y flipX. Al disparar se utilizan los clips shoot existentes.
+
+### Fase 14: combat VFX
+
+Player y los cuatro enemigos ya tienen sus PNG integrados. El pool existente de 24 VFX ahora tiene fallbacks, flashes por disparo, sparks, explosiones y feedback de drops/pickups/hit/death. Se mantienen 192 partículas pooled; F1 cuenta VFX y F2 muestra bounds/orígenes. Los impactos normales no generan shake. Gameplay, AI, colisiones y respawn permanecen independientes de los efectos.
+
+Configuración y muzzles: src/config/vfx.ts. Los 11 PNG de VFX están activos en public/assets/sprites/fx/. Especificaciones: [contrato de combat VFX](art-reference/combat-vfx.md). No se generaron imágenes nuevas.

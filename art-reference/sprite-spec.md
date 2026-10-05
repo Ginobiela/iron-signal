@@ -153,3 +153,5 @@ existentes como fallback. No se cargan recursos ni recrean meshes en cada update
 
 
 El primer Player definitivo ya está integrado: ver [normalización de la hoja adjunta](player/README.md). Usa celdas 32×32, idle 6 FPS, run 11 FPS y crouch 7 FPS no-loop; el collider permanece independiente.
+
+El contrato específico de combat VFX y las rutas public/assets/fx están en [combat-vfx.md](combat-vfx.md). Los sprites anteriores siguen usando sus anchors y colliders independientes.

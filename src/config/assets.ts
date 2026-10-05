@@ -1,5 +1,7 @@
 import type { AnimationClip } from '../rendering/SpriteAnimator';
 import type { VisualConfig } from './graphics';
+import { VFX_EFFECTS } from './vfx';
+import type { VfxConfig } from './vfx';
 
 export interface AtlasFrame { x: number; y: number; width: number; height: number }
 export interface SpriteSheet {
@@ -107,10 +109,6 @@ export const ASSETS: Record<string, SpriteAsset> = {
   'projectile.player.bullet': sprite('sprites/weapons/rifle', 4, 4, 1, 1, 'center'),
   'projectile.enemy.bullet': sprite('sprites/weapons/enemy_bullet', 4, 4, 1, 1, 'center'),
   'projectile.player.laser': sprite('sprites/weapons/laser_bullet', 12, 4, 2, 12, 'center'),
-  'fx.muzzle': sprite('sprites/fx/muzzle_flash', 8, 8, 2, 30, 'center', false),
-  'fx.hit': sprite('sprites/fx/hit', 8, 8, 3, 18, 'center', false),
-  'fx.explosion': sprite('sprites/fx/explosion', 32, 32, 6, 12, 'center', false),
-  'fx.pickup': sprite('sprites/fx/powerup_pickup', 24, 24, 4, 12, 'center', false),
   'background.far': sprite('background/layer_far', 256, 240, 1, 1, 'center'),
   'background.mid': sprite('background/layer_mid', 256, 240, 1, 1, 'center'),
   'background.near': sprite('background/layer_near', 256, 240, 1, 1, 'center'),
@@ -121,6 +119,12 @@ export const ASSETS: Record<string, SpriteAsset> = {
   'environment.vegetationFront': sprite('sprites/environment/vegetation_front', 32, 32),
   'environment.decoration': sprite('sprites/environment/decoration', 32, 32),
 };
+for (const [id, effect] of Object.entries(VFX_EFFECTS)) {
+  const spec: VfxConfig = effect;
+  const asset = sprite(`sprites/fx/${spec.file}`, spec.width, spec.height, spec.frames, spec.fps, 'center', false);
+  if (spec.enabled) asset.url = asset.path;
+  ASSETS[id] = asset;
+}
 for (const [id, asset] of Object.entries(ASSETS)) {
   if (id === 'player.run' || id.startsWith('player.runShoot_')) asset.clip.syncGroup = 'player.run';
   if (id.startsWith('background.') || id === 'environment.ground' || id === 'environment.platform') asset.tileable = true;
@@ -136,7 +140,7 @@ for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
 export const DRAW = {
   backgroundFar: -6, backgroundMid: -4, backgroundNear: -2,
   level: 0, levelSurface: 1, decoration: 2, pickup: 2.5, entity: 3,
-  projectile: 4, fx: 5, foreground: 6, debug: 7,
+  projectile: 4, fxBehind: 2.8, fx: 5, foreground: 6, debug: 7,
   detail: 0.1, trim: 0.2, overlay: 0.3, collider: 0.4, topDetail: 0.5,
 } as const;
 export const GRAPHICS = { fxCapacity: 24, shootPoseTime: 0.16, pickupRotation: 0.08, pickupFrequency: 8 } as const;
