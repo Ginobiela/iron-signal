@@ -20,7 +20,7 @@ describe('animation viewer registry', () => {
   });
   it('distinguishes real textures, planned fallbacks and failed loads', () => {
     expect(assetStatus(run, true)).toBe('LOADED'); expect(assetStatus(run, false)).toBe('MISSING');
-    expect(assetStatus(ASSETS['player.shoot']!, false)).toBe('FALLBACK');
+    expect(assetStatus({ ...run, url: undefined }, false)).toBe('FALLBACK');
   });
 });
 

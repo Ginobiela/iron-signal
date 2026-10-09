@@ -2,7 +2,9 @@
 
 El mundo y la cámara conservan 256×240 unidades. `ART_SCALE = 2` en src/config/art.ts fija únicamente el framebuffer: 512×480, antialias false, pixelRatio 1. NearestFilter y CSS pixelated permanecen activos. El canvas usa escalado entero del framebuffer cuando cabe; en pantallas menores reduce proporcionalmente con letterbox.
 
-La densidad fuente se registra por asset, independientemente del framebuffer. Todos los PNG actuales siguen LEGACY 1×. `sheet` (frameWidth/Height, margin, spacing, atlas) mide source pixels; `visual` (width/height, offsets, scaleX/Y) mide world units. No se infiere el tamaño visual desde una imagen cargada. `artScale` es 1 o 2; si falta en una definición externa, el visor deriva la densidad horizontal desde frameWidth/visual.width. Con tamaños no uniformes, definir densidad explícita y revisar ambas dimensiones.
+La densidad fuente se registra por asset, independientemente del framebuffer. Los 22 clips de Player ya usan frames 64×64 SOURCE y visual 32×32 WORLD; Soldier death también usa 2×. Los demás assets mantienen su densidad registrada y pueden coexistir con estos. `sheet` (frameWidth/Height, margin, spacing, atlas) mide source pixels; `visual` (width/height, offsets, scaleX/Y) mide world units. No se infiere el tamaño visual desde una imagen cargada. `artScale` es 1 o 2; si falta en una definición externa, el visor deriva la densidad horizontal desde frameWidth/visual.width. Con tamaños no uniformes, definir densidad explícita y revisar ambas dimensiones.
+
+Player conserva bottom-center, offsets 0/0 y los FPS/loops existentes. Idle y run usan las nuevas entregas `player_idle_2x (2).png` y `player_run_2x (2).png`. Los aliases genéricos shoot/runShoot/jumpShoot/crouchShoot comparten la textura horizontal correspondiente porque los PNG suministrados son idénticos; los archivos originales se conservan sin modificaciones. El helper playerSprite centraliza el contrato 64 SOURCE → 32 WORLD sin alterar colliders ni muzzles.
 
 ## Auditoría y cambios
 

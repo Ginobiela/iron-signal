@@ -10,6 +10,21 @@ import { ASSETS } from '../src/config/assets';
 afterEach(() => vi.restoreAllMocks());
 
 describe('supplied player art', () => {
+  it('registers every Player clip at 2x without changing world size or anchor', () => {
+    const clips = Object.entries(ASSETS).filter(([id]) => id.startsWith('player.'));
+    expect(clips).toHaveLength(22);
+    for (const [, asset] of clips) {
+      expect(asset.artScale).toBe(2);
+      expect(asset.sheet.frameWidth).toBe(64);
+      expect(asset.sheet.frameHeight).toBe(64);
+      expect(asset.visual).toMatchObject({ width: 32, height: 32, anchor: 'bottom-center', offsetX: 0, offsetY: 0 });
+      expect(asset.url).toBe(asset.path);
+      expect(asset.sheet.frameCount).toBe(asset.clip.frames.length);
+    }
+    for (const clip of ['shoot', 'runShoot', 'jumpShoot', 'crouchShoot']) {
+      expect(ASSETS[`player.${clip}`]!.url).toBe(ASSETS[`player.${clip}_horizontal`]!.url);
+    }
+  });
   it('uses art for crouch, crouchShoot, flip and jump with unchanged physical bounds', async () => {
     const map = new Texture({ width: 192, height: 32 } as HTMLImageElement);
     vi.spyOn(TextureLoader.prototype, 'loadAsync').mockResolvedValue(map);
