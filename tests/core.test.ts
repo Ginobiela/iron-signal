@@ -119,7 +119,7 @@ describe('display scaling', () => {
       expect(size.width).toBeLessThanOrEqual(width);
       expect(size.height).toBeLessThanOrEqual(height);
       expect(size.width / size.height).toBeCloseTo(256 / 240);
-      if (width >= 256 && height >= 240) expect(size.width % 256).toBe(0);
+      if (width >= 512 && height >= 480) expect(size.width % 512).toBe(0);
     },
   );
 });

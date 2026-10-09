@@ -1,5 +1,17 @@
 # Environment art contract — Fase 15
 
+## Fase 15.5 — densidad 2×
+
+Los tamaños de las tablas siguientes son **LEGACY 1× / WORLD**. Se conservan
+todos los PNG actuales. Para **NEW 2×**: ground 32×32 SOURCE → 16×16 WORLD;
+platform 32×16 → 16×8 WORLD; backgrounds 512×480 → 256×240 WORLD.
+Props/animados duplican source frames, manteniendo su tamaño WORLD de la tabla.
+`EnvironmentAsset.width/height` son WORLD; `artScale: 2` genera metadata SOURCE
+cuando se integre un PNG 2×. No cambia tile grid, offsets, clipping, seams,
+colliders, parallax ni posiciones. Los extremos del tile deben continuar sin
+padding; no mezclar atlas en TiledVisual. Framebuffer 512×480 y cámara 256×240.
+Registro e inventario completo: [art-2x-migration.md](art-2x-migration.md).
+
 ## Estado auditado y alcance
 
 El mundo existente mide 9600 unidades, con resolución lógica 256×240, coordenadas
@@ -49,8 +61,9 @@ no meter tiles repetibles en un atlas sin modificar su contrato de UV.
 ## Producción externa
 
 Rutas relativas a public/assets/environment/. Todos PNG RGBA, sin blur ni
-anti-aliasing, alpha 0/255, paletas compactas. Escala 1 px = 1 unidad lógica;
-visual size coincide con el frame. Tiras animadas horizontales, celdas uniformes.
+anti-aliasing, alpha 0/255, paletas compactas. Legacy: 1 source px = 1 WORLD unit;
+new 2×: 2 source px = 1 WORLD unit. Source frame y visual WORLD se declaran
+independientemente. Tiras animadas horizontales, celdas uniformes.
 Anchor bottom-center para props y contrato de tiles; el montador de tiles usa
 rectángulos con esquina inferior izquierda, independiente de este anchor. Fondos
 center. OffsetX/Y=0. No padding en texturas repetidas. NearestFilter, mipmaps off.

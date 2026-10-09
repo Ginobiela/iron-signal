@@ -26,6 +26,11 @@ export class Menu {
     this.element.dataset.state = states.state;
     this.element.textContent = text;
     if (states.state === 'MENU') {
+      const bossRun = document.createElement('a');
+      bossRun.href = './?mode=boss';
+      bossRun.className = 'viewer-link';
+      bossRun.textContent = 'BOSS RUN';
+      this.element.append(document.createElement('br'), bossRun);
       const link = document.createElement('a');
       link.href = './animation-viewer.html';
       link.className = 'viewer-link';

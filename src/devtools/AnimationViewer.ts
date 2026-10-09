@@ -4,6 +4,8 @@ import { SpriteVisual } from '../rendering/SpriteVisual';
 import { spriteCenterY, writeFrameUV } from '../rendering/spriteFrames';
 import type { SpriteAsset } from '../config/assets';
 import { assetStatus, discoverAnimations, ViewerPlayback } from './animationViewerRegistry';
+import { ART_SCALE } from '../config/art';
+import { assetAnchors, assetArtScale } from '../rendering/artDimensions';
 
 function element<T extends HTMLElement>(id: string): T {
   const result = document.getElementById(id);
@@ -97,15 +99,16 @@ export class AnimationViewer {
     element('status').textContent = `ASSET: ${assetStatus(asset, Boolean(texture))}`;
     const { sheet, visual, clip } = asset;
     const image = texture?.image as { width: number; height: number } | undefined;
-    const anchor = visual.anchor === 'bottom-center' ? `${sheet.frameWidth / 2}, ${sheet.frameHeight}`
-      : `${sheet.frameWidth / 2}, ${sheet.frameHeight / 2}`;
+    const anchor = assetAnchors(asset);
     element('metadata').textContent = [
       `Asset ID: ${this.id}`, `Texture: ${asset.url ?? asset.path} ${asset.url ? '' : '(sin PNG activado)'}`,
       `Texture size: ${image ? `${image.width}×${image.height}` : '—'}`,
-      `Frame size: ${sheet.frameWidth}×${sheet.frameHeight}${sheet.atlas ? ' (atlas: ver rectángulos debajo)' : ''}`,
+      `Source frame: ${sheet.frameWidth}×${sheet.frameHeight} px${sheet.atlas ? ' (atlas: ver rectángulos debajo)' : ''}`,
+      `Art scale (asset): ${assetArtScale(asset)}× · Render density: ${ART_SCALE} px/world unit`,
       `Frames: ${clip.frames.length} / sheet: ${sheet.frameCount} · order: ${clip.frames.join(', ')}`,
       `Registered FPS: ${this.playback.originalFps} · Loop: ${clip.loop !== false}`,
-      `Anchor: ${visual.anchor} (${anchor})`, `Visual size: ${visual.width}×${visual.height}`,
+      `Anchor: ${visual.anchor} · source: (${anchor.source.x}, ${anchor.source.y}) px · world origin: (${anchor.world.x}, ${anchor.world.y})`,
+      `World visual size: ${visual.width}×${visual.height} units`,
       `Offsets: ${visual.offsetX}, ${visual.offsetY} · Visual scale: ${visual.scaleX ?? 1}, ${visual.scaleY ?? 1}`,
     ].join('\n');
     this.refreshFps(); this.buildFrames(asset); this.layout();
@@ -151,7 +154,7 @@ export class AnimationViewer {
     const width = compare ? 144 : 96, scale = Number(element<HTMLSelectElement>('scale').value);
     const x = compare ? 104 : 48, y = 24, height = 112;
     this.camera.right = width; this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height, false);
+    this.renderer.setSize(width * ART_SCALE, height * ART_SCALE, false);
     this.renderer.domElement.style.width = `${width * scale}px`; this.renderer.domElement.style.height = `${height * scale}px`;
     this.preview.style.width = `${width * scale}px`; this.preview.style.height = `${height * scale}px`;
     this.sprite.root.position.set(x, y, 0); this.reference.root.position.set(40, y, 0); this.reference.root.visible = compare;

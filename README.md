@@ -380,6 +380,17 @@ Ground y plataformas ya usan 12 PNG dentro del slice; faltan los otros 18 PNG de
 Detalles de la primera entrega de tiles: [environment-tiles-integration.md](art-reference/environment-tiles-integration.md).
 ## Animation Viewer
 
+El menú inicial incluye **BOSS RUN**: abre `?mode=boss` y comienza directamente
+en la arena del jefe, con tres vidas, rifle y checkpoint allí. No aparecen oleadas
+del nivel. Tras game over o victoria, Enter reinicia el desafío del jefe.
+El combate, las tres fases y el respawn conservan sus reglas habituales.
+
+Fase 15.5: el framebuffer del juego y del visor usa `ART_SCALE = 2`, pero cámara
+y gameplay conservan WORLD units. El viewer muestra source frame, world visual
+size, densidad por asset y render, además de anchors source/world. Preview scale
+es un zoom independiente. Todos los PNG actuales siguen 1×; no fueron convertidos.
+Registro de sprites/tiles/VFX 2× e inventario: [art-2x-migration.md](art-reference/art-2x-migration.md).
+
 Abre **ANIMATION VIEWER** desde el menú principal o visita `animation-viewer.html` (también funciona al refrescar en GitHub Pages). Es una entrada independiente de Vite: no importa Game ni inicia niveles, físicas, audio o combate. Carga solamente los sprites de personajes.
 
 Selecciona entidad y animación para reproducir, pausar, recorrer frames, cambiar FPS/escala, invertir horizontalmente y revisar anchor, bounds y baseline. Incluye comparación con Player idle, tira seleccionable de frames y textura completa/rectángulos de atlas. Los cambios afectan únicamente al preview. Los clips non-loop se detienen al terminar; PLAY vuelve a iniciarlos.

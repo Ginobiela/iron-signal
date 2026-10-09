@@ -1,5 +1,17 @@
 # Fase 14: reconciliación y contrato de VFX
 
+## Fase 15.5 — arte 2×, mismos efectos WORLD
+
+Las dimensiones de las tablas siguientes son **LEGACY 1×** y siguen vigentes para
+los PNG integrados. Para arte nuevo **2×**, duplicar únicamente frame SOURCE:
+8×8 → 16×16, 12×8 → 24×16, 16×16 → 32×32, 24×24 → 48×48,
+12×12 → 24×24. `VfxConfig.width/height` permanecen WORLD; agregar `artScale: 2`
+cuando exista el PNG. Manifest deriva source frames, pero duración, FPS, pool,
+eventos, tamaños visuales y muzzles siguen iguales. Los muzzles se miden en WORLD.
+Framebuffer 512×480, cámara 256×240, NearestFilter, antialias false, pixelRatio 1.
+No convertir PNG automáticamente ni duplicar texturas por instancia.
+Inventario/registro: [art-2x-migration.md](art-2x-migration.md).
+
 ## Estado real encontrado
 
 El pipeline de Fase 11 ya estaba implementado y las siguientes integraciones
@@ -65,7 +77,8 @@ de dos píxeles, decay y prefers-reduced-motion. No se introduce hit-stop.
 
 Los 11 PNG están integrados bajo **public/assets/sprites/fx/**. PNG RGBA, alpha binario 0/255,
 strip horizontal, celdas uniformes sin trimming, sin blur, sin gradients.
-Un píxel del PNG equivale a una unidad lógica. No dibujar cuadrícula ni etiquetas.
+En estos PNG legacy 1×, un píxel fuente equivale a una unidad WORLD; en nuevos 2×,
+dos píxeles fuente equivalen a una unidad WORLD. No dibujar cuadrícula ni etiquetas.
 Para muzzles, dirección original RIGHT; el sistema rota el efecto según apuntado.
 Mantener el origen en el centro de cada celda. Padding opcional debe declararse.
 

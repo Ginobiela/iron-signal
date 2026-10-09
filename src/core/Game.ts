@@ -1,5 +1,6 @@
 import { Color, OrthographicCamera, Scene, WebGLRenderer } from 'three';
 import { CONTROLS, SCORE, VIEW } from '../config/constants';
+import { RENDER_VIEW } from '../config/art';
 import type { Action } from '../config/constants';
 import { CameraController } from '../camera/CameraController';
 import { CollisionSystem } from '../collision/CollisionSystem';
@@ -48,6 +49,7 @@ const lab = import.meta.env.DEV ? new URLSearchParams(location.search).get('lab'
 const levelData = lab === 'high' || lab === 'low' ? gameplayLab(lab) : SIGNAL_WORKS;
 
 export class Game {
+  private readonly bossRun = new URLSearchParams(location.search).get('mode') === 'boss';
   private readonly scene = new Scene();
   private readonly assets = new AssetManager();
   private readonly camera = new OrthographicCamera(0, VIEW.width, VIEW.height, 0, 0.1, 100);
@@ -102,7 +104,7 @@ export class Game {
     status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement) {
     this.renderer = new WebGLRenderer({ antialias: false, alpha: false });
     this.renderer.setPixelRatio(1);
-    this.renderer.setSize(VIEW.width, VIEW.height, false);
+    this.renderer.setSize(RENDER_VIEW.width, RENDER_VIEW.height, false);
     this.renderer.domElement.setAttribute('aria-label', 'Iron Signal: A/D correr, Space saltar, J disparar, W apuntar arriba, S agacharse, S + Space bajar');
     viewport.prepend(this.renderer.domElement);
     this.scene.background = new Color(0x101e2c);
@@ -118,6 +120,7 @@ export class Game {
     this.menu = new Menu(menu);
     this.bossHUD = new BossHUD(bossStatus);
     this.states.ready();
+    if (this.bossRun && this.states.start()) this.resetRun();
     this.updateHUD();
     this.playerView.update(this.player, 0);
     this.input = new InputManager();
@@ -229,7 +232,7 @@ export class Game {
       }
       this.powerups.update(dt, this.player, this.level.solids, this.level.oneWays, levelData.width);
       this.player.updateCombat(dt, this.controls, this.projectiles);
-      this.spawner.update(this.cameraController.x);
+      if (!this.bossRun) this.spawner.update(this.cameraController.x);
       this.enemies.update(dt, this.enemyContext, this.cameraController.x);
       this.boss.update(dt, this.enemyContext);
       this.projectiles.update(dt, this.level.solids, levelData.width, this.combat);
@@ -351,6 +354,14 @@ export class Game {
     this.combat.reset();
     this.cameraController.x = 0;
     this.debugTimer = 0;
+    if (this.bossRun) {
+      const checkpoint = levelData.checkpoints.find(item => item.x >= this.boss.arenaLeft)
+        ?? { x: this.boss.arenaLeft + this.player.width, y: this.boss.position.y, name: 'Boss Run' };
+      this.checkpoints.current = checkpoint;
+      this.player.reset(checkpoint.x, checkpoint.y);
+      this.boss.activate(checkpoint.x);
+      this.cameraController.x = this.boss.arenaLeft;
+    }
   }
 
   private respawn(): void {

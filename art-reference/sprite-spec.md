@@ -1,7 +1,19 @@
 # Iron Signal — contrato gráfico
 
-Todos los recursos deben ser originales. El canvas lógico sigue siendo **256×240**;
-un píxel del PNG equivale inicialmente a una unidad visual. No se modifica gameplay
+## Fase 15.5 — SOURCE vs WORLD
+
+El modo principal usa `ART_SCALE = 2`, framebuffer 512×480 y cámara 256×240 WORLD.
+Los contratos siguientes describen **LEGACY 1×**, conservados para los PNG actuales.
+El nuevo arte **2×** duplica source frame/atlas/padding, pero mantiene `visual.width/height`,
+offsets, anchors WORLD y FPS. Player/Soldier: 64×64 SOURCE → 32×32 WORLD;
+Runner/Turret: 48×48 → 24×24; Flying: 64×48 → 32×24. No convertir los PNG existentes.
+`SpriteAsset.artScale` es por asset y no se impone desde el render global. NearestFilter,
+sin mipmaps, antialias false, pixelRatio 1. El viewer distingue fuente, mundo, densidad,
+anchor source y origen WORLD; sus botones son zoom de preview, no densidad del asset.
+Contrato e inventario completo: [art-2x-migration.md](art-2x-migration.md).
+
+Todos los recursos deben ser originales. El mundo lógico sigue siendo **256×240**;
+el framebuffer usa **512×480**. Los PNG legacy permanecen 1×. No se modifica gameplay
 para acomodar ilustraciones. No se necesitan assets definitivos para ejecutar el juego.
 
 ## Origen y dimensiones
@@ -123,7 +135,7 @@ conviene actualizar también frameCount y clip.frames para evitar repetir poses.
 
 Fondos RGBA tileables de 256×240, repetibles horizontalmente; bordes izquierdo y
 derecho deben continuar exactamente. Far/mid/near conservan velocidades .15/.40/.75;
-near ocupa actualmente foreground, por lo que debe ser mayormente transparente.
+near ocupa BACKGROUND_NEAR (-2), detrás de gameplay; debe conservar transparencia.
 Tres copias de cada bloque de 512 unidades cubren la cámara sin una imagen gigante.
 Ground 16×16 y platform 16×8 se repiten en ambos ejes; usar PNG completos, sin atlas
 ni padding, con `tileable: true`. Los detalles, bordes y vegetación son sprites

@@ -4,6 +4,7 @@ import { VFX_EFFECTS } from './vfx';
 import type { VfxConfig } from './vfx';
 import { ENVIRONMENT_ASSETS } from './environment';
 import type { EnvironmentAsset } from './environment';
+import { withArtScale } from '../rendering/artDimensions';
 
 export interface AtlasFrame { x: number; y: number; width: number; height: number }
 export interface SpriteSheet {
@@ -12,6 +13,8 @@ export interface SpriteSheet {
   atlas?: readonly AtlasFrame[];
 }
 export interface SpriteAsset {
+  /** Source pixel density, independent of render density and visual.scaleX/Y. Legacy defaults to 1. */
+  artScale?: 1 | 2;
   /** Set url when the PNG exists; planned paths never cause network requests. */
   url?: string;
   path: string;
@@ -26,28 +29,36 @@ export type AssetManifest = Readonly<Record<string, SpriteAsset>>;
 
 const visual = (width: number, height: number, anchor: VisualConfig['anchor'] = 'bottom-center'): VisualConfig =>
   ({ width, height, offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1, anchor });
-const sprite = (path: string, width: number, height: number, count = 1, fps = 6,
+// Legacy registration uses an explicit 1× contract. New sources use withArtScale or explicit sheet + visual.
+const sprite = (path: string, worldWidth: number, worldHeight: number, count = 1, fps = 6,
   anchor: VisualConfig['anchor'] = 'bottom-center', loop = true): SpriteAsset => ({
-  path: `assets/${path}.png`, sheet: { frameWidth: width, frameHeight: height, frameCount: count },
-  visual: visual(width, height, anchor),
+  artScale: 1,
+  path: `assets/${path}.png`, sheet: { frameWidth: worldWidth, frameHeight: worldHeight, frameCount: count },
+  visual: visual(worldWidth, worldHeight, anchor),
   clip: { frames: Array.from({ length: count }, (_, i) => i), frameRate: fps, loop },
 });
 
 // Each animation may point to its own strip, or share a sheet/atlas URL with different frame indices.
 export const ASSETS: Record<string, SpriteAsset> = {
-  'player.idle': { ...sprite('sprites/player/player_idle', 32, 32, 4, 6),
-    url: 'assets/sprites/player/player_idle.png', includesWeapon: true },
+  'player.idle': {
+  ...withArtScale(
+    sprite('sprites/player/player_idle_2x', 32, 32, 4, 6),
+    2,
+  ),
+  url: 'assets/sprites/player/player_idle_2x.png',
+  includesWeapon: true,
+},
   'player.idle_up': { ...sprite('sprites/player/player_aim_up', 32, 32, 1, 1),
     url: 'assets/sprites/player/player_aim_up.png', includesWeapon: true },
   'player.idle_diagonal': { ...sprite('sprites/player/player_aim_diagonalUp', 32, 32, 1, 1),
     url: 'assets/sprites/player/player_aim_diagonalUp.png', includesWeapon: true },
-  'player.run': { ...sprite('sprites/player/player_run', 32, 32, 6, 11),
-    url: 'assets/sprites/player/player_run.png', includesWeapon: true },
+  'player.run': { ...withArtScale(sprite('sprites/player/player_run_2x', 32, 32, 6, 11), 2),
+    url: 'assets/sprites/player/player_run_2x.png', includesWeapon: true },
   'player.jump': { ...sprite('sprites/player/player_jump', 32, 32, 2, 6),
     url: 'assets/sprites/player/player_jump.png', includesWeapon: true },
   'player.fall': { ...sprite('sprites/player/player_fall', 32, 32, 2, 6),
     url: 'assets/sprites/player/player_fall.png', includesWeapon: true },
-  'player.crouch': { ...sprite('sprites/player/player_crouch', 32, 32, 2, 7, 'bottom-center', false),
+  'player.crouch': { ...withArtScale(sprite('sprites/player/player_crouch', 32, 32, 2, 7, 'bottom-center', false), 2),
     url: 'assets/sprites/player/player_crouch.png', includesWeapon: true },
   'player.shoot': sprite('sprites/player/player_shoot', 32, 32, 2, 12),
   'player.shoot_horizontal': { ...sprite('sprites/player/player_shoot_horizontal', 32, 32, 2, 12),
@@ -81,8 +92,10 @@ export const ASSETS: Record<string, SpriteAsset> = {
     url: 'assets/sprites/enemies/soldier/soldier_run.png', includesWeapon: true },
   'soldier.shoot': { ...sprite('sprites/enemies/soldier/soldier_shoot', 32, 32, 2, 12),
     url: 'assets/sprites/enemies/soldier/soldier_shoot.png', includesWeapon: true },
-  'soldier.death': { ...sprite('sprites/enemies/soldier/soldier_death', 32, 32, 6, 10, 'bottom-center', false),
-    url: 'assets/sprites/enemies/soldier/soldier_death.png', includesWeapon: true },
+
+  'soldier.death': { ...withArtScale(sprite('sprites/enemies/soldier/soldier_death_x2', 32, 32, 6, 10, 'bottom-center', false), 2),
+    url: 'assets/sprites/enemies/soldier/soldier_death_x2.png', includesWeapon: true },
+
   'runner.run': { ...sprite('sprites/enemies/runner/runner_run', 24, 24, 6, 12),
     url: 'assets/sprites/enemies/runner/runner_run.png' },
   'runner.death': { ...sprite('sprites/enemies/runner/runner_death', 24, 24, 6, 10, 'bottom-center', false),
@@ -123,14 +136,14 @@ export const ASSETS: Record<string, SpriteAsset> = {
 };
 for (const [id, effect] of Object.entries(VFX_EFFECTS)) {
   const spec: VfxConfig = effect;
-  const asset = sprite(`sprites/fx/${spec.file}`, spec.width, spec.height, spec.frames, spec.fps, 'center', false);
+  const asset = withArtScale(sprite(`sprites/fx/${spec.file}`, spec.width, spec.height, spec.frames, spec.fps, 'center', false), spec.artScale ?? 1);
   if (spec.enabled) asset.url = asset.path;
   ASSETS[id] = asset;
 }
 for (const [id, definition] of Object.entries(ENVIRONMENT_ASSETS)) {
   const spec: EnvironmentAsset = definition;
-  const asset = sprite(`environment/${spec.file}`, spec.width, spec.height, spec.frames ?? 1,
-    spec.fps ?? 1, id.startsWith('background.') ? 'center' : 'bottom-center', (spec.frames ?? 1) > 1);
+  const asset = withArtScale(sprite(`environment/${spec.file}`, spec.width, spec.height, spec.frames ?? 1,
+    spec.fps ?? 1, id.startsWith('background.') ? 'center' : 'bottom-center', (spec.frames ?? 1) > 1), spec.artScale ?? 1);
   asset.tileable = spec.tileable;
   if (spec.enabled) asset.url = asset.path;
   ASSETS[id] = asset;

@@ -1,4 +1,6 @@
 export interface VfxConfig {
+  /** width/height and muzzle offsets are world units; only source frames use artScale. */
+  artScale?: 1 | 2;
   file: string; width: number; height: number; frames: number; fps: number;
   kind: 'muzzle' | 'spark' | 'burst'; color: number;
   fallbackWidth: number; fallbackHeight: number; particles: number;

@@ -1,6 +1,8 @@
 export const ENVIRONMENT = { tile: 16, sliceStart: 0, sliceEnd: 1024, seed: 17 } as const;
 
 export interface EnvironmentAsset {
+  /** width/height remain world units. artScale affects source metadata only. */
+  artScale?: 1 | 2;
   file: string; width: number; height: number; frames?: number; fps?: number;
   layer: 'tiles' | 'back' | 'front' | 'marker' | 'far' | 'mid' | 'near';
   tileable?: boolean; enabled?: boolean;

@@ -1,7 +1,7 @@
-import { VIEW } from '../config/constants';
+import { RENDER_VIEW } from '../config/art';
 
 export function getDisplaySize(width: number, height: number): { width: number; height: number } {
-  const fit = Math.min(width / VIEW.width, height / VIEW.height);
+  const fit = Math.min(width / RENDER_VIEW.width, height / RENDER_VIEW.height);
   const scale = fit >= 1 ? Math.floor(fit) : Math.max(0, fit);
-  return { width: VIEW.width * scale, height: VIEW.height * scale };
+  return { width: RENDER_VIEW.width * scale, height: RENDER_VIEW.height * scale };
 }
