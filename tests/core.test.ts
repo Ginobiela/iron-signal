@@ -61,6 +61,32 @@ function key(target: EventTarget, type: string, code: string, repeat = false): v
 }
 
 describe('keyboard state', () => {
+  it('combines touch and keyboard without stuck actions or repeated jump edges', () => {
+    const target = new EventTarget();
+    const input = new InputManager(target as Window);
+    input.setTouchAction('right', true);
+    input.setTouchAction('up', true);
+    input.setTouchAction('shoot', true);
+    input.setTouchAction('jump', true);
+    expect(input.isDown('right') && input.isDown('up') && input.isDown('shoot')).toBe(true);
+    expect(input.wasPressed('jump')).toBe(true);
+    input.endStep();
+    input.setTouchAction('jump', true);
+    expect(input.wasPressed('jump')).toBe(false);
+    key(target, 'keydown', 'KeyD');
+    input.setTouchAction('right', false);
+    expect(input.isDown('right')).toBe(true);
+    key(target, 'keyup', 'KeyD');
+    expect(input.isDown('right')).toBe(false);
+    input.setTouchAction('jump', false);
+    input.setTouchAction('jump', true);
+    input.setTouchAction('jump', false);
+    expect(input.wasPressed('jump')).toBe(true);
+    target.dispatchEvent(new Event('blur'));
+    expect(input.isDown('shoot')).toBe(false);
+    expect(input.wasPressed('jump')).toBe(false);
+    input.dispose();
+  });
   it('lets volume inputs use arrows while retaining pause and debug shortcuts', () => {
     const target = new EventTarget();
     Object.assign(target, { tagName: 'INPUT' });

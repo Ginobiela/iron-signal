@@ -20,6 +20,27 @@
         <div id="game-menu" hidden role="status" aria-live="polite"></div>
         <p id="error" hidden role="alert"></p>
       </div>
+      <section id="touch-controls" aria-label="Controles táctiles">
+        <div class="dpad" role="group" aria-label="Cruceta de movimiento y apuntado">
+          <button data-actions="left up" aria-label="Izquierda y arriba">↖</button>
+          <button data-actions="up" aria-label="Apuntar arriba">▲</button>
+          <button data-actions="right up" aria-label="Derecha y arriba">↗</button>
+          <button data-actions="left" aria-label="Mover izquierda">◀</button>
+          <span class="dpad-center" aria-hidden="true">✚</span>
+          <button data-actions="right" aria-label="Mover derecha">▶</button>
+          <button data-actions="left down" aria-label="Izquierda y abajo">↙</button>
+          <button data-actions="down" aria-label="Agacharse">▼</button>
+          <button data-actions="right down" aria-label="Derecha y abajo">↘</button>
+        </div>
+        <div class="touch-system">
+          <button data-actions="start">START</button>
+          <button data-actions="pause">PAUSA</button>
+        </div>
+        <div class="touch-ab" role="group" aria-label="Botones de acción">
+          <button data-actions="shoot"><strong>B</strong><span>DISPARAR</span></button>
+          <button data-actions="jump"><strong>A</strong><span>SALTAR</span></button>
+        </div>
+      </section>
       <footer>
         <div id="combat-status" role="status" aria-live="polite"></div>
         <span>PORTADORES AÉREOS M: MACHINE GUN / S: SPREAD / L: LASER</span>

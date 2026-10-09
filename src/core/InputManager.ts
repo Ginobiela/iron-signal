@@ -6,6 +6,15 @@ const handledCodes = new Set<string>(Object.values(CONTROLS).flat());
 export class InputManager {
   private readonly held = new Set<string>();
   private readonly pressed = new Set<string>();
+  private readonly touchHeld = new Set<Action>();
+  private readonly touchPressed = new Set<Action>();
+
+  setTouchAction(action: Action, down: boolean): void {
+    if (down) {
+      if (!this.isDown(action)) this.touchPressed.add(action);
+      this.touchHeld.add(action);
+    } else this.touchHeld.delete(action);
+  }
 
   constructor(private readonly target: Window = window) {
     target.addEventListener('keydown', this.onDown);
@@ -14,20 +23,23 @@ export class InputManager {
   }
 
   isDown(action: Action): boolean {
-    return CONTROLS[action].some((code) => this.held.has(code));
+    return this.touchHeld.has(action) || CONTROLS[action].some((code) => this.held.has(code));
   }
 
   wasPressed(action: Action): boolean {
-    return CONTROLS[action].some((code) => this.pressed.has(code));
+    return this.touchPressed.has(action) || CONTROLS[action].some((code) => this.pressed.has(code));
   }
 
   endStep(): void {
     this.pressed.clear();
+    this.touchPressed.clear();
   }
 
   readonly clear = (): void => {
     this.held.clear();
     this.pressed.clear();
+    this.touchHeld.clear();
+    this.touchPressed.clear();
   };
 
   dispose(): void {

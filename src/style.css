@@ -37,6 +37,39 @@ footer p { width: 100%; margin: 0; font-size: 11px; line-height: 1.5; }
 #debug { position: absolute; top: 8px; left: 8px; margin: 0; padding: 10px; background: #080e18ed; color: #bdecc0; font-size: 12px; line-height: 1.6; pointer-events: none; }
 #error { position: absolute; max-width: 320px; padding: 20px; background: #331c22; line-height: 1.5; }
 [hidden] { display: none !important; }
+#touch-controls { display: none; }
+@media (any-pointer: coarse) {
+  #app { grid-template-rows: auto minmax(0, 1fr) auto auto; padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); gap: 6px; }
+  #touch-controls { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: min(100%, 820px); justify-self: center; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  #touch-controls button { font: bold 14px "Courier New", monospace; color: #eee5d1; border: 2px solid #647078; background: #303740; box-shadow: 0 3px 0 #090d13; touch-action: none; padding: 0; }
+  #touch-controls button.held { background: #627b86; transform: translateY(2px); box-shadow: none; }
+  #touch-controls button:focus-visible { outline: 2px solid #ffe3a2; outline-offset: 2px; }
+  .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(3, 42px); gap: 1px; }
+  .dpad button { border-radius: 5px; }
+  .dpad-center { display: grid; place-items: center; color: #879299; background: #303740; }
+  .touch-system { display: flex; flex-direction: column; gap: 14px; }
+  .touch-system button { min-height: 32px; min-width: 60px; border-radius: 14px; font-size: 10px !important; }
+  .touch-ab { display: flex; gap: 10px; padding: 14px 0; }
+  #touch-controls .touch-ab button { width: 64px; height: 64px; border-radius: 50%; background: #8e3459; border-color: #ca7794; }
+  .touch-ab button:last-child { margin-top: -22px; }
+  .touch-ab strong { display: block; font-size: 22px; }
+  .touch-ab span { display: block; font-size: 9px; }
+  #touch-controls .touch-ab button.held { background: #bf577b; }
+  footer > span, footer > p { display: none; }
+  #combat-status { font-size: 9px; }
+  @media (max-width: 380px) {
+    .dpad { grid-template-columns: repeat(3, 36px); grid-template-rows: repeat(3, 36px); }
+    #touch-controls .touch-ab button { width: 54px; height: 54px; }
+    .touch-system button { min-width: 52px; }
+  }
+  @media (orientation: landscape) {
+    #app { grid-template-rows: auto minmax(0, 1fr) auto; }
+    #touch-controls { position: fixed; bottom: max(14px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); width: auto; z-index: 5; pointer-events: none; }
+    #touch-controls > * { pointer-events: auto; }
+    .touch-system { position: absolute; left: 0; bottom: 144px; flex-direction: row; }
+    footer { max-width: 45%; justify-content: center; }
+  }
+}
 .viewer-link { display: inline-block; margin-top: 12px; padding: 6px 12px; border: 1px solid currentColor; color: #99edff; pointer-events: auto; text-decoration: none; }
 .viewer-link:focus-visible { outline: 2px solid #ffe3a2; outline-offset: 3px; }
 @media (max-width: 480px), (max-height: 450px) {

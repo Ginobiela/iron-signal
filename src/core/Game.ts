@@ -29,6 +29,7 @@ import { Menu } from '../ui/Menu';
 import { getDisplaySize } from '../rendering/viewport';
 import { GameLoop } from './GameLoop';
 import { InputManager } from './InputManager';
+import { TouchControls } from '../ui/TouchControls';
 import { GameStateManager } from './GameStateManager';
 import { ScoreManager } from './ScoreManager';
 import { Boss } from '../bosses/Boss';
@@ -55,6 +56,7 @@ export class Game {
   private readonly camera = new OrthographicCamera(0, VIEW.width, VIEW.height, 0, 0.1, 100);
   private readonly renderer: WebGLRenderer;
   private readonly input: InputManager;
+  private readonly touchControls?: TouchControls;
   private readonly level = new Level(levelData);
   private readonly states = new GameStateManager();
   private readonly score = new ScoreManager();
@@ -124,6 +126,8 @@ export class Game {
     this.updateHUD();
     this.playerView.update(this.player, 0);
     this.input = new InputManager();
+    const touchRoot = document.querySelector<HTMLElement>('#touch-controls');
+    if (touchRoot) this.touchControls = new TouchControls(touchRoot, this.input);
     this.loop = new GameLoop(this.update, this.render);
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(viewport);
@@ -142,6 +146,7 @@ export class Game {
 
   dispose(): void {
     this.loop.stop();
+    this.touchControls?.dispose();
     this.input.dispose();
     this.resizeObserver.disconnect();
     document.removeEventListener('visibilitychange', this.onVisibility);
