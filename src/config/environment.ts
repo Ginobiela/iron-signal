@@ -1,4 +1,4 @@
-export const ENVIRONMENT = { tile: 16, sliceStart: 0, sliceEnd: 1024, seed: 17 } as const;
+export const ENVIRONMENT = { tile: 16, decorationPeriod: 1024, seed: 17 } as const;
 
 export interface EnvironmentAsset {
   /** width/height remain world units. artScale affects source metadata only. */

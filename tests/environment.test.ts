@@ -12,8 +12,48 @@ import { ParallaxBackground } from '../src/rendering/ParallaxBackground';
 import { Level } from '../src/level/Level';
 import { SIGNAL_WORKS } from '../src/level/signalWorks';
 import { overlaps } from '../src/collision/CollisionSystem';
+import { environmentLayout } from '../src/rendering/environmentLayout';
+import { CheckpointView } from '../src/rendering/CheckpointView';
+import { CheckpointManager } from '../src/level/Checkpoint';
 
 afterEach(() => vi.restoreAllMocks());
+
+it('builds deterministic full-level decoration on existing ground, including the boss arena', () => {
+  const before = JSON.stringify(SIGNAL_WORKS);
+  const layout = environmentLayout(SIGNAL_WORKS);
+  expect(environmentLayout(SIGNAL_WORKS)).toEqual(layout);
+  for (const prop of layout.props) {
+    const spec = ENVIRONMENT_ASSETS[prop.id];
+    expect(SIGNAL_WORKS.ground.some(g => prop.x - spec.width / 2 >= g.x && prop.x + spec.width / 2 <= g.x + g.width)).toBe(true);
+    expect(prop.x + spec.width / 2).toBeLessThanOrEqual(SIGNAL_WORKS.width);
+  }
+  for (const section of SIGNAL_WORKS.sections) {
+    expect(layout.props.some(p => p.x >= section.x && p.x < section.x + 1024)).toBe(true);
+  }
+  expect(layout.walls.some(w => w.x === SIGNAL_WORKS.boss.arenaLeft && w.x + w.width === SIGNAL_WORKS.width)).toBe(true);
+  expect(JSON.stringify(SIGNAL_WORKS)).toBe(before);
+});
+
+it('uses real backgrounds and checkpoint sprites throughout the level, retaining missing-image fallbacks', async () => {
+  vi.spyOn(TextureLoader.prototype, 'loadAsync').mockResolvedValue(new Texture({ width: 512, height: 480 } as HTMLImageElement));
+  const assets = new AssetManager(); await assets.preload();
+  const scene = new Scene(), background = new ParallaxBackground(scene, assets);
+  for (const x of [0, 1024, 2400, 4800, 7200, 9088, 9344]) {
+    background.update(x);
+    for (const layer of [DRAW.backgroundFar, DRAW.backgroundMid, DRAW.backgroundNear]) {
+      expect(scene.children.some(root => root.visible && root.children.some(mesh => mesh instanceof Mesh
+        && mesh.position.z === layer + DRAW.detail && !Array.isArray(mesh.material) && 'map' in mesh.material && mesh.material.map))).toBe(true);
+    }
+  }
+  const manager = new CheckpointManager({ ...SIGNAL_WORKS.spawn, name: 'Inicio' }, SIGNAL_WORKS.checkpoints);
+  const view = new CheckpointView(manager, assets); view.update(0);
+  let textured = 0;
+  view.root.traverse(mesh => {
+    if (mesh instanceof Mesh && mesh.visible && !Array.isArray(mesh.material) && 'map' in mesh.material && mesh.material.map) textured++;
+  });
+  expect(textured).toBe(SIGNAL_WORKS.checkpoints.length);
+  view.dispose(); background.dispose(); assets.dispose();
+});
 
 it('chooses stable surface variants from tile coordinates, without randomness', () => {
   const random = vi.spyOn(Math, 'random');
@@ -95,7 +135,7 @@ it('keeps fallbacks visible and never registers decoration as collision geometry
   const view = new LevelView(scene, level, assets); view.update(0);
   expect(JSON.stringify(level.data)).toBe(before); expect(level.solids).toBe(solids); expect(level.oneWays).toBe(platforms);
   expect(scene.children.some(n => n instanceof Mesh && n.visible && n.scale.x === 520)).toBe(true);
-  const environment = new EnvironmentView(assets); environment.update(0);
+  const environment = new EnvironmentView(assets, level.data); environment.update(0);
   const children = environment.root.children.slice();
   expect(children.some(n => n.visible && n.children.some(c => c instanceof Mesh))).toBe(true);
   for (let i = 0; i < 100; i++) environment.update(1 / 60);

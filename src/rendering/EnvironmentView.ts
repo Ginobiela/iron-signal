@@ -2,13 +2,15 @@ import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import type { AssetManager } from '../core/AssetManager';
 import type { AABB } from '../collision/CollisionSystem';
 import { DRAW } from '../config/assets';
-import { ENVIRONMENT, ENVIRONMENT_ASSETS, ENVIRONMENT_PROPS } from '../config/environment';
+import { ENVIRONMENT_ASSETS } from '../config/environment';
+import type { LevelData } from '../level/Level';
+import { environmentLayout } from './environmentLayout';
 import type { EnvironmentId } from '../config/environment';
 import { groundPieces, platformPieces } from './environmentPieces';
 import { SpriteVisual } from './SpriteVisual';
 import { TiledVisual } from './TiledVisual';
 
-/** A bounded art slice; builds once and leaves all level/collision data untouched. */
+/** Builds full-level visuals once and leaves all level/collision data untouched. */
 export class EnvironmentView {
   readonly root = new Group();
   private readonly tiles = new Map<EnvironmentId, TiledVisual>();
@@ -20,16 +22,15 @@ export class EnvironmentView {
   private readonly wallMaterial = new MeshBasicMaterial({ color: 0x26393a });
   private readonly walls: { tile: TiledVisual; fallback: Mesh }[] = [];
 
-  constructor(private readonly assets: AssetManager) {
-    for (const [id, x, width, height] of [
-      ['environment.wall.bunker', 736, 128, 64], ['environment.wall.concrete', 864, 160, 48],
-    ] as const) {
-      const tile = this.tile(id); tile.add(x, 44, width, height, DRAW.levelBackDecor);
+  constructor(private readonly assets: AssetManager, level: LevelData) {
+    const layout = environmentLayout(level);
+    for (const { id, x, y, width, height } of layout.walls) {
+      const tile = this.tile(id); tile.add(x, y, width, height, DRAW.levelBackDecor);
       const fallback = new Mesh(this.geometry, this.wallMaterial);
-      fallback.position.set(x + width / 2, 44 + height / 2, DRAW.levelBackDecor);
+      fallback.position.set(x + width / 2, y + height / 2, DRAW.levelBackDecor);
       fallback.scale.set(width, height, 1); this.root.add(fallback); this.walls.push({ tile, fallback });
     }
-    for (const prop of ENVIRONMENT_PROPS) {
+    for (const prop of layout.props) {
       const spec = ENVIRONMENT_ASSETS[prop.id], z = spec.layer === 'front' ? DRAW.foreground : DRAW.levelBackDecor;
       const sprite = new SpriteVisual(assets, { width: spec.width, height: spec.height, offsetX: 0, offsetY: 0, anchor: 'bottom-center' }, '', z);
       sprite.root.position.set(prop.x, prop.y, z);
@@ -55,16 +56,12 @@ export class EnvironmentView {
   }
 
   addGround(box: AABB): void {
-    const start = Math.max(box.x, ENVIRONMENT.sliceStart), end = Math.min(box.x + box.width, ENVIRONMENT.sliceEnd);
-    if (end <= start) return;
-    const clipped = { x: start, y: box.y, width: end - start, height: box.height };
-    for (const piece of groundPieces(clipped, start === box.x && box.x > 0, end === box.x + box.width)) {
+    for (const piece of groundPieces(box, box.x > 0)) {
       this.tile(piece.id).add(piece.x, piece.y, piece.width, piece.height, DRAW.levelTiles, piece.topAligned);
     }
   }
 
   addPlatform(box: AABB): void {
-    if (box.x < ENVIRONMENT.sliceStart || box.x + box.width > ENVIRONMENT.sliceEnd) return;
     for (const piece of platformPieces(box)) this.tile(piece.id).add(piece.x, piece.y, piece.width, piece.height, DRAW.levelTiles, true);
   }
 

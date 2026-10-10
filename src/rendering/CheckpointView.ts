@@ -2,7 +2,6 @@ import { DRAW } from '../config/assets';
 import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import type { CheckpointManager } from '../level/Checkpoint';
 import type { AssetManager } from '../core/AssetManager';
-import { ENVIRONMENT } from '../config/environment';
 import { SpriteVisual } from './SpriteVisual';
 
 export class CheckpointView {
@@ -25,8 +24,7 @@ export class CheckpointView {
       flag.scale.set(14, 10, 1);
       this.flags.push(flag);
       this.poles.push(pole);
-      const sprite = checkpoint.x >= ENVIRONMENT.sliceStart && checkpoint.x < ENVIRONMENT.sliceEnd
-        ? new SpriteVisual(assets, { width: 16, height: 32, offsetX: 0, offsetY: 0, anchor: 'bottom-center' }, '', DRAW.decoration) : null;
+      const sprite = new SpriteVisual(assets, { width: 16, height: 32, offsetX: 0, offsetY: 0, anchor: 'bottom-center' }, '', DRAW.decoration);
       if (sprite) { sprite.root.position.set(checkpoint.x + 8, checkpoint.y, DRAW.decoration); this.root.add(sprite.root); }
       this.sprites.push(sprite);
       this.root.add(pole, flag);

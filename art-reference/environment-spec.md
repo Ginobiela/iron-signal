@@ -14,6 +14,19 @@ Registro e inventario completo: [art-2x-migration.md](art-2x-migration.md).
 
 ## Estado auditado y alcance
 
+### Extensión aprobada al nivel completo
+
+El kit 2× cubre ahora x=0…9600: todos los sólidos y one-way platforms, las tres
+capas parallax y los seis checkpoints. Se retiró el límite x=1024 del renderer.
+`environmentLayout.ts` monta una vez las paredes y props con periodo visual de
+1024 unidades, ajustando su baseline a cada segmento de suelo y descartando
+props que quedarían sobre fosos o fuera del nivel. Las ramas permanecen arriba,
+lejos de las siluetas jugables. La arena final continúa con la misma pared bunker,
+crate, pipe y vent, sin cambiar boss, colisiones, spawn ni checkpoints.
+Los fallbacks originales de terreno/checkpoints/fondo se conservan para cargas
+fallidas; se retiraron los adornos geométricos antiguos de las otras secciones.
+Las referencias al vertical slice a continuación describen la entrega inicial.
+
 El mundo existente mide 9600 unidades, con resolución lógica 256×240, coordenadas
 X/Y y suelo habitual en y=44 (elevaciones a 56). No existía Tile ni grid físico:
 Level.solids/oneWays son AABB de tamaños arbitrarios. LevelView dibujaba rectángulos,
