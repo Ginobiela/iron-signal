@@ -33,7 +33,7 @@ describe('centralized game states', () => {
     expect(states.state).toBe('MENU');
     states.playerDied();
     states.complete();
-    expect(states.lives).toBe(3);
+    expect(states.lives).toBe(GAMEPLAY.initialLives);
     expect(states.state).toBe('MENU');
     expect(states.start()).toBe(true);
     expect(states.state).toBe('PLAYING');
@@ -50,7 +50,7 @@ describe('centralized game states', () => {
     states.playerDied();
     states.complete();
     expect(states.update(100)).toBe(false);
-    expect(states.lives).toBe(3);
+    expect(states.lives).toBe(GAMEPLAY.initialLives);
     expect(states.state).toBe('PAUSED');
     states.togglePause();
     expect(states.state).toBe('PLAYING');
@@ -60,9 +60,9 @@ describe('centralized game states', () => {
     expect(states.state).toBe('PLAYING');
   });
 
-  it('consumes each life once, waits before respawn and reaches game over after the third death', () => {
+  it('consumes each life once, waits before respawn and reaches game over after exhausting the configured lives', () => {
     const states = started();
-    for (let remaining = 2; remaining >= 0; remaining--) {
+    for (let remaining = GAMEPLAY.initialLives - 1; remaining >= 0; remaining--) {
       states.playerDied();
       states.playerDied();
       expect(states.lives).toBe(remaining);
@@ -90,7 +90,7 @@ describe('centralized game states', () => {
     states.playerDied();
     states.pause();
     expect(states.state).toBe('LEVEL_COMPLETE');
-    expect(states.lives).toBe(3);
+    expect(states.lives).toBe(GAMEPLAY.initialLives);
     expect(states.start()).toBe(true);
     expect(states.state).toBe('PLAYING');
   });
@@ -227,8 +227,8 @@ describe('score and persistence', () => {
     const player = new Player(20, 44);
     const pool = new ProjectileManager(collision);
     const combat = new CombatSystem(collision, player, enemies.items, (enemy) => score.add(SCORE[enemy.kind]));
-    pool.spawn(20, 50, 6000, 0, 1, 'player');
-    pool.spawn(20, 50, 6000, 0, 1, 'player');
+    pool.spawn(20, 50, 6000, 0, runner.maxHealth, 'player');
+    pool.spawn(20, 50, 6000, 0, runner.maxHealth, 'player');
     pool.update(dt, [floor], 1536, combat);
     expect(runner.alive).toBe(false);
     expect(score.value).toBe(100);
@@ -252,7 +252,7 @@ it('death preserves score, pickups and spawn history while clearing shots and re
   spawner.update(500);
   const pool = new ProjectileManager(collision);
   const combat = new CombatSystem(collision, player, enemies.items, (enemy) => score.add(SCORE[enemy.kind]));
-  pool.spawn(640, 50, 6000, 0, 1, 'player');
+  pool.spawn(640, 50, 6000, 0, enemies.items[0]!.maxHealth, 'player');
   pool.update(dt, [floor], 1536, combat);
   pool.spawn(680, 60, -6000, 0, 1, 'enemy');
   pool.update(dt, [floor], 1536, combat);
@@ -265,7 +265,7 @@ it('death preserves score, pickups and spawn history while clearing shots and re
   player.respawn(checkpoints.current.x, checkpoints.current.y);
   expect(player.position.x).toBe(620);
   expect(player.weapon.name).toBe('RIFLE');
-  expect(states.lives).toBe(2);
+  expect(states.lives).toBe(GAMEPLAY.initialLives - 1);
   expect(score.value).toBe(100);
   expect(powerups.items[0]?.active).toBe(false);
   spawner.update(0);

@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
     const page = await browser.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.route('**/src/main.ts', route => route.fulfill({ contentType: 'text/javascript', body: `
+    await page.route('**/src/main.ts*', route => route.fulfill({ contentType: 'text/javascript', body: `
       import './style.css'; import { Game } from './core/Game';
       window.g = new Game(document.querySelector('#viewport'), document.querySelector('#debug'),
       document.querySelector('#combat-status'), document.querySelector('#powerup-notice'),
@@ -21,7 +21,7 @@ const assert = require('node:assert/strict');
     let state = await page.evaluate(() => ({ x: g.player.position.x, checkpoint: g.checkpoints.current.x,
       arena: g.boss.arenaLeft, enemies: g.enemies.items.length, triggers: g.spawner.triggeredCount, lives: g.states.lives }));
     assert.equal(state.x, state.arena); assert.equal(state.checkpoint, state.arena);
-    assert.equal(state.enemies, 0); assert.equal(state.triggers, 0); assert.equal(state.lives, 3);
+    assert.equal(state.enemies, 0); assert.equal(state.triggers, 0); assert.equal(state.lives, 10);
     await page.waitForFunction(() => g.boss.state === 'TELEGRAPH');
     await page.keyboard.press('Escape');
     const timer = await page.evaluate(() => g.boss.attackTimer);
@@ -32,12 +32,13 @@ const assert = require('node:assert/strict');
         g.projectiles.spawn(g.player.position.x + 6, g.player.position.y + 12, 0, 0, 100, 'enemy'); });
       await page.waitForFunction(() => g.states.state === 'PLAYER_DEAD');
     };
-    await killPlayer(); await page.waitForFunction(() => g.states.state === 'PLAYING');
-    assert.equal(await page.evaluate(() => g.player.position.x), state.arena);
-    await killPlayer(); await page.waitForFunction(() => g.states.state === 'PLAYING');
+    for (let life = 1; life < state.lives; life++) {
+      await killPlayer(); await page.waitForFunction(() => g.states.state === 'PLAYING');
+      assert.equal(await page.evaluate(() => g.player.position.x), state.arena);
+    }
     await killPlayer(); await page.waitForFunction(() => g.states.state === 'GAME_OVER');
     await page.keyboard.press('Enter');
-    await page.waitForFunction(() => g.states.state === 'PLAYING' && g.states.lives === 3 && g.boss.active);
+    await page.waitForFunction(() => g.states.state === 'PLAYING' && g.states.lives === 10 && g.boss.active);
     await page.evaluate(() => { g.boss.state = 'RECOVER'; g.boss.attackTimer = 10; g.projectiles.clear();
       g.projectiles.spawn(g.boss.position.x + 10, g.boss.position.y + 20, 0, 0, g.boss.maxHealth, 'player'); });
     await page.waitForFunction(() => g.states.state === 'LEVEL_COMPLETE');

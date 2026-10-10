@@ -77,7 +77,7 @@ export const POWERUPS = {
 export const GAMEPLAY = { initialLives: 10, deathDelay: 0.65, checkpointNoticeTime: 1.5 } as const;
 export const SCORE = { soldier: 100, runner: 100, turret: 200, flying: 300, boss: 5000 } as const;
 export const BOSS = {
-  name: 'GUARDIÁN CENITAL', width: 56, height: 72, health: 150,
+  name: 'GUARDIÁN CENITAL', width: 56, height: 72, health: 100,
   phase2Threshold: 0.66, phase3Threshold: 0.30, introTime: 1,
   telegraphTimes: [0.65, 0.55, 0.35], recoveryTimes: [1.1, 1, 0.8],
   bulletSpeeds: [110, 130, 165], burstCount: 2, burstInterval: 0.12, attackTime: 0.24,

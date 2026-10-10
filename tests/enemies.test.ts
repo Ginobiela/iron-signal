@@ -175,8 +175,8 @@ describe('combat ownership and closest impact', () => {
     const { pool, player, combat } = setup([far, near]);
     pool.spawn(20, 60, 6000, 0, 1, 'player');
     pool.update(dt, [floor], 1536, combat);
-    expect(near.health).toBe(1);
-    expect(far.health).toBe(2);
+    expect(near.health).toBe(near.maxHealth - 1);
+    expect(far.health).toBe(far.maxHealth);
     expect(player.health).toBe(PLAYER.maxHealth);
     expect(pool.activeCount).toBe(0);
   });
@@ -186,7 +186,7 @@ describe('combat ownership and closest impact', () => {
     const { pool, combat } = setup([soldier]);
     pool.spawn(20, 60, 6000, 0, 1, 'player');
     pool.update(dt, [floor, { x: 50, y: 44, width: 3, height: 50 }], 1536, combat);
-    expect(soldier.health).toBe(2);
+    expect(soldier.health).toBe(soldier.maxHealth);
     expect(pool.activeCount).toBe(0);
   });
 
@@ -195,7 +195,7 @@ describe('combat ownership and closest impact', () => {
     const { pool, combat } = setup([soldier]);
     pool.spawn(20, 60, 6000, 0, 1, 'player');
     pool.update(dt, [floor, { x: 100, y: 44, width: 3, height: 50 }], 1536, combat);
-    expect(soldier.health).toBe(1);
+    expect(soldier.health).toBe(soldier.maxHealth - 1);
     expect(pool.activeCount).toBe(0);
   });
 
@@ -213,7 +213,7 @@ describe('combat ownership and closest impact', () => {
     }
     expect(player.health).toBe(PLAYER.maxHealth);
     expect(player.invulnerabilityTimer).toBe(PLAYER.invulnerabilityTime);
-    expect(soldier.health).toBe(2);
+    expect(soldier.health).toBe(soldier.maxHealth);
     expect(combat.playerHits).toBe(1);
     expect(pool.activeCount).toBe(0);
   });
@@ -229,8 +229,8 @@ describe('combat ownership and closest impact', () => {
   it('counts a kill only once when two bullets hit during the same step', () => {
     const runner = new Runner(90, 44);
     const { pool, combat } = setup([runner]);
-    pool.spawn(20, 50, 6000, 0, 1, 'player');
-    pool.spawn(20, 50, 6000, 0, 1, 'player');
+    pool.spawn(20, 50, 6000, 0, runner.maxHealth, 'player');
+    pool.spawn(20, 50, 6000, 0, runner.maxHealth, 'player');
     pool.update(dt, [floor], 1536, combat);
     expect(combat.kills).toBe(1);
     expect(pool.activeCount).toBe(1);
@@ -324,8 +324,10 @@ function simulateCombat(hz: number) {
 it('combat outcomes stay identical with 30, 60 and 144 Hz render', () => {
   const baseline = simulateCombat(60);
   expect(baseline.shots).toBe(13);
-  expect(baseline.kills).toBe(2);
-  expect(baseline.enemies).toEqual([0, 0]);
+  expect(baseline.kills).toBe(1);
+  expect(baseline.enemies[0]).toBe(0);
+  expect(baseline.enemies[1]).toBeGreaterThan(0);
+  expect(baseline.enemies[1]).toBeLessThan(ENEMIES.turret.health);
   expect(simulateCombat(30)).toEqual(baseline);
   expect(simulateCombat(144)).toEqual(baseline);
 });

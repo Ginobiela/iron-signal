@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CollisionSystem, overlaps } from '../src/collision/CollisionSystem';
-import { PLAYER, TIMING, VIEW, WORLD } from '../src/config/constants';
+import { BOSS, ENEMIES, PLAYER, TIMING, VIEW, WORLD } from '../src/config/constants';
 import { EnemyManager } from '../src/entities/enemies/EnemyManager';
 import { Player } from '../src/entities/Player';
 import { EnemySpawner } from '../src/level/EnemySpawner';
@@ -181,6 +181,29 @@ describe('spawn triggers', () => {
 
 describe('level data and parallax', () => {
   const level = new Level(SIGNAL_WORKS);
+
+  it('applies the requested health values and includes sixteen grounded Runners', () => {
+    expect(BOSS.health).toBe(100);
+    expect(ENEMIES.runner.health).toBe(2);
+    expect(ENEMIES.soldier.health).toBe(4);
+    expect(ENEMIES.turret.health).toBe(6);
+    const runners = level.data.spawnGroups.flatMap(group => group.enemies).filter(enemy => enemy.kind === 'runner');
+    expect(runners).toHaveLength(16);
+    expect(new Set(runners.map(enemy => enemy.x)).size).toBe(16);
+  });
+
+  it.each([180, 2480, 4900, 7300])('reaches both upper tiers above x=%i with the existing jump', base => {
+    const player = new Player(base + 60, 74);
+    player.update(dt, idle, collision, level.solids, SIGNAL_WORKS.width, level.oneWays);
+    expect(player.grounded).toBe(true);
+    for (const targetHeight of [104, 134]) {
+      player.update(dt, { ...idle, jumpPressed: true }, collision, level.solids, SIGNAL_WORKS.width, level.oneWays);
+      for (let i = 0; i < 60; i++) player.update(dt, idle, collision, level.solids, SIGNAL_WORKS.width, level.oneWays);
+      expect(player.position.y).toBe(targetHeight);
+      expect(player.grounded && player.onOneWay).toBe(true);
+      expect(player.alive).toBe(true);
+    }
+  });
 
   it('separates projectile-blocking solids from one-way grates and locates sectors', () => {
     expect(level.oneWays.length).toBeGreaterThan(0);

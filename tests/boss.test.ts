@@ -16,6 +16,8 @@ import { SIGNAL_WORKS } from '../src/level/signalWorks';
 import { Level } from '../src/level/Level';
 
 const dt = TIMING.fixedStep;
+const phaseTwoHealth = Math.floor(BOSS.health * BOSS.phase2Threshold);
+const phaseThreeBoundary = Math.ceil(BOSS.health * BOSS.phase3Threshold);
 const floor = { x: 0, y: 0, width: 1536, height: 44 };
 const shoot = { left: false, right: false, up: false, down: false, shoot: true, jumpPressed: false };
 
@@ -38,7 +40,7 @@ function waitState(boss: Boss, context: EnemyContext, state: BossState): void {
 function phaseTwo(boss: Boss, context: EnemyContext): void {
   boss.activate(0);
   waitState(boss, context, 'RECOVER');
-  boss.takeDamage(51);
+  boss.takeDamage(BOSS.health - phaseTwoHealth);
   expect(boss.phase).toBe(2);
 }
 
@@ -81,14 +83,14 @@ describe('boss lifecycle and phases', () => {
   it('changes at 66% and below 30%, preserving health and giving an intro at each transition', () => {
     const { boss, context } = setup();
     phaseTwo(boss, context);
-    expect(boss.health).toBe(99);
+    expect(boss.health).toBe(phaseTwoHealth);
     expect(boss.state).toBe('INTRO');
     waitState(boss, context, 'RECOVER');
-    boss.takeDamage(54);
-    expect(boss.health).toBe(45);
+    boss.takeDamage(phaseTwoHealth - phaseThreeBoundary);
+    expect(boss.health).toBe(phaseThreeBoundary);
     expect(boss.phase).toBe(2);
     boss.takeDamage(1);
-    expect(boss.health).toBe(44);
+    expect(boss.health).toBe(phaseThreeBoundary - 1);
     expect(boss.phase).toBe(3);
     expect(boss.state).toBe('INTRO');
     expect(boss.vulnerable).toBe(false);
@@ -99,7 +101,7 @@ describe('boss lifecycle and phases', () => {
     phaseTwo(boss, context);
     waitState(boss, context, 'ATTACK');
     boss.prepareRespawn();
-    expect(boss.health).toBe(99);
+    expect(boss.health).toBe(phaseTwoHealth);
     expect(boss.phase).toBe(2);
     expect(boss.state).toBe('INTRO');
     expect(boss.attackTimer).toBe(BOSS.introTime);
@@ -177,7 +179,7 @@ describe('boss attack patterns and dodges', () => {
     const { boss, context, pool } = setup();
     phaseTwo(boss, context);
     waitState(boss, context, 'RECOVER');
-    boss.takeDamage(55);
+    boss.takeDamage(phaseTwoHealth - phaseThreeBoundary + 1);
     expect(boss.phase).toBe(3);
     for (const pattern of ['HIGH', 'LOW', 'AIMED']) {
       waitState(boss, context, 'TELEGRAPH');
@@ -222,7 +224,7 @@ describe('boss collision and arena', () => {
     const soldier = new Soldier(150, 44);
     soldier.active = true;
     const shielded = new CombatSystem(context.collision, context.player, [soldier], undefined, boss);
-    pool.spawn(50, 60, 12000, 0, 3, 'player');
+    pool.spawn(50, 60, 12000, 0, soldier.maxHealth, 'player');
     pool.update(dt, [floor], 1536, shielded);
     expect(soldier.alive).toBe(false);
     expect(boss.health).toBe(BOSS.health);

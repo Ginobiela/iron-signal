@@ -193,20 +193,26 @@ CombatSystem selecciona el primer impacto entre sólidos y blancos válidos a lo
 
 | Enemigo | Comportamiento | Salud | Aspecto |
 | --- | --- | --- | --- |
-| Soldier | Se acerca y dispara cada 1.6 s | 2 | Humanoide verde |
-| Runner | Carga a 80 unidades/s y salta obstáculos | 1 | Rojo, cuerpo bajo |
-| Turret | Apunta y dispara cada 1.25 s; avisa con cañón rojo | 5 | Base dorada |
+| Soldier | Se acerca y dispara cada 1.6 s | 4 | Humanoide verde |
+| Runner | Carga a 80 unidades/s y salta obstáculos | 2 | Cuerpo bajo |
+| Turret | Apunta y dispara cada 1.25 s; avisa con cañón rojo | 6 | Base dorada |
 | FlyingEnemy | Cruza a la izquierda con trayectoria sinusoidal | 2 | Alas violetas |
 
 Cada comportamiento tiene su propia clase. Los impactos producen flash y barra de salud parcial; al morir el enemigo desaparece. Audio, partículas y explosiones se incorporarán en polish.
 
 ### Nivel y reinicio
 
+La campaña tiene 16 Runners (ocho pares repartidos entre las oleadas existentes).
+Se añadieron ocho plataformas one-way altas, en dos escalones sobre las plataformas
+de x=180, 2480, 4900 y 7300. Sus superficies están en y=104 y 134, con incrementos
+de 30 unidades alcanzables mediante el salto actual. Son rutas opcionales; se
+conservan terreno, fosos, checkpoints y arena del jefe.
+
 `signalWorks.ts` define terreno segmentado, plataformas, checkpoints, secciones y grupos `{ x, enemies }`. Las armas se configuran como carga opcional de enemigos aéreos, sin un array de pickups estáticos. EnemySpawner crea realmente los enemigos cuando la cámara alcanza cada trigger; no hay instancias de oleadas futuras. Cada trigger se ejecuta una vez, incluso al retroceder o reaparecer, y se restaura al iniciar una nueva partida. Los enemigos fuera de la ventana se suspenden; los que quedan muy atrás se retiran para evitar actividad innecesaria.
 
 Los fosos de 40–44 unidades y los desniveles son superables con el movimiento actual. El recorrido sin detenerse requiere aproximadamente 101 segundos; la duración con combate depende del jugador. El objetivo global es 3–5 minutos incluyendo el jefe. Cruzar el acceso final no gana la partida: hay que derrotar al Guardián Cenital para activar LEVEL_COMPLETE.
 
-La partida empieza con **3 vidas**. Un impacto de enemigo o proyectil consume una vida; los fosos matan incluso durante invulnerabilidad. PLAYER_DEAD congela el mundo durante 0.65 s. Con vidas restantes, el jugador reaparece automáticamente en el último checkpoint con Rifle, movimiento limpio y 1.5 s de invulnerabilidad con parpadeo. Las balas se limpian, pero score, bajas, drops, cápsulas recogidas y triggers se conservan: no se duplican enemigos ni puntos. Sin vidas, pasa a GAME_OVER. Enter inicia otra partida y restaura nivel, vidas, pool de drops, cámara, checkpoints, score y contadores.
+La partida empieza con **10 vidas**. Un impacto de enemigo o proyectil consume una vida; los fosos matan incluso durante invulnerabilidad. PLAYER_DEAD congela el mundo durante 0.65 s. Con vidas restantes, el jugador reaparece automáticamente en el último checkpoint con Rifle, movimiento limpio y 1.5 s de invulnerabilidad con parpadeo. Las balas se limpian, pero score, bajas, drops, cápsulas recogidas y triggers se conservan: no se duplican enemigos ni puntos. Sin vidas, pasa a GAME_OVER. Enter inicia otra partida y restaura nivel, vidas, pool de drops, cámara, checkpoints, score y contadores.
 
 Los checkpoints son banderas en x=620, 2400, 4800, 7200, 9088 y 9344. El último está en la entrada de la sala del jefe. Se activa el más avanzado que haya cruzado un jugador vivo al tocar suelo o plataforma; retroceder no reemplaza un checkpoint por otro anterior. El aviso y la bandera amarilla confirman la activación. Los puntos de respawn están sobre suelo seguro.
 
@@ -218,7 +224,7 @@ CombatSystem informa una baja de proyectil una sola vez. ScoreManager suma 100 p
 
 Boss es independiente de los enemigos normales y comparte con ellos el barrido de impactos de CombatSystem. Su máquina y cápsulas están construidas con geometría plana original. Al pisar la entrada x=9344, se activa el checkpoint, se limpian las balas anteriores y la cámara fija la sala de 256 unidades. CollisionSystem limita al jugador entre la puerta y el cuerpo del jefe; no se puede escapar ni atravesarlo. La torreta de aproximación está fuera de la sala para que sus ataques no se mezclen con los del jefe.
 
-El jefe tiene 150 de vida y blindaje cerrado durante introducción, aviso y ataque. Entre salvas abre sus compuertas: el núcleo amarillo y el mensaje BLINDAJE ABIERTO indican cuándo los disparos hacen daño. Los tiros bloqueados desaparecen y producen flash de escudo, sin descontar vida. La barra accesible muestra vida, fase y tipo de aviso.
+El jefe tiene 100 de vida y blindaje cerrado durante introducción, aviso y ataque. Entre salvas abre sus compuertas: el núcleo amarillo y el mensaje BLINDAJE ABIERTO indican cuándo los disparos hacen daño. Los tiros bloqueados desaparecen y producen flash de escudo, sin descontar vida. La barra accesible muestra vida, fase y tipo de aviso.
 
 | Fase | Activación | Ataques y respuesta |
 | --- | --- | --- |
