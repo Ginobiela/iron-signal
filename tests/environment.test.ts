@@ -69,17 +69,22 @@ it('keeps tile scale, top-crops short pieces, repeats UVs and shares one materia
   tiles.dispose(); assets.dispose();
 });
 
-it('loads the twelve delivered PNGs from their exact paths with their declared RGBA dimensions', async () => {
+it('loads all thirty environment PNGs at 2x source resolution with unchanged world sizes', async () => {
   const { readFileSync } = await vi.importActual<{ readFileSync(url: URL): Uint8Array }>('node:fs');
-  const tiles = Object.entries(ENVIRONMENT_ASSETS).filter(([, spec]) => spec.layer === 'tiles');
-  expect(tiles).toHaveLength(12);
+  const tiles = Object.entries(ENVIRONMENT_ASSETS);
+  expect(tiles).toHaveLength(30);
   for (const [id, spec] of tiles) {
     const asset = ASSETS[id]!;
     expect(asset.url).toBe(asset.path);
     const png = readFileSync(new URL(`../public/${asset.path}`, import.meta.url));
     expect(new TextDecoder().decode(png.subarray(1, 4))).toBe('PNG');
     const header = new DataView(png.buffer, png.byteOffset, png.byteLength);
-    expect(header.getUint32(16)).toBe(spec.width); expect(header.getUint32(20)).toBe(spec.height);
+    const contract: EnvironmentAsset = spec;
+    expect(asset.artScale).toBe(2);
+    expect(asset.visual.width).toBe(spec.width); expect(asset.visual.height).toBe(spec.height);
+    expect(asset.sheet.frameWidth).toBe(spec.width * 2); expect(asset.sheet.frameHeight).toBe(spec.height * 2);
+    expect(header.getUint32(16)).toBe(asset.sheet.frameWidth * (contract.frames ?? 1));
+    expect(header.getUint32(20)).toBe(asset.sheet.frameHeight);
     expect(png[24]).toBe(8); expect(png[25]).toBe(6);
   }
 });
@@ -108,7 +113,7 @@ it('keeps every near-background primitive behind gameplay and repeats without al
   expect(scene.children).toEqual(children); view.dispose(); assets.dispose();
 });
 
-it('activates delivered tiles and leaves the remaining external PNG contracts without requests', () => {
+it('activates the complete delivered kit through the central manifest', () => {
   for (const [id, spec] of Object.entries(ENVIRONMENT_ASSETS)) {
     const contract: EnvironmentAsset = spec;
     expect(ASSETS[id]?.path).toBe(`assets/environment/${spec.file}.png`);

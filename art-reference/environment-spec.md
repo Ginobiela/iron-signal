@@ -24,8 +24,15 @@ Se prepara únicamente x=0…1024 (cuatro pantallas), sin extender el arte al re
 Incluye plataformas en 180/620, bloques sólidos en 350/900, foso 520…564 y checkpoint
 620. Después de x=1024 se conserva el estilo anterior; el boss no está en el slice.
 La aprobación del arte externo será necesaria antes de vestir el nivel completo.
-**Ground y plataformas ya tienen sus 12 PNG integrados. Siguen pendientes los
-18 PNG de walls/props/animated/background; se mantienen sus fallbacks.**
+**Kit completo integrado: los 30 PNG (12 tiles y 18 walls/props/animated/background)
+usan ahora SOURCE 2×, con las mismas dimensiones WORLD de la tabla.**
+Ground 32×32 ocupa 16×16 WORLD; plataformas 32×16 ocupan 16×8.
+Los assets están activados en environment.ts. El montaje existente conserva
+paredes x=736…1024, 13 instancias de props (incluidas dos ramas), ventilador
+de cuatro frames y checkpoint x=620 con estados waiting/active. FAR/MID/NEAR
+usan 512×480 SOURCE → 256×240 WORLD, con velocidades y periodo sin cambios.
+Fuera de x=0…1024 se conservan los placeholders del nivel. No cambian colisiones,
+checkpoints físicos ni layout. Los fallbacks siguen disponibles si falla un PNG.
 
 ## Métrica y montaje
 
