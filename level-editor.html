@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Iron Signal · Level Editor</title></head>
+<body>
+  <header><strong>LEVEL EDITOR</strong><a href="./">BACK TO GAME</a>
+    <select id="levels" aria-label="Known levels"><option value="level-01">Level 1 · Complejo de Relevo</option></select>
+    <button id="new">NEW</button><button id="load">LOAD</button><button id="save">SAVE LOCAL</button>
+    <button id="export">EXPORT JSON</button><button id="import">IMPORT JSON</button><input id="file" type="file" accept=".json,application/json" hidden>
+    <button id="undo">UNDO</button><button id="redo">REDO</button><button id="play">PLAY FROM START</button><button id="play-here">PLAY FROM HERE</button>
+  </header>
+  <main>
+    <aside>
+      <h2>Tools</h2><div id="tools"></div>
+      <label><input id="grid" type="checkbox" checked> SHOW GRID · 16 units</label>
+      <label><input id="snap" type="checkbox" checked> SNAP TO GRID</label>
+      <label><input id="camera-preview" type="checkbox" checked> SHOW GAME CAMERA</label>
+      <label><input id="autosave" type="checkbox" checked> AUTOSAVE recovery</label>
+      <button id="reset-view">RESET VIEW</button><button id="overview">FIT LEVEL</button>
+      <h2>Palette</h2><input id="search" placeholder="Search assets" aria-label="Search palette"><div id="palette"></div>
+      <h2>Layers · visible / locked</h2><div id="layers"></div>
+    </aside>
+    <section id="stage" aria-label="Level editor viewport"><canvas id="overlay"></canvas></section>
+    <aside><h2>Selection</h2><div id="properties"></div><button id="duplicate">DUPLICATE</button><button id="delete">DELETE</button>
+      <h2>Level / World</h2><div id="world-properties"></div><h2>FAR / MID / NEAR</h2><div id="background-properties"></div>
+      <h2>Validation</h2><pre id="validation" role="status"></pre>
+      <p>Middle/right drag: pan · Wheel: zoom · Shift+click: multiselect.<br>Camera tool: move preview only.<br>Pit tool: cut ground; existing kill plane applies.</p>
+    </aside>
+  </main>
+  <footer id="status" role="status"></footer>
+  <script type="module" src="/src/devtools/level-editor-main.ts"></script>
+</body></html>

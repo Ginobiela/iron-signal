@@ -11,6 +11,7 @@ import type { EnemyContext } from '../entities/enemies/Enemy';
 import { Player } from '../entities/Player';
 import type { PlayerControls } from '../entities/Player';
 import { Level } from '../level/Level';
+import type { LevelData } from '../level/Level';
 import { SIGNAL_WORKS } from '../level/signalWorks';
 import { gameplayLab } from '../level/gameplayLab';
 import { EnemySpawner } from '../level/EnemySpawner';
@@ -47,7 +48,7 @@ import { VFX_SHAKE, WEAPON_VFX } from '../config/vfx';
 
 const actions = Object.keys(CONTROLS) as Action[];
 const lab = import.meta.env.DEV ? new URLSearchParams(location.search).get('lab') : null;
-const levelData = lab === 'high' || lab === 'low' ? gameplayLab(lab) : SIGNAL_WORKS;
+const defaultLevelData = lab === 'high' || lab === 'low' ? gameplayLab(lab) : SIGNAL_WORKS;
 
 export class Game {
   private readonly bossRun = new URLSearchParams(location.search).get('mode') === 'boss';
@@ -57,7 +58,7 @@ export class Game {
   private readonly renderer: WebGLRenderer;
   private readonly input: InputManager;
   private readonly touchControls?: TouchControls;
-  private readonly level = new Level(levelData);
+  private readonly level: Level;
   private readonly states = new GameStateManager();
   private readonly score = new ScoreManager();
   private readonly audio = new AudioManager();
@@ -68,31 +69,28 @@ export class Game {
   private readonly muzzlePoint = { x: 0, y: 0, angle: 0 };
   private readonly playerHitPoint = { x: 0, y: 0 };
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  private readonly checkpoints = new CheckpointManager({ ...levelData.spawn, name: 'Inicio' }, levelData.checkpoints);
-  private readonly checkpointView = new CheckpointView(this.checkpoints, this.assets);
+  private readonly checkpoints: CheckpointManager;
+  private readonly checkpointView: CheckpointView;
   private readonly levelView: LevelView;
   private readonly background: ParallaxBackground;
-  private readonly player = new Player(levelData.spawn.x, levelData.spawn.y);
+  private readonly player: Player;
   private readonly playerView = new PlayerView(this.assets);
   private readonly collision = new CollisionSystem();
   private readonly powerups = new PowerupManager(this.collision);
   private readonly powerupView = new PowerupView(this.powerups, this.assets);
   private readonly projectiles = new ProjectileManager(this.collision);
   private readonly enemies = new EnemyManager();
-  private readonly boss = new Boss(levelData.boss);
-  private readonly bossView = new BossView(this.boss, this.assets);
+  private readonly boss: Boss;
+  private readonly bossView: BossView;
   private readonly enemyViews: EnemyView[] = [];
-  private readonly spawner = new EnemySpawner(levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
-  private readonly combat = new CombatSystem(this.collision, this.player, this.enemies.items,
-    (enemy) => this.onEnemyKilled(enemy), this.boss,
-    (target, x, y, damaged) => this.onImpact(target, x, y, damaged));
-  private readonly enemyContext: EnemyContext = { player: this.player, projectiles: this.projectiles,
-    collision: this.collision, solids: this.level.solids, oneWays: this.level.oneWays, worldWidth: levelData.width };
+  private readonly spawner: EnemySpawner;
+  private readonly combat: CombatSystem;
+  private readonly enemyContext: EnemyContext;
   private readonly hud: CombatHUD;
   private readonly menu: Menu;
   private readonly bossHUD: BossHUD;
   private readonly projectileView = new ProjectileView(this.projectiles.items.length, this.assets);
-  private readonly cameraController = new CameraController(levelData.width);
+  private readonly cameraController: CameraController;
   private readonly controls: PlayerControls = { left: false, right: false, jumpPressed: false, up: false, shoot: false, down: false };
   private readonly loop: GameLoop;
   private readonly resizeObserver: ResizeObserver;
@@ -103,7 +101,20 @@ export class Game {
   private readonly volumeControl = document.querySelector<HTMLInputElement>('#audio-volume');
 
   constructor(private readonly viewport: HTMLElement, private readonly debug: HTMLElement,
-    status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement) {
+    status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData) {
+    this.level = new Level(this.levelData);
+    this.checkpoints = new CheckpointManager({ ...this.levelData.spawn, name: 'Inicio' }, this.levelData.checkpoints);
+    this.checkpointView = new CheckpointView(this.checkpoints, this.assets);
+    this.player = new Player(this.levelData.spawn.x, this.levelData.spawn.y);
+    this.boss = new Boss(this.levelData.boss);
+    this.bossView = new BossView(this.boss, this.assets);
+    this.spawner = new EnemySpawner(this.levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
+    this.combat = new CombatSystem(this.collision, this.player, this.enemies.items,
+    (enemy) => this.onEnemyKilled(enemy), this.boss,
+    (target, x, y, damaged) => this.onImpact(target, x, y, damaged));
+    this.enemyContext = { player: this.player, projectiles: this.projectiles,
+    collision: this.collision, solids: this.level.solids, oneWays: this.level.oneWays, worldWidth: this.levelData.width };
+    this.cameraController = new CameraController(this.levelData.width);
     this.renderer = new WebGLRenderer({ antialias: false, alpha: false });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(RENDER_VIEW.width, RENDER_VIEW.height, false);
@@ -111,7 +122,7 @@ export class Game {
     viewport.prepend(this.renderer.domElement);
     this.scene.background = new Color(0x101e2c);
     this.camera.position.z = 10;
-    this.background = new ParallaxBackground(this.scene, this.assets);
+    this.background = new ParallaxBackground(this.scene, this.assets, this.levelData.backgrounds);
     this.levelView = new LevelView(this.scene, this.level, this.assets);
     this.scene.add(this.playerView.root, this.projectileView.mesh, this.powerupView.root, this.checkpointView.root, this.bossView.root);
     this.scene.add(this.particleView.mesh);
@@ -138,6 +149,10 @@ export class Game {
       this.volumeControl.addEventListener('input', this.onVolume);
     }
     this.resize();
+  }
+
+  beginPlaytest(): void {
+    if (this.states.start()) this.resetRun();
   }
 
   start(): void {
@@ -223,7 +238,7 @@ export class Game {
     this.controls.up = this.input.isDown('up');
     this.controls.down = this.input.isDown('down');
     this.controls.shoot = this.input.isDown('shoot') || this.input.wasPressed('shoot');
-    this.player.update(dt, this.controls, this.collision, this.level.solids, levelData.width, this.level.oneWays);
+    this.player.update(dt, this.controls, this.collision, this.level.solids, this.levelData.width, this.level.oneWays);
     this.playerHitPoint.x = this.player.position.x + this.player.width / 2;
     this.playerHitPoint.y = this.player.position.y + this.player.height / 2;
     if (this.player.jumpCount !== jumps) this.audio.play('jump');
@@ -235,12 +250,12 @@ export class Game {
         this.collision.constrainHorizontal(this.player, this.boss.arenaLeft, this.boss.position.x - this.player.width);
         this.cameraController.x = this.boss.arenaLeft;
       }
-      this.powerups.update(dt, this.player, this.level.solids, this.level.oneWays, levelData.width);
+      this.powerups.update(dt, this.player, this.level.solids, this.level.oneWays, this.levelData.width);
       this.player.updateCombat(dt, this.controls, this.projectiles);
       if (!this.bossRun) this.spawner.update(this.cameraController.x);
       this.enemies.update(dt, this.enemyContext, this.cameraController.x);
       this.boss.update(dt, this.enemyContext);
-      this.projectiles.update(dt, this.level.solids, levelData.width, this.combat);
+      this.projectiles.update(dt, this.level.solids, this.levelData.width, this.combat);
       this.combat.updateContacts();
     }
     if (this.projectiles.playerSpawned !== shots) {
@@ -343,7 +358,7 @@ export class Game {
     this.fxSprites.clear();
     this.shake.clear();
     this.playerView.resetFeedback();
-    this.player.reset(levelData.spawn.x, levelData.spawn.y);
+    this.player.reset(this.levelData.spawn.x, this.levelData.spawn.y);
     this.projectiles.clear();
     this.powerups.reset();
     this.checkpoints.reset();
@@ -360,7 +375,7 @@ export class Game {
     this.cameraController.x = 0;
     this.debugTimer = 0;
     if (this.bossRun) {
-      const checkpoint = levelData.checkpoints.find(item => item.x >= this.boss.arenaLeft)
+      const checkpoint = this.levelData.checkpoints.find(item => item.x >= this.boss.arenaLeft)
         ?? { x: this.boss.arenaLeft + this.player.width, y: this.boss.position.y, name: 'Boss Run' };
       this.checkpoints.current = checkpoint;
       this.player.reset(checkpoint.x, checkpoint.y);
@@ -425,7 +440,7 @@ export class Game {
 
   private updateHUD(): void {
     this.hud.update(this.states, this.score, this.player, this.checkpoints.current,
-      Math.floor(this.player.position.x / levelData.width * 100), this.level.sectionAt(this.player.position.x),
+      Math.floor(this.player.position.x / this.levelData.width * 100), this.level.sectionAt(this.player.position.x),
       this.checkpoints.message || this.powerups.message);
     this.menu.update(this.states, this.score, this.checkpoints);
     this.bossHUD.update(this.boss);

@@ -27,7 +27,7 @@ export class LevelView {
     };
 
     for (const solid of level.solids) {
-      this.environment.addGround(solid);
+      if (level.data.automaticTerrain !== false) this.environment.addGround(solid);
       rect(solid.x, solid.y, solid.width, solid.height, 0x456260);
       rect(solid.x, solid.y + solid.height - 4, solid.width, 4, 0x8ca18b, DRAW.levelSurface);
       const bounds = new Mesh(this.geometry, this.debugMaterial);
@@ -38,7 +38,7 @@ export class LevelView {
       scene.add(bounds);
     }
     for (const platform of level.oneWays) {
-      this.environment.addPlatform(platform);
+      if (level.data.automaticTerrain !== false) this.environment.addPlatform(platform);
       rect(platform.x, platform.y, platform.width, platform.height, 0x407e85, DRAW.levelSurface);
       rect(platform.x, platform.y + platform.height - 2, platform.width, 2, 0xa0dbcb, DRAW.levelSurface + DRAW.detail);
       for (let x = platform.x + 4; x < platform.x + platform.width; x += 8) {

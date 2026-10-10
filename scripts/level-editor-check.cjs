@@ -1,0 +1,55 @@
+const { chromium } = require(require.resolve('playwright', { paths: [process.cwd(), `${require('node:os').homedir()}/.cache/codex-runtimes/codex-primary-runtime/dependencies/node`] }));
+const assert = require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],requests=[];
+  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
+  await page.route('**/src/main.ts*',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:(await r.text()).replace('if (playtest) {','window.__game = game;\n  if (playtest) {')});});
+  await page.goto('http://127.0.0.1:5173/level-editor.html');
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Objects 255'));
+  assert(!requests.some(url=>url.includes('/core/Game.ts')),'Editor must not load Game');
+  assert.match(await page.locator('#validation').textContent(),/^0 errors/);
+  const world=async(x,y)=>{const b=await page.locator('#overlay').boundingBox();return{x:b.x+x*2,y:b.y+b.height-y*2};};
+  const click=async(x,y)=>{const p=await world(x,y);await page.mouse.click(p.x,p.y);};
+  const tool=async(name)=>{await page.locator(`[data-tool="${name}"]`).click();};
+  const property=async(name,value)=>{const f=page.locator('#properties').getByLabel(name,{exact:true});await f.fill(String(value));await f.press('Tab');};
+  await click(150,60);assert.match(await page.locator('#properties').textContent(),/ENEMY/);
+  await property('x',160);
+  await page.locator('#snap').uncheck();await tool('enemy');await page.locator('#palette').getByRole('button',{name:'runner.run',exact:true}).click();await click(280,44);
+  assert.match(await page.locator('#properties').textContent(),/ENEMY/);
+  await page.locator('#palette').getByRole('button',{name:'flying.fly',exact:true}).click();await click(340,100);
+  await page.locator('#properties').getByLabel('carriedPowerUp').selectOption('S');
+  await tool('one-way');let p=await world(288,112),q=await world(368,112);await page.mouse.move(p.x,p.y);await page.mouse.down();await page.mouse.move(q.x,q.y);await page.mouse.up();
+  await tool('checkpoint');await click(400,44);await property('name','Editor checkpoint');
+  await tool('trigger');await click(450,180);await property('x',440);await page.locator('#undo').click();assert.equal(await page.locator('#properties').getByLabel('x',{exact:true}).inputValue(),'450');await page.locator('#redo').click();
+  assert.match(await page.locator('#validation').textContent(),/^0 errors/);
+  const downloadPromise=page.waitForEvent('download');await page.locator('#export').click();const download=await downloadPromise;
+  const file=await download.path();const data=JSON.parse(require('node:fs').readFileSync(file,'utf8'));
+  assert.equal(data.spawnGroups[0].enemies[0].x,160);assert(data.spawnGroups[0].enemies.some(e=>e.kind==='runner'&&e.x===280));assert(data.spawnGroups[0].enemies.some(e=>e.kind==='flying'&&e.weaponDrop==='S'&&e.x===340));
+  assert(data.platforms.some(p=>p.x===288&&p.y===112&&p.width===80));assert(data.checkpoints.some(c=>c.name==='Editor checkpoint'));
+  await page.locator('#file').setInputFiles({name:'roundtrip.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('SAVED / LOADED'));
+  console.log('Editor edits/export/import passed.');await page.locator('#play').click();await page.waitForFunction(()=>window.__game?.states.state==='PLAYING');
+  console.log('Playtest started.');await page.evaluate(()=>{window.g=window.__game;});
+  const result=await page.evaluate(()=>{g.loop.stop();return{width:g.level.data.width,spawn:g.level.data.spawn,enemies:g.level.data.spawnGroups[0].enemies};});
+  assert.equal(result.width,9600);assert(result.enemies.some(e=>e.kind==='flying'&&e.weaponDrop==='S'&&e.x===340));
+  const runtime=await page.evaluate(()=>{
+   const carrier=g.enemies.items.find(e=>e.kind==='flying'&&e.weaponDrop==='S');if(!carrier)throw Error('Edited carrier not spawned');
+   carrier.takeDamage(carrier.maxHealth);g.onEnemyKilled(carrier);
+   const pickup=g.powerups.items.find(p=>p.active&&p.kind==='S');if(!pickup)throw Error('Missing Spread drop');
+   g.player.position.x=pickup.position.x;g.player.position.y=pickup.position.y;g.powerups.update(1/60,g.player,g.level.solids,g.level.oneWays,g.level.data.width);
+   const weapon=g.player.weapon.name;
+   const cp=g.level.data.checkpoints.find(c=>c.name==='Editor checkpoint');g.player.position.x=cp.x;g.player.position.y=cp.y;g.player.grounded=true;g.checkpoints.update(0,g.player);
+   g.player.die();g.states.playerDied();g.states.update(10);g.respawn();const respawn={...g.player.position};
+   g.player.position.x=g.boss.arenaLeft;g.player.position.y=44;g.player.grounded=true;g.boss.activate(g.player.position.x);
+   g.boss.state='RECOVER';g.boss.takeDamage(g.boss.maxHealth);g.updatePlaying(0);
+   return{weapon,respawn,deadBoss:!g.boss.alive,state:g.states.state};
+  });
+  assert.equal(runtime.weapon,'SPREAD');assert.deepEqual(runtime.respawn,{x:400,y:44});assert(runtime.deadBoss);assert.equal(runtime.state,'LEVEL_COMPLETE');
+  await page.keyboard.press('Escape');await page.waitForURL('**/level-editor.html');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Objects '));
+  const recovered=await page.evaluate(()=>JSON.parse(localStorage.getItem('iron-signal-editor-recovery-v1')));assert.equal(recovered.spawnGroups[0].enemies[0].x,160);
+  await page.reload();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Objects '));
+  assert.deepEqual(errors,[]);console.log('Editor: move/create/properties, undo/redo, export/import, edited playtest, Spread drop/pickup, checkpoint respawn, boss death, return/refresh passed.');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exit(1)});

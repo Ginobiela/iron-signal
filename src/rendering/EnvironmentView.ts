@@ -9,6 +9,7 @@ import type { EnvironmentId } from '../config/environment';
 import { groundPieces, platformPieces } from './environmentPieces';
 import { SpriteVisual } from './SpriteVisual';
 import { TiledVisual } from './TiledVisual';
+import { DecorationView } from './DecorationView';
 
 /** Builds full-level visuals once and leaves all level/collision data untouched. */
 export class EnvironmentView {
@@ -21,9 +22,11 @@ export class EnvironmentView {
   private readonly trim = new MeshBasicMaterial({ color: 0x59675a });
   private readonly wallMaterial = new MeshBasicMaterial({ color: 0x26393a });
   private readonly walls: { tile: TiledVisual; fallback: Mesh }[] = [];
+  private readonly placed?: DecorationView;
 
   constructor(private readonly assets: AssetManager, level: LevelData) {
-    const layout = environmentLayout(level);
+    const layout = level.decorations ? { walls: [], props: [] } : environmentLayout(level);
+    if (level.decorations) { this.placed = new DecorationView(assets, level.decorations); this.root.add(this.placed.root); }
     for (const { id, x, y, width, height } of layout.walls) {
       const tile = this.tile(id); tile.add(x, y, width, height, DRAW.levelBackDecor);
       const fallback = new Mesh(this.geometry, this.wallMaterial);
@@ -66,15 +69,18 @@ export class EnvironmentView {
   }
 
   update(dt: number): void {
+    this.placed?.update(dt);
     for (const tile of this.tiles.values()) tile.update();
     for (const wall of this.walls) wall.fallback.visible = !wall.tile.root.visible;
     for (const prop of this.props) prop.fallback.visible = !prop.sprite.update(prop.id, dt);
   }
   setDebug(visible: boolean): void {
+    this.placed?.setDebug(visible);
     for (const tile of this.tiles.values()) tile.setDebug(visible);
     for (const prop of this.props) prop.sprite.setDebug(visible);
   }
   dispose(): void {
+    this.placed?.dispose();
     for (const tile of this.tiles.values()) tile.dispose();
     for (const prop of this.props) prop.sprite.dispose();
     this.geometry.dispose(); this.foliage.dispose(); this.metal.dispose(); this.trim.dispose(); this.wallMaterial.dispose();

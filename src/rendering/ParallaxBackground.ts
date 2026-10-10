@@ -3,6 +3,7 @@ import { PARALLAX } from '../config/constants';
 import type { AssetManager } from '../core/AssetManager';
 import { TiledVisual } from './TiledVisual';
 import { DRAW } from '../config/assets';
+import type { BackgroundLayer } from '../level/LevelDocument';
 
 const PERIOD = 512;
 
@@ -20,7 +21,7 @@ export class ParallaxBackground {
   ];
   private readonly textures: TiledVisual[] = [];
 
-  constructor(scene: Scene, assets: AssetManager) {
+  constructor(scene: Scene, assets: AssetManager, private readonly config?: readonly BackgroundLayer[]) {
     const rect = (group: Group, x: number, y: number, width: number, height: number,
       color: number, z: number): void => {
       let material = this.materials.get(color);
@@ -36,7 +37,7 @@ export class ParallaxBackground {
     for (let index = 0; index < this.layers.length; index++) {
       const layer = this.layers[index];
       if (!layer) continue;
-      const id = index === 0 ? 'background.far' : index === 1 ? 'background.mid' : 'background.near';
+      const id = config?.[index]?.asset ?? (index === 0 ? 'background.far' : index === 1 ? 'background.mid' : 'background.near');
       const z = index === 0 ? DRAW.backgroundFar : index === 1 ? DRAW.backgroundMid : DRAW.backgroundNear;
       const tiles = new TiledVisual(assets, id);
       this.textures.push(tiles);
@@ -66,8 +67,10 @@ export class ParallaxBackground {
     for (let i = 0; i < this.layers.length; i++) {
       const layer = this.layers[i], tiles = this.textures[i];
       if (!layer || !tiles) continue;
-      const x = parallaxPosition(cameraX, layer.speed);
+      const options = this.config?.[i];
+      const x = parallaxPosition(cameraX, options?.speed ?? layer.speed) + (options?.offsetX ?? 0);
       layer.root.position.x = tiles.root.position.x = x;
+      layer.root.position.y = tiles.root.position.y = options?.offsetY ?? 0;
       const loaded = tiles.update();
       tiles.root.visible = loaded;
       layer.root.visible = !loaded;

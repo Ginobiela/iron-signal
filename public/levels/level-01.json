@@ -1,0 +1,2336 @@
+{
+  "name": "Complejo de Relevo",
+  "width": 9600,
+  "spawn": {
+    "x": 62,
+    "y": 44,
+    "id": "player-spawn"
+  },
+  "exitX": 9536,
+  "boss": {
+    "x": 9500,
+    "y": 44,
+    "arenaLeft": 9344,
+    "id": "boss"
+  },
+  "checkpoints": [
+    {
+      "x": 620,
+      "y": 44,
+      "name": "Puente Umbral",
+      "id": "checkpoint-1"
+    },
+    {
+      "x": 2400,
+      "y": 44,
+      "name": "Canal Frío",
+      "id": "checkpoint-2"
+    },
+    {
+      "x": 4800,
+      "y": 44,
+      "name": "Relevo",
+      "id": "checkpoint-3"
+    },
+    {
+      "x": 7200,
+      "y": 44,
+      "name": "Planta Cenital",
+      "id": "checkpoint-4"
+    },
+    {
+      "x": 9088,
+      "y": 44,
+      "name": "Acceso al Núcleo",
+      "id": "checkpoint-5"
+    },
+    {
+      "x": 9344,
+      "y": 44,
+      "name": "Sala Cenital",
+      "id": "checkpoint-6"
+    }
+  ],
+  "sections": [
+    {
+      "x": 0,
+      "name": "Estación Umbral",
+      "id": "section-1"
+    },
+    {
+      "x": 2400,
+      "name": "Canal Frío",
+      "id": "section-2"
+    },
+    {
+      "x": 4800,
+      "name": "Pasarela de Relevo",
+      "id": "section-3"
+    },
+    {
+      "x": 7200,
+      "name": "Planta Cenital",
+      "id": "section-4"
+    },
+    {
+      "x": 9088,
+      "name": "Acceso al Núcleo",
+      "id": "section-5"
+    }
+  ],
+  "ground": [
+    {
+      "x": 0,
+      "y": 0,
+      "width": 520,
+      "height": 44,
+      "id": "ground-1"
+    },
+    {
+      "x": 564,
+      "y": 0,
+      "width": 576,
+      "height": 44,
+      "id": "ground-2"
+    },
+    {
+      "x": 1182,
+      "y": 0,
+      "width": 598,
+      "height": 56,
+      "id": "ground-3"
+    },
+    {
+      "x": 1824,
+      "y": 0,
+      "width": 1076,
+      "height": 44,
+      "id": "ground-4"
+    },
+    {
+      "x": 2944,
+      "y": 0,
+      "width": 596,
+      "height": 44,
+      "id": "ground-5"
+    },
+    {
+      "x": 3580,
+      "y": 0,
+      "width": 540,
+      "height": 56,
+      "id": "ground-6"
+    },
+    {
+      "x": 4160,
+      "y": 0,
+      "width": 1120,
+      "height": 44,
+      "id": "ground-7"
+    },
+    {
+      "x": 5324,
+      "y": 0,
+      "width": 626,
+      "height": 44,
+      "id": "ground-8"
+    },
+    {
+      "x": 5990,
+      "y": 0,
+      "width": 510,
+      "height": 56,
+      "id": "ground-9"
+    },
+    {
+      "x": 6544,
+      "y": 0,
+      "width": 1076,
+      "height": 44,
+      "id": "ground-10"
+    },
+    {
+      "x": 7664,
+      "y": 0,
+      "width": 596,
+      "height": 44,
+      "id": "ground-11"
+    },
+    {
+      "x": 8300,
+      "y": 0,
+      "width": 560,
+      "height": 56,
+      "id": "ground-12"
+    },
+    {
+      "x": 8904,
+      "y": 0,
+      "width": 696,
+      "height": 44,
+      "id": "ground-13"
+    }
+  ],
+  "platforms": [
+    {
+      "kind": "one-way",
+      "x": 180,
+      "y": 68,
+      "width": 80,
+      "height": 6,
+      "id": "platform-1"
+    },
+    {
+      "kind": "solid",
+      "x": 350,
+      "y": 44,
+      "width": 40,
+      "height": 12,
+      "id": "platform-2"
+    },
+    {
+      "kind": "one-way",
+      "x": 620,
+      "y": 68,
+      "width": 96,
+      "height": 6,
+      "id": "platform-3"
+    },
+    {
+      "kind": "solid",
+      "x": 900,
+      "y": 44,
+      "width": 44,
+      "height": 18,
+      "id": "platform-4"
+    },
+    {
+      "kind": "one-way",
+      "x": 1350,
+      "y": 80,
+      "width": 96,
+      "height": 6,
+      "id": "platform-5"
+    },
+    {
+      "kind": "solid",
+      "x": 1500,
+      "y": 56,
+      "width": 40,
+      "height": 12,
+      "id": "platform-6"
+    },
+    {
+      "kind": "one-way",
+      "x": 1910,
+      "y": 68,
+      "width": 100,
+      "height": 6,
+      "id": "platform-7"
+    },
+    {
+      "kind": "one-way",
+      "x": 2480,
+      "y": 68,
+      "width": 88,
+      "height": 6,
+      "id": "platform-8"
+    },
+    {
+      "kind": "solid",
+      "x": 2640,
+      "y": 44,
+      "width": 40,
+      "height": 16,
+      "id": "platform-9"
+    },
+    {
+      "kind": "one-way",
+      "x": 3050,
+      "y": 68,
+      "width": 96,
+      "height": 6,
+      "id": "platform-10"
+    },
+    {
+      "kind": "solid",
+      "x": 3270,
+      "y": 44,
+      "width": 56,
+      "height": 24,
+      "id": "platform-11"
+    },
+    {
+      "kind": "one-way",
+      "x": 3720,
+      "y": 80,
+      "width": 96,
+      "height": 6,
+      "id": "platform-12"
+    },
+    {
+      "kind": "solid",
+      "x": 3880,
+      "y": 56,
+      "width": 40,
+      "height": 12,
+      "id": "platform-13"
+    },
+    {
+      "kind": "one-way",
+      "x": 4380,
+      "y": 68,
+      "width": 100,
+      "height": 6,
+      "id": "platform-14"
+    },
+    {
+      "kind": "one-way",
+      "x": 4900,
+      "y": 68,
+      "width": 96,
+      "height": 6,
+      "id": "platform-15"
+    },
+    {
+      "kind": "solid",
+      "x": 5100,
+      "y": 44,
+      "width": 40,
+      "height": 16,
+      "id": "platform-16"
+    },
+    {
+      "kind": "one-way",
+      "x": 5480,
+      "y": 68,
+      "width": 88,
+      "height": 6,
+      "id": "platform-17"
+    },
+    {
+      "kind": "solid",
+      "x": 5780,
+      "y": 44,
+      "width": 56,
+      "height": 24,
+      "id": "platform-18"
+    },
+    {
+      "kind": "one-way",
+      "x": 6090,
+      "y": 80,
+      "width": 100,
+      "height": 6,
+      "id": "platform-19"
+    },
+    {
+      "kind": "solid",
+      "x": 6230,
+      "y": 56,
+      "width": 32,
+      "height": 12,
+      "id": "platform-20"
+    },
+    {
+      "kind": "one-way",
+      "x": 6680,
+      "y": 68,
+      "width": 96,
+      "height": 6,
+      "id": "platform-21"
+    },
+    {
+      "kind": "one-way",
+      "x": 7300,
+      "y": 68,
+      "width": 88,
+      "height": 6,
+      "id": "platform-22"
+    },
+    {
+      "kind": "solid",
+      "x": 7460,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "id": "platform-23"
+    },
+    {
+      "kind": "one-way",
+      "x": 7800,
+      "y": 68,
+      "width": 100,
+      "height": 6,
+      "id": "platform-24"
+    },
+    {
+      "kind": "solid",
+      "x": 8100,
+      "y": 44,
+      "width": 56,
+      "height": 24,
+      "id": "platform-25"
+    },
+    {
+      "kind": "one-way",
+      "x": 8390,
+      "y": 80,
+      "width": 100,
+      "height": 6,
+      "id": "platform-26"
+    },
+    {
+      "kind": "solid",
+      "x": 8720,
+      "y": 56,
+      "width": 32,
+      "height": 12,
+      "id": "platform-27"
+    },
+    {
+      "kind": "one-way",
+      "x": 9010,
+      "y": 68,
+      "width": 64,
+      "height": 6,
+      "id": "platform-28"
+    },
+    {
+      "kind": "one-way",
+      "x": 204,
+      "y": 98,
+      "width": 64,
+      "height": 6,
+      "id": "platform-29"
+    },
+    {
+      "kind": "one-way",
+      "x": 228,
+      "y": 128,
+      "width": 48,
+      "height": 6,
+      "id": "platform-30"
+    },
+    {
+      "kind": "one-way",
+      "x": 2504,
+      "y": 98,
+      "width": 64,
+      "height": 6,
+      "id": "platform-31"
+    },
+    {
+      "kind": "one-way",
+      "x": 2528,
+      "y": 128,
+      "width": 48,
+      "height": 6,
+      "id": "platform-32"
+    },
+    {
+      "kind": "one-way",
+      "x": 4924,
+      "y": 98,
+      "width": 64,
+      "height": 6,
+      "id": "platform-33"
+    },
+    {
+      "kind": "one-way",
+      "x": 4948,
+      "y": 128,
+      "width": 48,
+      "height": 6,
+      "id": "platform-34"
+    },
+    {
+      "kind": "one-way",
+      "x": 7324,
+      "y": 98,
+      "width": 64,
+      "height": 6,
+      "id": "platform-35"
+    },
+    {
+      "kind": "one-way",
+      "x": 7348,
+      "y": 128,
+      "width": 48,
+      "height": 6,
+      "id": "platform-36"
+    }
+  ],
+  "spawnGroups": [
+    {
+      "x": 0,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 140,
+          "y": 44,
+          "id": "enemy-1-1"
+        },
+        {
+          "kind": "flying",
+          "x": 242,
+          "y": 92,
+          "weaponDrop": "M",
+          "id": "enemy-1-2"
+        }
+      ],
+      "id": "trigger-1"
+    },
+    {
+      "x": 250,
+      "enemies": [
+        {
+          "kind": "runner",
+          "x": 480,
+          "y": 44,
+          "id": "enemy-2-1"
+        },
+        {
+          "kind": "runner",
+          "x": 400,
+          "y": 44,
+          "id": "enemy-2-2"
+        },
+        {
+          "kind": "turret",
+          "x": 450,
+          "y": 44,
+          "id": "enemy-2-3"
+        }
+      ],
+      "id": "trigger-2"
+    },
+    {
+      "x": 580,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 850,
+          "y": 44,
+          "id": "enemy-3-1"
+        },
+        {
+          "kind": "flying",
+          "x": 810,
+          "y": 100,
+          "weaponDrop": "S",
+          "id": "enemy-3-2"
+        }
+      ],
+      "id": "trigger-3"
+    },
+    {
+      "x": 1100,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 1420,
+          "y": 56,
+          "id": "enemy-4-1"
+        },
+        {
+          "kind": "runner",
+          "x": 1620,
+          "y": 56,
+          "id": "enemy-4-2"
+        },
+        {
+          "kind": "runner",
+          "x": 1700,
+          "y": 56,
+          "id": "enemy-4-3"
+        }
+      ],
+      "id": "trigger-4"
+    },
+    {
+      "x": 1680,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 2000,
+          "y": 44,
+          "id": "enemy-5-1"
+        },
+        {
+          "kind": "flying",
+          "x": 2080,
+          "y": 100,
+          "id": "enemy-5-2"
+        }
+      ],
+      "id": "trigger-5"
+    },
+    {
+      "x": 2150,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 2350,
+          "y": 44,
+          "id": "enemy-6-1"
+        }
+      ],
+      "id": "trigger-6"
+    },
+    {
+      "x": 2400,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 2580,
+          "y": 44,
+          "id": "enemy-7-1"
+        },
+        {
+          "kind": "flying",
+          "x": 2600,
+          "y": 100,
+          "weaponDrop": "L",
+          "id": "enemy-7-2"
+        }
+      ],
+      "id": "trigger-7"
+    },
+    {
+      "x": 2780,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 3120,
+          "y": 44,
+          "id": "enemy-8-1"
+        },
+        {
+          "kind": "runner",
+          "x": 3200,
+          "y": 44,
+          "id": "enemy-8-2"
+        },
+        {
+          "kind": "runner",
+          "x": 3370,
+          "y": 44,
+          "id": "enemy-8-3"
+        }
+      ],
+      "id": "trigger-8"
+    },
+    {
+      "x": 3300,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 3680,
+          "y": 56,
+          "id": "enemy-9-1"
+        },
+        {
+          "kind": "flying",
+          "x": 3810,
+          "y": 108,
+          "id": "enemy-9-2"
+        }
+      ],
+      "id": "trigger-9"
+    },
+    {
+      "x": 3900,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 4340,
+          "y": 44,
+          "id": "enemy-10-1"
+        },
+        {
+          "kind": "runner",
+          "x": 4470,
+          "y": 44,
+          "id": "enemy-10-2"
+        },
+        {
+          "kind": "runner",
+          "x": 4580,
+          "y": 44,
+          "id": "enemy-10-3"
+        }
+      ],
+      "id": "trigger-10"
+    },
+    {
+      "x": 4480,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 4700,
+          "y": 44,
+          "id": "enemy-11-1"
+        }
+      ],
+      "id": "trigger-11"
+    },
+    {
+      "x": 4800,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 4960,
+          "y": 44,
+          "id": "enemy-12-1"
+        },
+        {
+          "kind": "flying",
+          "x": 5040,
+          "y": 100,
+          "weaponDrop": "M",
+          "id": "enemy-12-2"
+        }
+      ],
+      "id": "trigger-12"
+    },
+    {
+      "x": 5100,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 5480,
+          "y": 44,
+          "id": "enemy-13-1"
+        },
+        {
+          "kind": "runner",
+          "x": 5600,
+          "y": 44,
+          "id": "enemy-13-2"
+        },
+        {
+          "kind": "runner",
+          "x": 5700,
+          "y": 44,
+          "id": "enemy-13-3"
+        }
+      ],
+      "id": "trigger-13"
+    },
+    {
+      "x": 5620,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 5860,
+          "y": 44,
+          "id": "enemy-14-1"
+        },
+        {
+          "kind": "flying",
+          "x": 5820,
+          "y": 100,
+          "id": "enemy-14-2"
+        }
+      ],
+      "id": "trigger-14"
+    },
+    {
+      "x": 6000,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 6300,
+          "y": 56,
+          "id": "enemy-15-1"
+        },
+        {
+          "kind": "runner",
+          "x": 6360,
+          "y": 56,
+          "id": "enemy-15-2"
+        },
+        {
+          "kind": "runner",
+          "x": 6440,
+          "y": 56,
+          "id": "enemy-15-3"
+        }
+      ],
+      "id": "trigger-15"
+    },
+    {
+      "x": 6500,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 6800,
+          "y": 44,
+          "id": "enemy-16-1"
+        },
+        {
+          "kind": "flying",
+          "x": 6720,
+          "y": 100,
+          "weaponDrop": "S",
+          "id": "enemy-16-2"
+        }
+      ],
+      "id": "trigger-16"
+    },
+    {
+      "x": 7150,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 7380,
+          "y": 44,
+          "id": "enemy-17-1"
+        },
+        {
+          "kind": "runner",
+          "x": 7500,
+          "y": 44,
+          "id": "enemy-17-2"
+        },
+        {
+          "kind": "runner",
+          "x": 7580,
+          "y": 44,
+          "id": "enemy-17-3"
+        }
+      ],
+      "id": "trigger-17"
+    },
+    {
+      "x": 7700,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 7960,
+          "y": 44,
+          "id": "enemy-18-1"
+        },
+        {
+          "kind": "flying",
+          "x": 8080,
+          "y": 100,
+          "id": "enemy-18-2"
+        }
+      ],
+      "id": "trigger-18"
+    },
+    {
+      "x": 8140,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 8500,
+          "y": 56,
+          "id": "enemy-19-1"
+        },
+        {
+          "kind": "runner",
+          "x": 8580,
+          "y": 56,
+          "id": "enemy-19-2"
+        },
+        {
+          "kind": "runner",
+          "x": 8660,
+          "y": 56,
+          "id": "enemy-19-3"
+        }
+      ],
+      "id": "trigger-19"
+    },
+    {
+      "x": 8720,
+      "enemies": [
+        {
+          "kind": "soldier",
+          "x": 9060,
+          "y": 44,
+          "id": "enemy-20-1"
+        },
+        {
+          "kind": "flying",
+          "x": 8950,
+          "y": 100,
+          "weaponDrop": "L",
+          "id": "enemy-20-2"
+        }
+      ],
+      "id": "trigger-20"
+    },
+    {
+      "x": 9050,
+      "enemies": [
+        {
+          "kind": "turret",
+          "x": 9240,
+          "y": 44,
+          "id": "enemy-21-1"
+        }
+      ],
+      "id": "trigger-21"
+    }
+  ],
+  "version": 1,
+  "id": "level-01",
+  "height": 240,
+  "automaticTerrain": true,
+  "decorations": [
+    {
+      "id": "wall-1",
+      "x": 736,
+      "y": 44,
+      "width": 128,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-2",
+      "x": 864,
+      "y": 44,
+      "width": 160,
+      "height": 48,
+      "asset": "environment.wall.concrete",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-3",
+      "x": 1760,
+      "y": 56,
+      "width": 20,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-4",
+      "x": 1888,
+      "y": 44,
+      "width": 160,
+      "height": 48,
+      "asset": "environment.wall.concrete",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-5",
+      "x": 2784,
+      "y": 44,
+      "width": 116,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-6",
+      "x": 3808,
+      "y": 56,
+      "width": 128,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-7",
+      "x": 3936,
+      "y": 56,
+      "width": 160,
+      "height": 48,
+      "asset": "environment.wall.concrete",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-8",
+      "x": 4832,
+      "y": 44,
+      "width": 128,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-9",
+      "x": 4960,
+      "y": 44,
+      "width": 160,
+      "height": 48,
+      "asset": "environment.wall.concrete",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-10",
+      "x": 5856,
+      "y": 44,
+      "width": 94,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-11",
+      "x": 6880,
+      "y": 44,
+      "width": 128,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-12",
+      "x": 7008,
+      "y": 44,
+      "width": 160,
+      "height": 48,
+      "asset": "environment.wall.concrete",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-13",
+      "x": 7904,
+      "y": 44,
+      "width": 128,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-14",
+      "x": 8032,
+      "y": 44,
+      "width": 160,
+      "height": 48,
+      "asset": "environment.wall.concrete",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-15",
+      "x": 8928,
+      "y": 44,
+      "width": 128,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-16",
+      "x": 9056,
+      "y": 44,
+      "width": 160,
+      "height": 48,
+      "asset": "environment.wall.concrete",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "wall-17",
+      "x": 9344,
+      "y": 44,
+      "width": 256,
+      "height": 64,
+      "asset": "environment.wall.bunker",
+      "layer": "back",
+      "tiled": true,
+      "flipX": false
+    },
+    {
+      "id": "decor-1",
+      "asset": "environment.prop.plant",
+      "x": 30,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-2",
+      "asset": "environment.prop.grass",
+      "x": 116,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-3",
+      "asset": "environment.prop.rock",
+      "x": 298,
+      "y": 44,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-4",
+      "asset": "environment.prop.vines",
+      "x": 408,
+      "y": 116,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-5",
+      "asset": "environment.prop.crate",
+      "x": 420,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-6",
+      "asset": "environment.prop.sign",
+      "x": 486,
+      "y": 44,
+      "width": 16,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-7",
+      "asset": "environment.prop.grass",
+      "x": 592,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-8",
+      "asset": "environment.prop.barrel",
+      "x": 754,
+      "y": 44,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-9",
+      "asset": "environment.animated.vent",
+      "x": 792,
+      "y": 104,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-10",
+      "asset": "environment.prop.pipe",
+      "x": 856,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-11",
+      "asset": "environment.prop.barrier",
+      "x": 980,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-12",
+      "asset": "environment.prop.branch",
+      "x": 104,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-13",
+      "asset": "environment.prop.branch",
+      "x": 744,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-14",
+      "asset": "environment.prop.plant",
+      "x": 1054,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-15",
+      "asset": "environment.prop.rock",
+      "x": 1322,
+      "y": 56,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-16",
+      "asset": "environment.prop.vines",
+      "x": 1432,
+      "y": 128,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-17",
+      "asset": "environment.prop.crate",
+      "x": 1444,
+      "y": 56,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-18",
+      "asset": "environment.prop.sign",
+      "x": 1510,
+      "y": 56,
+      "width": 16,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-19",
+      "asset": "environment.prop.grass",
+      "x": 1616,
+      "y": 56,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-20",
+      "asset": "environment.prop.pipe",
+      "x": 1880,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-21",
+      "asset": "environment.prop.barrier",
+      "x": 2004,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-22",
+      "asset": "environment.prop.plant",
+      "x": 2078,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-23",
+      "asset": "environment.prop.grass",
+      "x": 2164,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-24",
+      "asset": "environment.prop.rock",
+      "x": 2346,
+      "y": 44,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-25",
+      "asset": "environment.prop.vines",
+      "x": 2456,
+      "y": 116,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-26",
+      "asset": "environment.prop.crate",
+      "x": 2468,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-27",
+      "asset": "environment.prop.sign",
+      "x": 2534,
+      "y": 44,
+      "width": 16,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-28",
+      "asset": "environment.prop.grass",
+      "x": 2640,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-29",
+      "asset": "environment.prop.barrel",
+      "x": 2802,
+      "y": 44,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-30",
+      "asset": "environment.animated.vent",
+      "x": 2840,
+      "y": 104,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-31",
+      "asset": "environment.prop.barrier",
+      "x": 3028,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-32",
+      "asset": "environment.prop.branch",
+      "x": 2152,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-33",
+      "asset": "environment.prop.branch",
+      "x": 2792,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-34",
+      "asset": "environment.prop.plant",
+      "x": 3102,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-35",
+      "asset": "environment.prop.grass",
+      "x": 3188,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-36",
+      "asset": "environment.prop.rock",
+      "x": 3370,
+      "y": 44,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-37",
+      "asset": "environment.prop.vines",
+      "x": 3480,
+      "y": 116,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-38",
+      "asset": "environment.prop.crate",
+      "x": 3492,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-39",
+      "asset": "environment.prop.grass",
+      "x": 3664,
+      "y": 56,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-40",
+      "asset": "environment.prop.barrel",
+      "x": 3826,
+      "y": 56,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-41",
+      "asset": "environment.animated.vent",
+      "x": 3864,
+      "y": 116,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-42",
+      "asset": "environment.prop.pipe",
+      "x": 3928,
+      "y": 56,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-43",
+      "asset": "environment.prop.barrier",
+      "x": 4052,
+      "y": 56,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-44",
+      "asset": "environment.prop.branch",
+      "x": 3176,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-45",
+      "asset": "environment.prop.branch",
+      "x": 3816,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-46",
+      "asset": "environment.prop.grass",
+      "x": 4212,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-47",
+      "asset": "environment.prop.rock",
+      "x": 4394,
+      "y": 44,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-48",
+      "asset": "environment.prop.vines",
+      "x": 4504,
+      "y": 116,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-49",
+      "asset": "environment.prop.crate",
+      "x": 4516,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-50",
+      "asset": "environment.prop.sign",
+      "x": 4582,
+      "y": 44,
+      "width": 16,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-51",
+      "asset": "environment.prop.grass",
+      "x": 4688,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-52",
+      "asset": "environment.prop.barrel",
+      "x": 4850,
+      "y": 44,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-53",
+      "asset": "environment.animated.vent",
+      "x": 4888,
+      "y": 104,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-54",
+      "asset": "environment.prop.pipe",
+      "x": 4952,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-55",
+      "asset": "environment.prop.barrier",
+      "x": 5076,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-56",
+      "asset": "environment.prop.branch",
+      "x": 4200,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-57",
+      "asset": "environment.prop.branch",
+      "x": 4840,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-58",
+      "asset": "environment.prop.plant",
+      "x": 5150,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-59",
+      "asset": "environment.prop.grass",
+      "x": 5236,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-60",
+      "asset": "environment.prop.rock",
+      "x": 5418,
+      "y": 44,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-61",
+      "asset": "environment.prop.vines",
+      "x": 5528,
+      "y": 116,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-62",
+      "asset": "environment.prop.crate",
+      "x": 5540,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-63",
+      "asset": "environment.prop.sign",
+      "x": 5606,
+      "y": 44,
+      "width": 16,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-64",
+      "asset": "environment.prop.grass",
+      "x": 5712,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-65",
+      "asset": "environment.prop.barrel",
+      "x": 5874,
+      "y": 44,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-66",
+      "asset": "environment.animated.vent",
+      "x": 5912,
+      "y": 104,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-67",
+      "asset": "environment.prop.barrier",
+      "x": 6100,
+      "y": 56,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-68",
+      "asset": "environment.prop.branch",
+      "x": 5224,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-69",
+      "asset": "environment.prop.branch",
+      "x": 5864,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-70",
+      "asset": "environment.prop.plant",
+      "x": 6174,
+      "y": 56,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-71",
+      "asset": "environment.prop.grass",
+      "x": 6260,
+      "y": 56,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-72",
+      "asset": "environment.prop.rock",
+      "x": 6442,
+      "y": 56,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-73",
+      "asset": "environment.prop.vines",
+      "x": 6552,
+      "y": 116,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-74",
+      "asset": "environment.prop.crate",
+      "x": 6564,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-75",
+      "asset": "environment.prop.sign",
+      "x": 6630,
+      "y": 44,
+      "width": 16,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-76",
+      "asset": "environment.prop.grass",
+      "x": 6736,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-77",
+      "asset": "environment.prop.barrel",
+      "x": 6898,
+      "y": 44,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-78",
+      "asset": "environment.animated.vent",
+      "x": 6936,
+      "y": 104,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-79",
+      "asset": "environment.prop.pipe",
+      "x": 7000,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-80",
+      "asset": "environment.prop.barrier",
+      "x": 7124,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-81",
+      "asset": "environment.prop.branch",
+      "x": 6248,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-82",
+      "asset": "environment.prop.branch",
+      "x": 6888,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-83",
+      "asset": "environment.prop.plant",
+      "x": 7198,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-84",
+      "asset": "environment.prop.grass",
+      "x": 7284,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-85",
+      "asset": "environment.prop.rock",
+      "x": 7466,
+      "y": 44,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-86",
+      "asset": "environment.prop.vines",
+      "x": 7576,
+      "y": 116,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-87",
+      "asset": "environment.prop.crate",
+      "x": 7588,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-88",
+      "asset": "environment.prop.grass",
+      "x": 7760,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-89",
+      "asset": "environment.prop.barrel",
+      "x": 7922,
+      "y": 44,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-90",
+      "asset": "environment.animated.vent",
+      "x": 7960,
+      "y": 104,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-91",
+      "asset": "environment.prop.pipe",
+      "x": 8024,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-92",
+      "asset": "environment.prop.barrier",
+      "x": 8148,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-93",
+      "asset": "environment.prop.branch",
+      "x": 7272,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-94",
+      "asset": "environment.prop.branch",
+      "x": 7912,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-95",
+      "asset": "environment.prop.plant",
+      "x": 8222,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-96",
+      "asset": "environment.prop.grass",
+      "x": 8308,
+      "y": 56,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-97",
+      "asset": "environment.prop.rock",
+      "x": 8490,
+      "y": 56,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-98",
+      "asset": "environment.prop.vines",
+      "x": 8600,
+      "y": 128,
+      "width": 16,
+      "height": 32,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-99",
+      "asset": "environment.prop.crate",
+      "x": 8612,
+      "y": 56,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-100",
+      "asset": "environment.prop.sign",
+      "x": 8678,
+      "y": 56,
+      "width": 16,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-101",
+      "asset": "environment.prop.grass",
+      "x": 8784,
+      "y": 56,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-102",
+      "asset": "environment.prop.barrel",
+      "x": 8946,
+      "y": 44,
+      "width": 12,
+      "height": 20,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-103",
+      "asset": "environment.animated.vent",
+      "x": 8984,
+      "y": 104,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-104",
+      "asset": "environment.prop.pipe",
+      "x": 9048,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-105",
+      "asset": "environment.prop.barrier",
+      "x": 9172,
+      "y": 44,
+      "width": 32,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-106",
+      "asset": "environment.prop.branch",
+      "x": 8936,
+      "y": 214,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-107",
+      "asset": "environment.prop.plant",
+      "x": 9246,
+      "y": 44,
+      "width": 24,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-108",
+      "asset": "environment.prop.grass",
+      "x": 9332,
+      "y": 44,
+      "width": 16,
+      "height": 8,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-109",
+      "asset": "environment.prop.rock",
+      "x": 9514,
+      "y": 44,
+      "width": 16,
+      "height": 12,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-110",
+      "asset": "environment.prop.branch",
+      "x": 9320,
+      "y": 206,
+      "width": 32,
+      "height": 12,
+      "layer": "front",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-111",
+      "asset": "environment.prop.crate",
+      "x": 9376,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-112",
+      "asset": "environment.prop.pipe",
+      "x": 9424,
+      "y": 44,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "decor-113",
+      "asset": "environment.animated.vent",
+      "x": 9456,
+      "y": 92,
+      "width": 16,
+      "height": 16,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    }
+  ],
+  "backgrounds": [
+    {
+      "asset": "background.far",
+      "speed": 0.15,
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "asset": "background.mid",
+      "speed": 0.4,
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "asset": "background.near",
+      "speed": 0.75,
+      "offsetX": 0,
+      "offsetY": 0
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Iron Signal
 
+**Fase 16:** [Level Editor](art-reference/level-editor.md), accesible desde **TOOLS · LEVEL EDITOR** o `level-editor.html`. Edita/importa/exporta JSON y abre el juego real para Playtest. Level 1 ahora vive en `public/levels/level-01.json`; los sistemas y valores de gameplay se conservan. Build release sin editor: `npm run build -- --mode release`.
+
 Run-and-gun web original inspirado en el ritmo del género arcade de 8 bits. No incluye código, mapas, música ni gráficos de Contra. **Entrega actual: FASE 11 — Graphics pipeline y sistema de sprites.** El Complejo de Relevo tiene 9600 unidades de longitud, cuatro sectores y sala final, doce fosos, plataformas sólidas y one-way, 21 grupos de aparición y tres capas de parallax. Hay cuatro armas, seis portadores aéreos M/S/L entre diez voladores, tres vidas, seis checkpoints, score, récord persistente, menú, pausa, respawn, game over y un jefe original de tres fases: el Guardián Cenital. Derrotarlo completa la misión. Incluye sonidos originales sintetizados, partículas reutilizables, animaciones, flash de disparo, sacudidas breves y transiciones de interfaz. Las armas se obtienen destruyendo portadores: sus cápsulas caen físicamente. Collider y dimensiones visuales están separados; crouch permite esquivar tiros altos.
 
 ## Instalación y ejecución

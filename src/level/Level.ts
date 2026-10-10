@@ -5,6 +5,7 @@ import type { SpawnGroup } from './EnemySpawner';
 import type { Platform } from './Platform';
 import type { Checkpoint } from './Checkpoint';
 import type { BossPlacement } from '../bosses/Boss';
+import type { BackgroundLayer, Decoration } from './LevelDocument';
 
 export interface LevelData {
   name: string;
@@ -17,6 +18,9 @@ export interface LevelData {
   boss: BossPlacement;
   sections: readonly { x: number; name: string }[];
   exitX: number;
+  decorations?: readonly Decoration[];
+  backgrounds?: readonly BackgroundLayer[];
+  automaticTerrain?: boolean;
 }
 
 export class Level {

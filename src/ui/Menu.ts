@@ -36,6 +36,11 @@ export class Menu {
       link.className = 'viewer-link';
       link.textContent = 'ANIMATION VIEWER';
       this.element.append(document.createElement('br'), link);
+      if (import.meta.env.MODE !== 'release') {
+        const editor = document.createElement('a');
+        editor.href = './level-editor.html'; editor.className = 'viewer-link'; editor.textContent = 'TOOLS · LEVEL EDITOR';
+        this.element.append(document.createElement('br'), editor);
+      }
     }
     this.element.hidden = text === '';
   }

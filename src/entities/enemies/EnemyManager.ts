@@ -6,7 +6,7 @@ import { Soldier } from './Soldier';
 import { Turret } from './Turret';
 import type { PowerupKind } from '../../level/PowerupManager';
 
-export type EnemyPlacement = { x: number; y: number } & (
+export type EnemyPlacement = { x: number; y: number; facing?: -1 | 1 } & (
   { kind: 'flying'; weaponDrop?: PowerupKind } |
   { kind: 'turret'; firingMode?: 'aimed' | 'horizontal' } |
   { kind: Exclude<EnemyKind, 'flying' | 'turret'> }
@@ -22,6 +22,10 @@ export class EnemyManager {
       : placement.kind === 'turret' ? new Turret(placement.x, placement.y, placement.firingMode)
       : new constructors[placement.kind](placement.x, placement.y);
     enemy.active = true;
+    if (placement.facing !== undefined) {
+      enemy.direction = placement.facing;
+      enemy.aimDirection.x = placement.facing;
+    }
     this.items.push(enemy);
     return enemy;
   }
