@@ -9,7 +9,7 @@ afterEach(() => vi.restoreAllMocks());
 
 it('selects turret sheets, mirrors only the visual and completes death without altering aim or AI timers', async () => {
   const load = vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async url =>
-    new Texture({ width: url.includes('_idle') ? 48 : url.includes('_shoot') ? 72 : 144, height: 24 } as HTMLImageElement));
+    new Texture({ width: url.includes('_idle') ? 96 : url.includes('_shoot') ? 144 : 288, height: 48 } as HTMLImageElement));
   const assets = new AssetManager(Object.fromEntries(Object.entries(ASSETS).filter(([id]) => id.startsWith('turret.'))));
   await assets.preload(); expect(load).toHaveBeenCalledTimes(3);
   const enemy = new Turret(120, 44); enemy.active = true;
@@ -23,7 +23,7 @@ it('selects turret sheets, mirrors only the visual and completes death without a
   };
   const position = { ...enemy.position }, aim = { ...enemy.aimDirection }, timer = enemy.attackTimer;
   view.update(0); expect(sprite().material.map).toBe(assets.getTexture('turret.idle'));
-  view.update(0.18); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(24.5 / 48);
+  view.update(0.18); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(48.5 / 96);
   for (const facing of [1, -1] as const) {
     enemy.direction = facing; view.update(0); expect(sprite().scale.x).toBe(facing * 24);
   }
@@ -33,7 +33,7 @@ it('selects turret sheets, mirrors only the visual and completes death without a
   expect(sprite().position.y).toBe(12);
   enemy.attackTimer = 0; view.update(0); enemy.attackTimer = 2; view.update(0);
   expect(sprite().material.map).toBe(assets.getTexture('turret.shoot'));
-  view.update(0.11); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(24.5 / 72);
+  view.update(0.11); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(48.5 / 144);
   enemy.hitFlashTimer = 0.1; view.update(0); expect(sprite().material.color.getHex()).toBe(0xfff3c4);
   enemy.die(); view.update(0);
   expect(enemy.alive).toBe(false); expect(enemy.active).toBe(false); expect(view.root.visible).toBe(true);

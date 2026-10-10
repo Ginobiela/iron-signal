@@ -29,6 +29,27 @@ function setup(enemies: readonly Enemy[] = []) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('distinct enemy behavior', () => {
+  it.each([1, -1] as const)('Runner avoids standing horizontal shots but can be killed crouching, facing %s', (direction) => {
+    const runner = new Runner(direction === 1 ? 120 : 10, 44);
+    const { player, pool, combat, collision } = setup([runner]);
+    player.direction = direction;
+    player.grounded = true;
+    player.updateCombat(0, { ...idle, shoot: true }, pool);
+    pool.update(0.25, [floor], 1536, combat);
+    expect(runner.health).toBe(2);
+    expect(runner.height).toBe(12);
+    pool.clear();
+    player.update(dt, { ...idle, down: true }, collision, [floor], 1536);
+    expect(player.crouching).toBe(true);
+    for (let shot = 0; shot < 2; shot++) {
+      player.updateCombat(0.2, { ...idle, down: true, shoot: true }, pool);
+      pool.update(0.25, [floor], 1536, combat);
+      expect(runner.health).toBe(1 - shot);
+    }
+    expect(runner.alive).toBe(false);
+    expect(combat.kills).toBe(1);
+  });
+
   it('Soldier walks toward the player, shoots occasionally, and stops nearby', () => {
     const soldier = new Soldier(300, 44);
     const { context, pool } = setup([soldier]);

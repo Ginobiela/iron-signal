@@ -69,9 +69,9 @@ Cada fila indica dimensiones POR FRAME. New source es una recomendación de arte
 | soldier.death | assets/sprites/enemies/soldier/soldier_death.png | 32×32 | 64×64 | 32×32 | PNG activo 2× |
 | runner.run | assets/sprites/enemies/runner/runner_run.png | 24×24 | 48×48 | 24×24 | PNG activo 2×, 6 frames, 12 FPS, loop |
 | runner.death | assets/sprites/enemies/runner/runner_death.png | 24×24 | 48×48 | 24×24 | PNG activo 2×, 6 frames, 10 FPS, non-loop |
-| turret.idle | assets/sprites/enemies/turret/turret_idle.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |
-| turret.shoot | assets/sprites/enemies/turret/turret_shoot.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |
-| turret.death | assets/sprites/enemies/turret/turret_death.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |
+| turret.idle | assets/sprites/enemies/turret/turret_idle.png | 24×24 | 48×48 | 24×24 | PNG activo 2× |
+| turret.shoot | assets/sprites/enemies/turret/turret_shoot.png | 24×24 | 48×48 | 24×24 | PNG activo 2× |
+| turret.death | assets/sprites/enemies/turret/turret_death.png | 24×24 | 48×48 | 24×24 | PNG activo 2× |
 | flying.fly | assets/sprites/enemies/flying/flying_fly.png | 32×24 | 64×48 | 32×24 | PNG activo 1× |
 | flying.hit | assets/sprites/enemies/flying/flying_hit.png | 32×24 | 64×48 | 32×24 | PNG activo 1× |
 | flying.death | assets/sprites/enemies/flying/flying_death.png | 32×24 | 64×48 | 32×24 | PNG activo 1× |

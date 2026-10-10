@@ -99,7 +99,7 @@ export const ENEMIES = {
   activationMargin: 16,
   soldier: { width: 12, height: 24, health: 4, speed: 24, stopDistance: 48,
     attackInterval: 1.6, firstAttackDelay: 0.9, bulletSpeed: 115, color: 0x8ab07b },
-  runner: { width: 14, height: 16, health: 2, speed: 80, jumpSpeed: 190, color: 0xde7967 },
+  runner: { width: 14, height: 12, health: 2, speed: 80, jumpSpeed: 190, color: 0xde7967 },
   turret: { width: 20, height: 20, health: 6, attackInterval: 1.25,
     firstAttackDelay: 0.8, bulletSpeed: 130, warningTime: 0.25, color: 0xc8a163 },
   flying: { width: 20, height: 14, health: 2, speed: 48, amplitude: 10,

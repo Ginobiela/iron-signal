@@ -97,7 +97,7 @@ describe('central texture loading and fallback', () => {
       enemy.direction = direction; view.update(0); expect(sprite().scale.x).toBe(direction * 24);
     }
     expect(enemy.position).toEqual({ x: 120, y: 44 }); expect(enemy.velocity.x).toBe(80);
-    expect(enemy.width).toBe(14); expect(enemy.height).toBe(16); expect(enemy.health).toBe(enemy.maxHealth);
+    expect(enemy.width).toBe(14); expect(enemy.height).toBe(12); expect(enemy.health).toBe(enemy.maxHealth);
     expect(view.root.position.x).toBe(127); expect(view.root.position.y).toBe(44); expect(sprite().position.y).toBe(12);
     enemy.hitFlashTimer = 0.1; view.update(0);
     const mesh = sprite();
