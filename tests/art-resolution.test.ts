@@ -24,6 +24,20 @@ async function load(manifest: Record<string, SpriteAsset>): Promise<AssetManager
 }
 
 describe('mixed 1×/2× art, same world', () => {
+  it('matches all delivered Soldier strips to 64px frames without changing world metrics', async () => {
+    const { readFileSync } = await vi.importActual<{ readFileSync(url: URL): Uint8Array }>('node:fs');
+    for (const [clip, frames, fps] of [['idle', 4, 6], ['run', 6, 10], ['shoot', 2, 12], ['death', 6, 10]] as const) {
+      const asset = ASSETS[`soldier.${clip}`]!;
+      const png = readFileSync(new URL(`../public/${asset.path}`, import.meta.url));
+      const header = new DataView(png.buffer, png.byteOffset, png.byteLength);
+      expect([header.getUint32(16), header.getUint32(20)]).toEqual([frames * 64, 64]);
+      expect(asset.sheet).toMatchObject({ frameWidth: 64, frameHeight: 64, frameCount: frames });
+      expect(asset.visual).toMatchObject({ width: 32, height: 32, anchor: 'bottom-center', offsetX: 0, offsetY: 0 });
+      expect(asset.artScale).toBe(2);
+      expect(asset.clip).toMatchObject({ frameRate: fps, loop: clip !== 'death' });
+      expect(asset.url).toBe(asset.path);
+    }
+  });
   it('matches the delivered Runner strips to six 48px frames at the original world size', async () => {
     const { readFileSync } = await vi.importActual<{ readFileSync(url: URL): Uint8Array }>('node:fs');
     for (const [id, fps, loop] of [['runner.run', 12, true], ['runner.death', 10, false]] as const) {

@@ -110,7 +110,7 @@ describe('central texture loading and fallback', () => {
   });
   it('uses supplied soldier sheets for idle, run, shoot, death and flip without changing gameplay', async () => {
     const load = vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async url =>
-      new Texture({ width: url.includes('_idle') ? 128 : url.includes('_shoot') ? 64 : 192, height: 32 } as HTMLImageElement));
+      new Texture({ width: url.includes('_idle') ? 256 : url.includes('_shoot') ? 128 : 384, height: 64 } as HTMLImageElement));
     const assets = new AssetManager(Object.fromEntries(Object.entries(ASSETS).filter(([id]) => id.startsWith('soldier.'))));
     await assets.preload(); expect(load).toHaveBeenCalledTimes(4);
     const enemy = new Soldier(120, 44); enemy.active = true;
@@ -124,18 +124,18 @@ describe('central texture loading and fallback', () => {
       });
       expect(found).toBeDefined(); return found!;
     };
-    view.update(0); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(0.5 / 128);
+    view.update(0); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(0.5 / 256);
     expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('soldier.idle'));
-    view.update(0.18); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(32.5 / 128);
+    view.update(0.18); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(64.5 / 256);
     enemy.velocity.x = 32;
     for (const direction of [1, -1] as const) {
       enemy.direction = direction; view.update(0);
       expect(sprite().scale.x).toBe(direction * 32);
       expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('soldier.run'));
     }
-    view.update(0.11); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(32.5 / 192);
+    view.update(0.11); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(64.5 / 384);
     enemy.attackTimer = 0; view.update(0); enemy.attackTimer = 1.6; view.update(0);
-    expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(0.5 / 64);
+    expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(0.5 / 128);
     expect((sprite().material as MeshBasicMaterial).map).toBe(assets.getTexture('soldier.shoot'));
     expect(enemy.attackTimer).toBe(1.6); expect(enemy.position).toEqual(position);
     expect(enemy.health).toBe(health); expect(enemy.width).toBe(12); expect(enemy.height).toBe(24);
