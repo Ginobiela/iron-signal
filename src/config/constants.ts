@@ -74,7 +74,7 @@ export const POWERUPS = {
   size: 12, noticeTime: 1.5, maxCount: 12, gravity: 420, maxFallSpeed: 240,
   initialYSpeed: 35, initialXSpeed: 10, lifetime: 10, warningTime: 2, blinkRate: 8,
 } as const;
-export const GAMEPLAY = { initialLives: 3, deathDelay: 0.65, checkpointNoticeTime: 1.5 } as const;
+export const GAMEPLAY = { initialLives: 10, deathDelay: 0.65, checkpointNoticeTime: 1.5 } as const;
 export const SCORE = { soldier: 100, runner: 100, turret: 200, flying: 300, boss: 5000 } as const;
 export const BOSS = {
   name: 'GUARDIÁN CENITAL', width: 56, height: 72, health: 150,
@@ -97,10 +97,10 @@ export const ENEMIES = {
   bulletDamage: 1,
   hitFlashTime: 0.10,
   activationMargin: 16,
-  soldier: { width: 12, height: 24, health: 2, speed: 24, stopDistance: 48,
+  soldier: { width: 12, height: 24, health: 4, speed: 24, stopDistance: 48,
     attackInterval: 1.6, firstAttackDelay: 0.9, bulletSpeed: 115, color: 0x8ab07b },
-  runner: { width: 14, height: 16, health: 1, speed: 80, jumpSpeed: 190, color: 0xde7967 },
-  turret: { width: 20, height: 20, health: 5, attackInterval: 1.25,
+  runner: { width: 14, height: 16, health: 2, speed: 80, jumpSpeed: 190, color: 0xde7967 },
+  turret: { width: 20, height: 20, health: 6, attackInterval: 1.25,
     firstAttackDelay: 0.8, bulletSpeed: 130, warningTime: 0.25, color: 0xc8a163 },
   flying: { width: 20, height: 14, health: 2, speed: 48, amplitude: 10,
     frequency: 3, color: 0xb09bd5 },
