@@ -78,9 +78,9 @@ export const ASSETS: Record<string, SpriteAsset> = {
   'soldier.death': { ...withArtScale(sprite('sprites/enemies/soldier/soldier_death_x2', 32, 32, 6, 10, 'bottom-center', false), 2),
     url: 'assets/sprites/enemies/soldier/soldier_death_x2.png', includesWeapon: true },
 
-  'runner.run': { ...sprite('sprites/enemies/runner/runner_run', 24, 24, 6, 12),
+  'runner.run': { ...withArtScale(sprite('sprites/enemies/runner/runner_run', 24, 24, 6, 12), 2),
     url: 'assets/sprites/enemies/runner/runner_run.png' },
-  'runner.death': { ...sprite('sprites/enemies/runner/runner_death', 24, 24, 6, 10, 'bottom-center', false),
+  'runner.death': { ...withArtScale(sprite('sprites/enemies/runner/runner_death', 24, 24, 6, 10, 'bottom-center', false), 2),
     url: 'assets/sprites/enemies/runner/runner_death.png' },
   'turret.idle': { ...sprite('sprites/enemies/turret/turret_idle', 24, 24, 2, 6),
     url: 'assets/sprites/enemies/turret/turret_idle.png', includesWeapon: true },

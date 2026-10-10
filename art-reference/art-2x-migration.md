@@ -67,8 +67,8 @@ Cada fila indica dimensiones POR FRAME. New source es una recomendación de arte
 | soldier.run | assets/sprites/enemies/soldier/soldier_run.png | 32×32 | 64×64 | 32×32 | PNG activo 1× |
 | soldier.shoot | assets/sprites/enemies/soldier/soldier_shoot.png | 32×32 | 64×64 | 32×32 | PNG activo 1× |
 | soldier.death | assets/sprites/enemies/soldier/soldier_death.png | 32×32 | 64×64 | 32×32 | PNG activo 1× |
-| runner.run | assets/sprites/enemies/runner/runner_run.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |
-| runner.death | assets/sprites/enemies/runner/runner_death.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |
+| runner.run | assets/sprites/enemies/runner/runner_run.png | 24×24 | 48×48 | 24×24 | PNG activo 2×, 6 frames, 12 FPS, loop |
+| runner.death | assets/sprites/enemies/runner/runner_death.png | 24×24 | 48×48 | 24×24 | PNG activo 2×, 6 frames, 10 FPS, non-loop |
 | turret.idle | assets/sprites/enemies/turret/turret_idle.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |
 | turret.shoot | assets/sprites/enemies/turret/turret_shoot.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |
 | turret.death | assets/sprites/enemies/turret/turret_death.png | 24×24 | 48×48 | 24×24 | PNG activo 1× |

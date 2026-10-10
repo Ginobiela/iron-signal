@@ -79,7 +79,7 @@ describe('sheet/atlas UVs and origins', () => {
 describe('central texture loading and fallback', () => {
   it('renders runner sheets and death without altering movement, hitbox or health', async () => {
     vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async () =>
-      new Texture({ width: 144, height: 24 } as HTMLImageElement));
+      new Texture({ width: 288, height: 48 } as HTMLImageElement));
     const assets = new AssetManager(Object.fromEntries(Object.entries(ASSETS).filter(([id]) => id.startsWith('runner.'))));
     await assets.preload();
     const enemy = new Runner(120, 44); enemy.active = true; enemy.velocity.x = 80;
@@ -92,7 +92,7 @@ describe('central texture loading and fallback', () => {
       expect(found).toBeDefined(); return found!;
     };
     view.update(0); view.update(0.26);
-    expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(72.5 / 144);
+    expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(144.5 / 288);
     for (const direction of [1, -1] as const) {
       enemy.direction = direction; view.update(0); expect(sprite().scale.x).toBe(direction * 24);
     }

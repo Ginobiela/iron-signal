@@ -24,6 +24,19 @@ async function load(manifest: Record<string, SpriteAsset>): Promise<AssetManager
 }
 
 describe('mixed 1×/2× art, same world', () => {
+  it('matches the delivered Runner strips to six 48px frames at the original world size', async () => {
+    const { readFileSync } = await vi.importActual<{ readFileSync(url: URL): Uint8Array }>('node:fs');
+    for (const [id, fps, loop] of [['runner.run', 12, true], ['runner.death', 10, false]] as const) {
+      const asset = ASSETS[id]!;
+      const png = readFileSync(new URL(`../public/${asset.path}`, import.meta.url));
+      const header = new DataView(png.buffer, png.byteOffset, png.byteLength);
+      expect([header.getUint32(16), header.getUint32(20)]).toEqual([288, 48]);
+      expect(asset.sheet).toMatchObject({ frameWidth: 48, frameHeight: 48, frameCount: 6 });
+      expect(asset.visual).toMatchObject({ width: 24, height: 24, anchor: 'bottom-center', offsetX: 0, offsetY: 0 });
+      expect(asset.artScale).toBe(2); expect(asset.clip).toMatchObject({ frameRate: fps, loop });
+      expect(asset.url).toBe(asset.path);
+    }
+  });
   it('renders 512×480 pixels but retains 256×240 world units and compatible asset densities', () => {
     expect(ART_SCALE).toBe(2); expect(RENDER_VIEW).toEqual({ width: 512, height: 480 });
     expect(VIEW).toEqual({ width: 256, height: 240 });
