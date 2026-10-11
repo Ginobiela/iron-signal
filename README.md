@@ -32,7 +32,7 @@ En PowerShell, si npm no está en el PATH, puedes usar `& 'C:/Program Files/node
 
 ### Publicación en GitHub Pages
 
-El workflow `.github/workflows/pages.yml` publica automáticamente al hacer push a `master`. Usa Node 22, instala con `npm ci`, ejecuta tests y compila antes del despliegue. GitHub Pages debe tener Source = GitHub Actions en Settings → Pages. También se puede ejecutar manualmente desde Actions → Publish Iron Signal.
+El workflow `.github/workflows/pages.yml` publica automáticamente al hacer push a `master`. Usa Node 22, instala con `npm ci`, ejecuta tests y compila con `npm run build:devtools` para incluir Level Editor, Animation Viewer y Gameplay Tuner en el sitio de desarrollo. El build de release separado (`npm run build`) sigue excluyendo herramientas. GitHub Pages debe tener Source = GitHub Actions en Settings → Pages. También se puede ejecutar manualmente desde Actions → Publish Iron Signal.
 
 `vite.config.ts` usa base relativa `./` para que JavaScript, CSS y favicon carguen bajo `/iron-signal/` sin depender de la raíz del dominio. Solo se publica `dist`; el juego no necesita servidor de backend. Para agregar assets más adelante, usa rutas relativas al sitio o `import.meta.env.BASE_URL`, evitando rutas que empiecen en la raíz del dominio.
 

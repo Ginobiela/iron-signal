@@ -9,7 +9,7 @@ Es una entrada independiente de Vite: no instancia Game, Level ni sistemas de co
 - `npm run build:devtools`: build explícito que incluye Tuner, Level Editor y Animation Viewer.
 - `npm run build -- --mode release`: también excluye herramientas.
 
-El flag central `import.meta.env.DEV_TOOLS` se define en `vite.config.ts`: solo true para modos `development` y `development-tools`. `src/config/devtools.ts` además lo deshabilita en tests. Los imports dinámicos del playtest tienen guardas de compilación, por lo que production no emite sus chunks. El workflow de Pages existente usa `npm run build`: publicará una versión sin tools, salvo que deliberadamente se cambie a `build:devtools`. No se modificó el workflow ni se publicó esta fase.
+El flag central `import.meta.env.DEV_TOOLS` se define en `vite.config.ts`: solo true para modos `development` y `development-tools`. `src/config/devtools.ts` además lo deshabilita en tests. Los imports dinámicos del playtest tienen guardas de compilación, por lo que production no emite sus chunks. GitHub Pages publica deliberadamente el build `development-tools` mediante `npm run build:devtools`: incluye Level Editor, Animation Viewer y Gameplay Tuner. El build de release separado (`npm run build`) continúa sin herramientas.
 
 ## Auditoría y alcance
 
