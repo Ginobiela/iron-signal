@@ -2,7 +2,7 @@
 
 ## Acceso y arquitectura
 
-`npm run dev` → menú → **TOOLS · LEVEL EDITOR**, o `http://127.0.0.1:5173/level-editor.html`. **BACK TO GAME** vuelve al menú. Es una entrada Vite independiente, compatible con refresh directo y hosting estático en subdirectorios. `npm run build` incluye el editor; `npm run build -- --mode release` lo excluye y oculta su enlace. Sin frameworks ni router nuevos.
+`npm run dev` → menú → **TOOLS · LEVEL EDITOR**, o `http://127.0.0.1:5173/level-editor.html`. **BACK TO GAME** vuelve al menú. Es una entrada Vite independiente, compatible con refresh directo y hosting estático en subdirectorios. `npm run build:devtools` incluye el editor y las otras herramientas; `npm run build` (o `--mode release`) las excluye y oculta sus enlaces. Sin frameworks ni router nuevos.
 
 Antes, Level 1 era un objeto TypeScript en `signalWorks.ts`: width 9600, spawn (62,44), 13 ground segments, 36 plataformas, 21 grupos, 47 enemigos, 6 checkpoints, secciones y boss. Level construía solids/oneWays; EnemySpawner activaba grupos por cameraX; CheckpointManager elegía el último checkpoint pasado en X. Boss activa su arena al pasar arenaLeft y su muerte completa el nivel. La cámara muestra 256×240 WORLD con framebuffer 512×480. Decoración determinista generada al cargar; parallax con tres assets/velocidades.
 

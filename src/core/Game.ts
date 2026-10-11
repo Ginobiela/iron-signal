@@ -1,3 +1,10 @@
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
+import { DEV_TOOLS } from '../config/devtools';
+import { Rifle } from '../weapons/Rifle';
+import { MachineGun } from '../weapons/MachineGun';
+import { SpreadGun } from '../weapons/SpreadGun';
+import { Laser } from '../weapons/Laser';
 import { Color, OrthographicCamera, Scene, WebGLRenderer } from 'three';
 import { CONTROLS, SCORE, VIEW } from '../config/constants';
 import { RENDER_VIEW } from '../config/art';
@@ -59,13 +66,13 @@ export class Game {
   private readonly input: InputManager;
   private readonly touchControls?: TouchControls;
   private readonly level: Level;
-  private readonly states = new GameStateManager();
+  private readonly states: GameStateManager;
   private readonly score = new ScoreManager();
   private readonly audio = new AudioManager();
   private readonly particles = new ParticleManager();
   private readonly particleView = new ParticleView(this.particles);
-  private readonly shake = new ScreenShakeManager();
-  private readonly fxSprites = new FxSpritePool(this.assets, this.particles, this.shake);
+  private readonly shake: ScreenShakeManager;
+  private readonly fxSprites: FxSpritePool;
   private readonly muzzlePoint = { x: 0, y: 0, angle: 0 };
   private readonly playerHitPoint = { x: 0, y: 0 };
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -76,10 +83,10 @@ export class Game {
   private readonly player: Player;
   private readonly playerView = new PlayerView(this.assets);
   private readonly collision = new CollisionSystem();
-  private readonly powerups = new PowerupManager(this.collision);
-  private readonly powerupView = new PowerupView(this.powerups, this.assets);
-  private readonly projectiles = new ProjectileManager(this.collision);
-  private readonly enemies = new EnemyManager();
+  private readonly powerups: PowerupManager;
+  private readonly powerupView: PowerupView;
+  private readonly projectiles: ProjectileManager;
+  private readonly enemies: EnemyManager;
   private readonly boss: Boss;
   private readonly bossView: BossView;
   private readonly enemyViews: EnemyView[] = [];
@@ -89,11 +96,13 @@ export class Game {
   private readonly hud: CombatHUD;
   private readonly menu: Menu;
   private readonly bossHUD: BossHUD;
-  private readonly projectileView = new ProjectileView(this.projectiles.items.length, this.assets);
+  private readonly projectileView: ProjectileView;
   private readonly cameraController: CameraController;
   private readonly controls: PlayerControls = { left: false, right: false, jumpPressed: false, up: false, shoot: false, down: false };
   private readonly loop: GameLoop;
   private readonly resizeObserver: ResizeObserver;
+  private devPaused = false;
+  private devInvulnerable = false;
   private debugVisible = false;
   private graphicsDebugVisible = false;
   private debugTimer = 0;
@@ -101,20 +110,29 @@ export class Game {
   private readonly volumeControl = document.querySelector<HTMLInputElement>('#audio-volume');
 
   constructor(private readonly viewport: HTMLElement, private readonly debug: HTMLElement,
-    status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData) {
+    status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData,
+    private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    this.states = new GameStateManager(config);
+    this.shake = new ScreenShakeManager(config);
+    this.fxSprites = new FxSpritePool(this.assets, this.particles, this.shake);
+    this.powerups = new PowerupManager(this.collision, undefined, config);
+    this.powerupView = new PowerupView(this.powerups, this.assets);
+    this.projectiles = new ProjectileManager(this.collision);
+    this.projectileView = new ProjectileView(this.projectiles.items.length, this.assets);
+    this.enemies = new EnemyManager(config);
     this.level = new Level(this.levelData);
     this.checkpoints = new CheckpointManager({ ...this.levelData.spawn, name: 'Inicio' }, this.levelData.checkpoints);
     this.checkpointView = new CheckpointView(this.checkpoints, this.assets);
-    this.player = new Player(this.levelData.spawn.x, this.levelData.spawn.y);
-    this.boss = new Boss(this.levelData.boss);
+    this.player = new Player(this.levelData.spawn.x, this.levelData.spawn.y, config);
+    this.boss = new Boss(this.levelData.boss, config);
     this.bossView = new BossView(this.boss, this.assets);
     this.spawner = new EnemySpawner(this.levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
     this.combat = new CombatSystem(this.collision, this.player, this.enemies.items,
     (enemy) => this.onEnemyKilled(enemy), this.boss,
-    (target, x, y, damaged) => this.onImpact(target, x, y, damaged));
+    (target, x, y, damaged) => this.onImpact(target, x, y, damaged), config);
     this.enemyContext = { player: this.player, projectiles: this.projectiles,
     collision: this.collision, solids: this.level.solids, oneWays: this.level.oneWays, worldWidth: this.levelData.width };
-    this.cameraController = new CameraController(this.levelData.width);
+    this.cameraController = new CameraController(this.levelData.width, config);
     this.renderer = new WebGLRenderer({ antialias: false, alpha: false });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(RENDER_VIEW.width, RENDER_VIEW.height, false);
@@ -151,6 +169,39 @@ export class Game {
     this.resize();
   }
 
+  /** Only the developer build can obtain this bridge; commands never enter config JSON. */
+  developerSession() {
+    if (!DEV_TOOLS) throw new Error('Developer tools disabled.');
+    return {
+      pauseEditing: (paused: boolean) => { this.devPaused = paused; this.input.clear(); },
+      changed: () => { this.player.health = Math.min(this.player.health, this.config.get().player.maxHealth); },
+      snapshot: () => ({
+        state: this.states.state, health: this.player.health, maxHealth: this.config.get().player.maxHealth,
+        lives: this.states.lives, position: { ...this.player.position }, velocity: { ...this.player.velocity },
+        weapon: this.player.weapon.name, grounded: this.player.grounded,
+        enemies: this.enemies.activeCount, projectiles: this.projectiles.activeCount,
+        infiniteLives: this.states.infiniteLives, invulnerable: this.devInvulnerable,
+      }),
+      command: (command: string) => {
+        const weapons = { rifle: Rifle, machineGun: MachineGun, spread: SpreadGun, laser: Laser };
+        if (command in weapons) this.player.weapon = new weapons[command as keyof typeof weapons](this.config);
+        else if (command === 'heal' && this.player.alive) this.player.health = this.config.get().player.maxHealth;
+        else if (command === 'kill') this.player.die();
+        else if (command === 'clear') for (const enemy of this.enemies.items) enemy.die();
+        else if (command === 'infiniteLives') this.states.infiniteLives = !this.states.infiniteLives;
+        else if (command === 'invulnerable') {
+          this.devInvulnerable = !this.devInvulnerable;
+          this.player.invulnerabilityTimer = this.devInvulnerable ? 30 : 0;
+        } else if (command === 'checkpoint') {
+          this.player.position.x = this.checkpoints.current.x; this.player.position.y = this.checkpoints.current.y;
+          this.player.velocity.x = this.player.velocity.y = 0;
+          this.projectiles.clear(false);
+          this.cameraController.update(this.player.position.x + this.player.width / 2);
+        } else if (command === 'restart') { this.states.restart(); this.resetRun(); this.input.clear(); }
+      },
+    };
+  }
+
   beginPlaytest(): void {
     if (this.states.start()) this.resetRun();
   }
@@ -185,6 +236,7 @@ export class Game {
   }
 
   private readonly update = (dt: number): void => {
+    if (DEV_TOOLS && this.devPaused) { this.input.clear(); return; }
     this.ticks++;
     if (this.input.wasPressed('start')) {
       if (this.states.state === 'PAUSED') {
@@ -225,6 +277,7 @@ export class Game {
   };
 
   private updatePlaying(dt: number): void {
+    if (DEV_TOOLS && this.devInvulnerable) this.player.invulnerabilityTimer = 30;
     const jumps = this.player.jumpCount;
     const collected = this.powerups.collectedCount;
     const checkpoint = this.checkpoints.current;

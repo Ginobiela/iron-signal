@@ -1,13 +1,17 @@
-import { GAMEPLAY } from '../config/constants';
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
 
 export type GameState = 'BOOT' | 'MENU' | 'PLAYING' | 'PAUSED' | 'PLAYER_DEAD' | 'GAME_OVER' | 'LEVEL_COMPLETE';
 
 export class GameStateManager {
   private current: GameState = 'BOOT';
-  private remainingLives: number = GAMEPLAY.initialLives;
+  private remainingLives: number;
+  infiniteLives = false;
+  constructor(private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) { this.remainingLives = config.get().game.initialLives; }
   private deathTimer = 0;
 
   get state(): GameState { return this.current; }
+  get initialLives(): number { return this.config.get().game.initialLives; }
   get lives(): number { return this.remainingLives; }
 
   ready(): void {
@@ -16,11 +20,13 @@ export class GameStateManager {
 
   start(): boolean {
     if (this.current !== 'MENU' && this.current !== 'GAME_OVER' && this.current !== 'LEVEL_COMPLETE') return false;
-    this.remainingLives = GAMEPLAY.initialLives;
+    this.remainingLives = this.config.get().game.initialLives;
     this.deathTimer = 0;
     this.current = 'PLAYING';
     return true;
   }
+
+  restart(): void { this.current = 'MENU'; this.start(); }
 
   pause(): void {
     if (this.current === 'PLAYING') this.current = 'PAUSED';
@@ -37,8 +43,8 @@ export class GameStateManager {
 
   playerDied(): void {
     if (this.current !== 'PLAYING') return;
-    this.remainingLives--;
-    this.deathTimer = GAMEPLAY.deathDelay;
+    if (!this.infiniteLives) this.remainingLives--;
+    this.deathTimer = this.config.get().game.deathDelay;
     this.current = 'PLAYER_DEAD';
   }
 

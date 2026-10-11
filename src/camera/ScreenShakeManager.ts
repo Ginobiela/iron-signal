@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
 import { FEEDBACK } from '../config/constants';
 
 export class ScreenShakeManager {
@@ -6,9 +8,11 @@ export class ScreenShakeManager {
   private duration = 0;
   private strength = 0;
 
+  constructor(private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {}
+
   trigger(strength: number, duration: number = FEEDBACK.shakeTime): void {
     if (strength <= 0 || duration <= 0) return;
-    this.strength = Math.min(FEEDBACK.shakeLimit, Math.max(this.strength, strength));
+    this.strength = Math.min(this.config.get().feedback.shakeLimit, Math.max(this.strength, strength));
     this.duration = this.remaining = Math.max(this.remaining, duration);
   }
 
@@ -16,7 +20,7 @@ export class ScreenShakeManager {
     if (dt <= 0) return;
     this.remaining = Math.max(0, this.remaining - dt);
     if (this.remaining === 0) { this.clear(); return; }
-    const amplitude = this.strength * this.remaining / this.duration;
+    const amplitude = Math.min(this.strength, this.config.get().feedback.shakeLimit) * this.remaining / this.duration;
     this.offset.x = Math.round((Math.random() * 2 - 1) * amplitude);
     this.offset.y = Math.round((Math.random() * 2 - 1) * amplitude);
   }

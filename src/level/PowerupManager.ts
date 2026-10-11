@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
 import { overlaps } from '../collision/CollisionSystem';
 import type { AABB, CollisionSystem } from '../collision/CollisionSystem';
 import { POWERUPS } from '../config/constants';
@@ -20,8 +22,8 @@ export class PowerupManager {
   private noticeText = '';
   private dropped = new WeakSet<Enemy>();
 
-  constructor(private readonly collision: CollisionSystem, capacity: number = POWERUPS.maxCount) {
-    this.items = Array.from({ length: capacity }, () => new WeaponPickup());
+  constructor(private readonly collision: CollisionSystem, capacity: number = POWERUPS.maxCount, private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    this.items = Array.from({ length: capacity }, () => new WeaponPickup(config));
   }
 
   get message(): string {
@@ -58,7 +60,7 @@ export class PowerupManager {
       pickup.update(dt, this.collision, solids, oneWays, worldWidth);
       if (!pickup.active || !player.alive || !overlaps(player.collisionBounds, pickup)) continue;
       pickup.active = false;
-      player.weapon = new weapons[pickup.kind]();
+      player.weapon = new weapons[pickup.kind](this.config);
       this.collectedCount++;
       this.noticeText = `${pickup.kind} · ${player.weapon.name}`;
       this.noticeTimer = POWERUPS.noticeTime;

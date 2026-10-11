@@ -1,4 +1,6 @@
-import { ENEMIES, VIEW, WORLD } from '../../config/constants';
+import { DEFAULT_CONFIG_SOURCE } from '../../config/gameplay';
+import type { GameplayConfigSource } from '../../config/gameplay';
+import { VIEW, WORLD } from '../../config/constants';
 import type { Enemy, EnemyContext, EnemyKind } from './Enemy';
 import { FlyingEnemy } from './FlyingEnemy';
 import { Runner } from './Runner';
@@ -17,10 +19,12 @@ const constructors = { soldier: Soldier, runner: Runner, turret: Turret, flying:
 export class EnemyManager {
   readonly items: Enemy[] = [];
 
+  constructor(private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {}
+
   spawn(placement: EnemyPlacement): Enemy {
-    const enemy = placement.kind === 'flying' ? new FlyingEnemy(placement.x, placement.y, placement.weaponDrop)
-      : placement.kind === 'turret' ? new Turret(placement.x, placement.y, placement.firingMode)
-      : new constructors[placement.kind](placement.x, placement.y);
+    const enemy = placement.kind === 'flying' ? new FlyingEnemy(placement.x, placement.y, placement.weaponDrop, this.config)
+      : placement.kind === 'turret' ? new Turret(placement.x, placement.y, placement.firingMode, this.config)
+      : new constructors[placement.kind](placement.x, placement.y, this.config);
     enemy.active = true;
     if (placement.facing !== undefined) {
       enemy.direction = placement.facing;
@@ -49,8 +53,8 @@ export class EnemyManager {
         enemy.die();
         continue;
       }
-      if (enemy.position.x + enemy.width >= cameraX - ENEMIES.activationMargin
-        && enemy.position.x <= cameraX + VIEW.width + ENEMIES.activationMargin) enemy.update(dt, context);
+      if (enemy.position.x + enemy.width >= cameraX - this.config.get().enemies.activationMargin
+        && enemy.position.x <= cameraX + VIEW.width + this.config.get().enemies.activationMargin) enemy.update(dt, context);
     }
   }
 

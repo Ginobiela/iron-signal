@@ -24,7 +24,7 @@ export class ProjectileManager {
   }
 
   spawn(x: number, y: number, vx: number, vy: number, damage: number,
-    owner: ProjectileOwner, muzzleDistance = 0, style: ProjectileStyle = 'bullet'): boolean {
+    owner: ProjectileOwner, muzzleDistance = 0, style: ProjectileStyle = 'bullet', lifetime: number = PROJECTILES.lifetime): boolean {
     for (const projectile of this.items) {
       if (projectile.active) continue;
       const speed = Math.hypot(vx, vy);
@@ -39,7 +39,7 @@ export class ProjectileManager {
       projectile.damage = damage;
       projectile.owner = owner;
       projectile.style = style;
-      projectile.lifeRemaining = PROJECTILES.lifetime;
+      projectile.lifeRemaining = lifetime;
       projectile.active = true;
       projectile.fresh = true;
       this.count++;

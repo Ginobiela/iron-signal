@@ -1,27 +1,29 @@
-import { ENEMIES } from '../../config/constants';
+import { DEFAULT_CONFIG_SOURCE } from '../../config/gameplay';
+import type { GameplayConfigSource } from '../../config/gameplay';
 import { Enemy } from './Enemy';
 import type { EnemyContext } from './Enemy';
 
 export class Soldier extends Enemy {
-  attackTimer: number = ENEMIES.soldier.firstAttackDelay;
+  attackTimer: number;
 
-  constructor(x: number, y: number) {
-    super('soldier', x, y, ENEMIES.soldier);
+  constructor(x: number, y: number, config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    super('soldier', x, y, config.get().enemies.soldier, config);
+    this.attackTimer = config.get().enemies.soldier.firstAttackDelay;
   }
 
   protected updateBehavior(dt: number, context: EnemyContext): void {
     const distance = this.distanceToPlayer(context);
     this.aimAtPlayer(context);
-    const speed = Math.abs(distance) > ENEMIES.soldier.stopDistance
-      ? this.direction * ENEMIES.soldier.speed : 0;
+    const speed = Math.abs(distance) > this.config.get().enemies.soldier.stopDistance
+      ? this.direction * this.config.get().enemies.soldier.speed : 0;
     this.moveOnGround(dt, context, speed);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
-    if (this.attackTimer === 0 && this.fireAtPlayer(context, ENEMIES.soldier.bulletSpeed)) {
-      this.attackTimer = ENEMIES.soldier.attackInterval;
+    if (this.attackTimer === 0 && this.fireAtPlayer(context, this.config.get().enemies.soldier.bulletSpeed)) {
+      this.attackTimer = this.config.get().enemies.soldier.attackInterval;
     }
   }
 
   protected override resetBehavior(): void {
-    this.attackTimer = ENEMIES.soldier.firstAttackDelay;
+    this.attackTimer = this.config.get().enemies.soldier.firstAttackDelay;
   }
 }

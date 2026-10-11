@@ -1,6 +1,7 @@
 import './level-editor.css';
 import { LevelEditor } from './LevelEditor';
-if (import.meta.env.MODE === 'release') location.replace('./');
+import { DEV_TOOLS } from '../config/devtools';
+if (!DEV_TOOLS) location.replace('./');
 else {
   const editor = new LevelEditor();
   void editor.start().catch(error => { document.querySelector('#validation')!.textContent = String(error); });

@@ -1,0 +1,23 @@
+body:has(#tuner) { margin: 0; background: #111923; color: #e1e9ef; font: 15px system-ui,sans-serif; }
+#tuner { max-width: 1100px; margin: auto; padding: 20px; }
+#tuner header, #tuner nav { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+#tuner a, .quick-tuner a { color: #9fd7ff; }
+#tuner input, #tuner select, #tuner button, .quick-tuner input, .quick-tuner button { color: #eff4f7; background: #243447; border: 1px solid #64758a; padding: 7px; border-radius: 3px; font: inherit; }
+#tuner button, .quick-tuner button { cursor: pointer; }
+#tuner h2 { font-size: 17px; margin: 8px 0 14px; }
+#tuner section, .quick-tuner section { background: #192431; padding: 14px; border: 1px solid #43556a; margin: 14px 0; }
+.tuning-row { display: grid; grid-template-columns: minmax(120px,1fr) minmax(80px,150px) auto; gap: 7px; padding: 10px; margin-bottom: 5px; border-left: 3px solid transparent; }
+.tuning-row small { grid-column: 1 / 3; color: #9dacc0; }
+.tuning-row span { grid-column: 1 / -1; font-size: 12px; }
+.tuning-row.modified { border-left-color: #ffd581; background: #29342f; }
+.tuning-row[hidden], #tuner [hidden], .quick-tuner [hidden] { display: none; }
+#tuner-error, #quick-error { color: #ffb09e; white-space: pre-wrap; }
+#dirty, #quick-dirty { color: #ffd581; font-weight: bold; }
+#changes, #config-output { width: 100%; box-sizing: border-box; padding: 15px; background: #0b1119; color: #dce8ef; white-space: pre-wrap; }
+#config-output { min-height: 220px; }
+.quick-tuner { position: fixed; z-index: 100; top: 12px; right: 12px; width: min(440px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; background: #101c2bf5; color: #e1e9ef; border: 2px solid #84b9d0; padding: 14px; box-sizing: border-box; font: 13px system-ui,sans-serif; }
+.quick-tuner h2 { font-size: 15px; }
+.quick-tuner pre { white-space: pre-wrap; }
+.quick-tuner nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.tuning-badge { position: fixed; left: 10px; bottom: 10px; z-index: 90; padding: 6px 10px; color: #ffe1a1; background: #101c2be8; font: 12px system-ui,sans-serif; }
+@media(max-width: 550px) { #tuner { padding: 12px; } .tuning-row { grid-template-columns: minmax(95px,1fr) 85px auto; padding: 6px; } }

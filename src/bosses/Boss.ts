@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
 import { BOSS, ENEMIES } from '../config/constants';
 import type { EnemyContext } from '../entities/enemies/Enemy';
 
@@ -15,10 +17,10 @@ export class Boss {
   readonly position: { x: number; y: number };
   readonly width = BOSS.width;
   readonly height = BOSS.height;
-  readonly maxHealth = BOSS.health;
+  maxHealth: number;
   readonly arenaLeft: number;
   readonly aimDirection = { x: -1, y: 0 };
-  health: number = BOSS.health;
+  health: number;
   phase: 1 | 2 | 3 = 1;
   state: BossState = 'DORMANT';
   pattern: BossPattern = 'HIGH';
@@ -30,7 +32,8 @@ export class Boss {
   private shotsFired = 0;
   private shotTimer = 0;
 
-  constructor(placement: BossPlacement) {
+  constructor(placement: BossPlacement, private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    this.health = this.maxHealth = config.get().boss.health;
     this.position = { x: placement.x, y: placement.y };
     this.arenaLeft = placement.arenaLeft;
   }
@@ -51,7 +54,7 @@ export class Boss {
   prepareRespawn(): void {
     if (!this.active || !this.alive) return;
     this.state = 'INTRO';
-    this.attackTimer = BOSS.introTime;
+    this.attackTimer = this.config.get().boss.introTime;
     this.shotsFired = 0;
     this.shotTimer = 0;
     this.hitFlashTimer = this.shieldFlashTimer = 0;
@@ -64,21 +67,21 @@ export class Boss {
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     if (this.state === 'ATTACK') {
       this.shotTimer -= dt;
-      if (this.shotsFired < BOSS.burstCount && this.shotTimer <= Number.EPSILON) {
+      if (this.shotsFired < this.config.get().boss.burstCount && this.shotTimer <= Number.EPSILON) {
         this.fire(context);
         this.shotsFired++;
-        this.shotTimer = BOSS.burstInterval;
+        this.shotTimer = this.config.get().boss.burstInterval;
       }
       if (this.attackTimer <= Number.EPSILON) {
         this.state = 'RECOVER';
-        this.attackTimer = BOSS.recoveryTimes[this.phase - 1] ?? BOSS.recoveryTimes[0];
+        this.attackTimer = this.config.get().boss.recoveryTimes[this.phase - 1] ?? this.config.get().boss.recoveryTimes[0]!;
       }
       return;
     }
     if (this.attackTimer > Number.EPSILON) return;
     if (this.state === 'TELEGRAPH') {
       this.state = 'ATTACK';
-      this.attackTimer = BOSS.attackTime;
+      this.attackTimer = this.config.get().boss.attackTime;
       this.shotsFired = 0;
       this.shotTimer = 0;
     } else this.telegraph(context);
@@ -96,13 +99,13 @@ export class Boss {
       this.die();
       return true;
     }
-    const nextPhase = this.health < this.maxHealth * BOSS.phase3Threshold ? 3
-      : this.health <= this.maxHealth * BOSS.phase2Threshold ? 2 : 1;
+    const nextPhase = this.health < this.maxHealth * this.config.get().boss.phase3Threshold ? 3
+      : this.health <= this.maxHealth * this.config.get().boss.phase2Threshold ? 2 : 1;
     if (nextPhase !== this.phase) {
       this.phase = nextPhase;
       this.cycle = 0;
       this.state = 'INTRO';
-      this.attackTimer = BOSS.introTime;
+      this.attackTimer = this.config.get().boss.introTime;
     }
     return true;
   }
@@ -115,7 +118,7 @@ export class Boss {
   }
 
   reset(): void {
-    this.health = this.maxHealth;
+    this.health = this.maxHealth = this.config.get().boss.health;
     this.phase = 1;
     this.state = 'DORMANT';
     this.pattern = 'HIGH';
@@ -142,19 +145,19 @@ export class Boss {
       }
     }
     this.state = 'TELEGRAPH';
-    this.attackTimer = BOSS.telegraphTimes[this.phase - 1] ?? BOSS.telegraphTimes[0];
+    this.attackTimer = this.config.get().boss.telegraphTimes[this.phase - 1] ?? this.config.get().boss.telegraphTimes[0]!;
   }
 
   private fire(context: EnemyContext): void {
-    const speed = BOSS.bulletSpeeds[this.phase - 1] ?? BOSS.bulletSpeeds[0];
+    const speed = this.config.get().boss.bulletSpeeds[this.phase - 1] ?? this.config.get().boss.bulletSpeeds[0]!;
     const x = this.position.x - BOSS.muzzleOffset;
     const y = this.position.y + this.firingHeight;
     if (this.pattern === 'AIMED') {
       for (const rotation of aimedRotations) {
         const dx = this.aimDirection.x * rotation.cos - this.aimDirection.y * rotation.sin;
         const dy = this.aimDirection.x * rotation.sin + this.aimDirection.y * rotation.cos;
-        context.projectiles.spawn(x, y, dx * speed, dy * speed, ENEMIES.bulletDamage, 'enemy');
+        context.projectiles.spawn(x, y, dx * speed, dy * speed, this.config.get().enemies.bulletDamage, 'enemy');
       }
-    } else context.projectiles.spawn(x, y, -speed, 0, ENEMIES.bulletDamage, 'enemy');
+    } else context.projectiles.spawn(x, y, -speed, 0, this.config.get().enemies.bulletDamage, 'enemy');
   }
 }

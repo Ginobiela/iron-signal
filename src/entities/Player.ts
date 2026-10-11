@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
 import { PLAYER, PLAYER_COLLISION, WORLD } from '../config/constants';
 import type { AABB, CollisionSystem } from '../collision/CollisionSystem';
 import type { KinematicBody } from './Entity';
@@ -23,12 +25,12 @@ export class Player implements KinematicBody {
   height: number = PLAYER.height;
   direction: -1 | 1 = 1;
   readonly aimDirection = { x: 1, y: 0 };
-  weapon: Weapon = new Rifle();
+  weapon: Weapon;
   shooting = false;
   jumpCount = 0;
   state: PlayerState = 'IDLE';
   grounded = false;
-  health: number = PLAYER.maxHealth;
+  health: number;
   invulnerabilityTimer = 0;
   private coyoteTimer = 0;
   private jumpBufferTimer = 0;
@@ -37,7 +39,9 @@ export class Player implements KinematicBody {
   private readonly standingBox: AABB = { x: 0, y: 0, ...PLAYER_COLLISION.standing };
   private readonly crouchingBox: AABB = { x: 0, y: 0, ...PLAYER_COLLISION.crouching };
 
-  constructor(x: number, y: number) {
+  constructor(x: number, y: number, private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    this.health = config.get().player.maxHealth;
+    this.weapon = new Rifle(config);
     this.position = { x, y };
   }
 
@@ -86,7 +90,7 @@ export class Player implements KinematicBody {
   takeDamage(damage: number): boolean {
     if (!this.alive || this.invulnerabilityTimer > 0 || damage <= 0) return false;
     this.health = Math.max(0, this.health - damage);
-    this.invulnerabilityTimer = PLAYER.invulnerabilityTime;
+    this.invulnerabilityTimer = this.config.get().player.invulnerabilityTime;
     if (!this.alive) {
       this.die();
     }
@@ -97,7 +101,7 @@ export class Player implements KinematicBody {
     this.position.x = x;
     this.position.y = y;
     this.velocity.x = this.velocity.y = 0;
-    this.health = PLAYER.maxHealth;
+    this.health = this.config.get().player.maxHealth;
     this.invulnerabilityTimer = 0;
     this.grounded = false;
     this.direction = 1;
@@ -109,12 +113,12 @@ export class Player implements KinematicBody {
     this.jumpCount = 0;
     this.supportPlatform = this.ignoredPlatform = null;
     this.height = PLAYER.height;
-    this.weapon = new Rifle();
+    this.weapon = new Rifle(this.config);
   }
 
   respawn(x: number, y: number): void {
     this.reset(x, y);
-    this.invulnerabilityTimer = PLAYER.invulnerabilityTime;
+    this.invulnerabilityTimer = this.config.get().player.invulnerabilityTime;
   }
 
   updateCombat(dt: number, controls: PlayerControls, projectiles: ProjectileManager): void {
@@ -133,27 +137,28 @@ export class Player implements KinematicBody {
 
   update(dt: number, controls: PlayerControls, collision: CollisionSystem,
     solids: readonly AABB[], worldWidth: number, oneWays?: readonly AABB[]): void {
+    this.health = Math.min(this.health, this.config.get().player.maxHealth);
     this.invulnerabilityTimer = Math.max(0, this.invulnerabilityTimer - dt);
     if (!this.alive) return;
-    this.coyoteTimer = this.grounded ? PLAYER.coyoteTime : Math.max(0, this.coyoteTimer - dt);
-    this.jumpBufferTimer = controls.jumpPressed ? PLAYER.jumpBuffer : Math.max(0, this.jumpBufferTimer - dt);
+    this.coyoteTimer = this.grounded ? this.config.get().player.coyoteTime : Math.max(0, this.coyoteTimer - dt);
+    this.jumpBufferTimer = controls.jumpPressed ? this.config.get().player.jumpBuffer : Math.max(0, this.jumpBufferTimer - dt);
     const axis = Number(controls.right) - Number(controls.left);
     if (controls.down && this.grounded) this.height = PLAYER.crouchHeight;
     else if (this.canStandUp(collision, solids)) {
       this.height = PLAYER.height;
     }
-    this.velocity.x = this.crouching && this.grounded ? 0 : axis * PLAYER.speed;
+    this.velocity.x = this.crouching && this.grounded ? 0 : axis * this.config.get().player.speed;
     if (axis !== 0) this.direction = axis > 0 ? 1 : -1;
     if (controls.down && controls.jumpPressed && this.grounded && this.supportPlatform) {
       this.ignoredPlatform = this.supportPlatform;
       this.position.y -= PLAYER.dropOffset;
-      this.velocity.y = -PLAYER.dropSpeed;
+      this.velocity.y = -this.config.get().player.dropSpeed;
       this.grounded = false;
       this.jumpBufferTimer = this.coyoteTimer = 0;
     } else if (this.jumpBufferTimer > 0 && (this.grounded || this.coyoteTimer > 0) && !this.crouching) this.jump();
 
-    const gravity = PLAYER.gravity * (this.velocity.y < 0 ? PLAYER.fallGravityMultiplier : 1);
-    this.velocity.y = Math.max(-PLAYER.maxFallSpeed, this.velocity.y - gravity * dt);
+    const gravity = this.config.get().player.gravity * (this.velocity.y < 0 ? this.config.get().player.fallGravityMultiplier : 1);
+    this.velocity.y = Math.max(-this.config.get().player.maxFallSpeed, this.velocity.y - gravity * dt);
     this.supportPlatform = collision.move(this, dt, solids, worldWidth, oneWays, this.ignoredPlatform);
     // Once the feet pass below the top, downward motion cannot catch this platform again.
     if (this.ignoredPlatform && this.position.y < this.ignoredPlatform.y + this.ignoredPlatform.height) {
@@ -171,7 +176,7 @@ export class Player implements KinematicBody {
 
   private jump(): void {
     this.jumpCount++;
-    this.velocity.y = PLAYER.jumpSpeed;
+    this.velocity.y = this.config.get().player.jumpSpeed;
     this.grounded = false;
     this.coyoteTimer = 0;
     this.jumpBufferTimer = 0;

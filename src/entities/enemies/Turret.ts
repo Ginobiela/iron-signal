@@ -1,16 +1,18 @@
-import { ENEMIES } from '../../config/constants';
+import { DEFAULT_CONFIG_SOURCE } from '../../config/gameplay';
+import type { GameplayConfigSource } from '../../config/gameplay';
 import { Enemy } from './Enemy';
 import type { EnemyContext } from './Enemy';
 
 export class Turret extends Enemy {
-  attackTimer: number = ENEMIES.turret.firstAttackDelay;
+  attackTimer: number;
 
-  constructor(x: number, y: number, private readonly firingMode: 'aimed' | 'horizontal' = 'aimed') {
-    super('turret', x, y, ENEMIES.turret);
+  constructor(x: number, y: number, private readonly firingMode: 'aimed' | 'horizontal' = 'aimed', config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    super('turret', x, y, config.get().enemies.turret, config);
+    this.attackTimer = config.get().enemies.turret.firstAttackDelay;
   }
 
   override get warning(): boolean {
-    return this.attackTimer <= ENEMIES.turret.warningTime;
+    return this.attackTimer <= this.config.get().enemies.turret.warningTime;
   }
 
   protected updateBehavior(dt: number, context: EnemyContext): void {
@@ -22,14 +24,14 @@ export class Turret extends Enemy {
     }
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     if (this.attackTimer === 0 && (this.firingMode === 'aimed'
-      ? this.fireAtPlayer(context, ENEMIES.turret.bulletSpeed)
+      ? this.fireAtPlayer(context, this.config.get().enemies.turret.bulletSpeed)
       : context.projectiles.spawn(this.position.x + this.width / 2, this.position.y + this.gunPivotY,
-        this.direction * ENEMIES.turret.bulletSpeed, 0, ENEMIES.bulletDamage, 'enemy', this.width / 2 + 4))) {
-      this.attackTimer = ENEMIES.turret.attackInterval;
+        this.direction * this.config.get().enemies.turret.bulletSpeed, 0, this.config.get().enemies.bulletDamage, 'enemy', this.width / 2 + 4))) {
+      this.attackTimer = this.config.get().enemies.turret.attackInterval;
     }
   }
 
   protected override resetBehavior(): void {
-    this.attackTimer = ENEMIES.turret.firstAttackDelay;
+    this.attackTimer = this.config.get().enemies.turret.firstAttackDelay;
   }
 }

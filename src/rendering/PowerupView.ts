@@ -25,7 +25,7 @@ export class PowerupView {
       const capsule = this.capsules[i];
       const pickup = this.manager.items[i];
       if (!capsule || !pickup) continue;
-      capsule.root.visible = pickup.active && (pickup.lifeRemaining > POWERUPS.warningTime
+      capsule.root.visible = pickup.active && (pickup.lifeRemaining > pickup.warningTime
         || Math.floor(pickup.lifeRemaining * POWERUPS.blinkRate) % 2 === 0);
       if (!pickup.active) continue;
       capsule.setKind(pickup.kind);

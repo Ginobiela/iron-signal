@@ -1,4 +1,6 @@
-import { ENEMIES, PROJECTILES } from '../config/constants';
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
+import { PROJECTILES } from '../config/constants';
 import type { Enemy } from '../entities/enemies/Enemy';
 import type { Boss } from '../bosses/Boss';
 import type { Player } from '../entities/Player';
@@ -15,7 +17,8 @@ export class CombatSystem {
   constructor(private readonly collision: CollisionSystem, private readonly player: Player,
     private readonly enemies: readonly Enemy[], private readonly onEnemyKilled?: (enemy: Enemy | Boss) => void,
     private readonly boss?: Boss,
-    private readonly onImpact?: (target: Enemy | Boss | Player | null, x: number, y: number, damaged: boolean) => void) {}
+    private readonly onImpact?: (target: Enemy | Boss | Player | null, x: number, y: number, damaged: boolean) => void,
+    private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {}
 
   resolveProjectile(projectile: Projectile, x: number, y: number, solids: readonly AABB[]): boolean {
     let nearest = this.collision.firstSolidHit(projectile.previousPosition.x, projectile.previousPosition.y,
@@ -64,13 +67,13 @@ export class CombatSystem {
     for (const enemy of this.enemies) {
       if (!enemy.active || !enemy.alive) continue;
       this.setBounds(this.targetBounds, enemy);
-      if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(ENEMIES.contactDamage)) {
+      if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(this.config.get().enemies.contactDamage)) {
         this.playerHits++;
       }
     }
     if (this.boss?.active && this.boss.alive) {
       this.setBounds(this.targetBounds, this.boss);
-      if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(ENEMIES.contactDamage)) this.playerHits++;
+      if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(this.config.get().enemies.contactDamage)) this.playerHits++;
     }
   }
 

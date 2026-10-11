@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
 import { POWERUPS, WORLD } from '../config/constants';
 import type { AABB, CollisionSystem } from '../collision/CollisionSystem';
 import type { KinematicBody } from './Entity';
@@ -8,7 +10,9 @@ export class WeaponPickup implements KinematicBody, AABB {
   readonly velocity = { x: 0, y: 0 };
   readonly width = POWERUPS.size;
   readonly height = POWERUPS.size;
-  readonly gravity = POWERUPS.gravity;
+  get gravity(): number { return this.config.get().powerups.gravity; }
+  get warningTime(): number { return this.config.get().powerups.warningTime; }
+  constructor(private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {}
   kind: PowerupKind = 'M';
   grounded = false;
   active = false;
@@ -22,7 +26,7 @@ export class WeaponPickup implements KinematicBody, AABB {
     this.velocity.x = (Math.random() * 2 - 1) * POWERUPS.initialXSpeed;
     this.velocity.y = POWERUPS.initialYSpeed;
     this.grounded = false;
-    this.lifeRemaining = POWERUPS.lifetime;
+    this.lifeRemaining = this.config.get().powerups.lifetime;
     this.active = true;
   }
 

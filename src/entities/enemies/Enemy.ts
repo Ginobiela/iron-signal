@@ -1,5 +1,7 @@
+import { DEFAULT_CONFIG_SOURCE } from '../../config/gameplay';
+import type { GameplayConfigSource } from '../../config/gameplay';
 import type { AABB, CollisionSystem } from '../../collision/CollisionSystem';
-import { ENEMIES, PLAYER, WORLD } from '../../config/constants';
+import { WORLD } from '../../config/constants';
 import type { ProjectileManager } from '../../projectiles/ProjectileManager';
 import type { KinematicBody } from '../Entity';
 import type { Player } from '../Player';
@@ -29,7 +31,7 @@ export abstract class Enemy implements KinematicBody {
   readonly aimDirection = { x: -1, y: 0 };
   readonly width: number;
   readonly height: number;
-  readonly maxHealth: number;
+  maxHealth: number;
   readonly color: number;
   health: number;
   grounded = false;
@@ -38,7 +40,7 @@ export abstract class Enemy implements KinematicBody {
   hitFlashTimer = 0;
 
   constructor(readonly kind: EnemyKind, private readonly spawnX: number,
-    private readonly spawnY: number, stats: EnemyStats) {
+    private readonly spawnY: number, stats: EnemyStats, protected readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
     this.position = { x: spawnX, y: spawnY };
     this.width = stats.width;
     this.height = stats.height;
@@ -70,7 +72,7 @@ export abstract class Enemy implements KinematicBody {
   takeDamage(damage: number): boolean {
     if (!this.alive || !this.active || damage <= 0) return false;
     this.health = Math.max(0, this.health - damage);
-    this.hitFlashTimer = ENEMIES.hitFlashTime;
+    this.hitFlashTimer = this.config.get().enemies.hitFlashTime;
     if (!this.alive) this.die();
     return true;
   }
@@ -85,7 +87,7 @@ export abstract class Enemy implements KinematicBody {
     this.position.x = this.spawnX;
     this.position.y = this.spawnY;
     this.velocity.x = this.velocity.y = 0;
-    this.health = this.maxHealth;
+    this.health = this.maxHealth = this.config.get().enemies[this.kind].health;
     this.active = false;
     this.grounded = false;
     this.direction = -1;
@@ -97,7 +99,7 @@ export abstract class Enemy implements KinematicBody {
 
   protected moveOnGround(dt: number, context: EnemyContext, speed: number): void {
     this.velocity.x = speed;
-    this.velocity.y = Math.max(-PLAYER.maxFallSpeed, this.velocity.y - PLAYER.gravity * dt);
+    this.velocity.y = Math.max(-this.config.get().player.maxFallSpeed, this.velocity.y - this.config.get().player.gravity * dt);
     context.collision.move(this, dt, context.solids, context.worldWidth, context.oneWays);
   }
 
@@ -118,7 +120,7 @@ export abstract class Enemy implements KinematicBody {
     this.aimAtPlayer(context);
     return context.projectiles.spawn(this.position.x + this.width / 2,
       this.position.y + this.gunPivotY, this.aimDirection.x * speed, this.aimDirection.y * speed,
-      ENEMIES.bulletDamage, 'enemy', this.width / 2 + 4);
+      this.config.get().enemies.bulletDamage, 'enemy', this.width / 2 + 4);
   }
 
   protected resetBehavior(): void {}

@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
+import type { GameplayConfigSource } from '../config/gameplay';
 import type { Vector2 } from '../entities/Entity';
 import type { ProjectileOwner, ProjectileStyle } from '../projectiles/Projectile';
 import type { ProjectileManager } from '../projectiles/ProjectileManager';
@@ -9,6 +11,10 @@ export abstract class Weapon {
   abstract readonly damage: number;
   protected readonly projectileStyle: ProjectileStyle = 'bullet';
   private cooldown = 0;
+
+  constructor(protected readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {}
+
+  get projectileLifetime(): number { return this.config.get().weapons.rifle.projectileLifetime; }
 
   update(dt: number): void {
     this.cooldown = Math.max(0, this.cooldown - dt);
@@ -25,6 +31,6 @@ export abstract class Weapon {
   protected emit(projectiles: ProjectileManager, x: number, y: number, aim: Vector2,
     owner: ProjectileOwner, muzzleDistance: number): boolean {
     return projectiles.spawn(x, y, aim.x * this.projectileSpeed, aim.y * this.projectileSpeed,
-      this.damage, owner, muzzleDistance, this.projectileStyle);
+      this.damage, owner, muzzleDistance, this.projectileStyle, this.projectileLifetime);
   }
 }
