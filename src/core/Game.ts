@@ -109,6 +109,7 @@ export class Game {
   private debugTimer = 0;
   private ticks = 0;
   private readonly volumeControl = document.querySelector<HTMLInputElement>('#audio-volume');
+  private readonly gamepadStatus = document.querySelector<HTMLElement>('#gamepad-status');
 
   constructor(private readonly viewport: HTMLElement, private readonly debug: HTMLElement,
     status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData,
@@ -149,13 +150,13 @@ export class Game {
     this.scene.add(this.projectileView.sprites, this.fxSprites.root);
     void this.assets.preload();
     this.hud = new CombatHUD(status, notice);
-    this.menu = new Menu(menu);
+    this.menu = new Menu(menu, () => this.startOrResume());
     this.bossHUD = new BossHUD(bossStatus);
+    this.input = new InputManager();
     this.states.ready();
     if (this.bossRun && this.states.start()) this.resetRun();
     this.updateHUD();
     this.playerView.update(this.player, 0);
-    this.input = new InputManager();
     const touchRoot = document.querySelector<HTMLElement>('#touch-controls');
     if (touchRoot) this.touchControls = new TouchControls(touchRoot, this.input);
     this.loop = new GameLoop(this.update, this.render);
@@ -238,17 +239,11 @@ export class Game {
   }
 
   private readonly update = (dt: number): void => {
+    this.input.pollGamepads();
     if (DEV_TOOLS && this.devPaused) { this.input.clear(); return; }
     this.ticks++;
-    if (this.input.wasPressed('start')) {
-      if (this.states.state === 'PAUSED') {
-        this.states.resume();
-        this.input.clear();
-      } else if (this.states.start()) {
-        this.resetRun();
-        this.input.clear();
-      }
-    }
+    if (this.states.state === 'MENU') this.menu.handleGamepad(this.input);
+    if (this.input.wasPressed('start') || (this.states.state !== 'PLAYING' && this.input.gamepadWasPressed('jump'))) this.startOrResume();
     if (this.input.wasPressed('pause')) {
       this.states.togglePause();
       this.input.clear();
@@ -277,6 +272,17 @@ export class Game {
     this.updateDebug(dt);
     this.input.endStep();
   };
+
+  private startOrResume(): void {
+    this.audio.unlock();
+    if (this.states.state === 'PAUSED') {
+      this.states.resume();
+      this.input.clear();
+    } else if (this.states.start()) {
+      this.resetRun();
+      this.input.clear();
+    }
+  }
 
   private updatePlaying(dt: number): void {
     if (DEV_TOOLS && this.devInvulnerable) this.player.invulnerabilityTimer = 30;
@@ -494,6 +500,9 @@ export class Game {
   };
 
   private updateHUD(): void {
+    if (this.gamepadStatus && this.gamepadStatus.textContent !== this.input.gamepadStatus) {
+      this.gamepadStatus.textContent = this.input.gamepadStatus;
+    }
     this.hud.update(this.states, this.score, this.player, this.checkpoints.current,
       Math.floor(this.player.position.x / this.levelData.width * 100), this.level.sectionAt(this.player.position.x),
       this.checkpoints.message || this.powerups.message);

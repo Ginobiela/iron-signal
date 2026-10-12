@@ -38,6 +38,10 @@ El workflow `.github/workflows/pages.yml` publica automáticamente al hacer push
 
 ## Controles
 
+**Mando Xbox y compatibles:** conectar por USB o Bluetooth y pulsar un botón con la página activa. La cruceta o el stick izquierdo mueven y apuntan (incluidas diagonales y apuntado inferior en el aire); A salta, X o RT disparan, Menu/Start pausa o continúa. En el menú, arriba/abajo selecciona COMENZAR, BOSS RUN o herramientas; A/Menu confirma. A también continúa o reinicia tras game over. La zona muerta del stick es 0.30 y el umbral de RT 0.50 (`src/config/gamepad.ts`), sin cambiar velocidades ni física.
+
+Se usa el [mapping standard de Gamepad API](https://www.w3.org/TR/gamepad/#remapping), sin dependencias. Los mandos compatibles deben ser reconocidos con ese mapping por el navegador; si aparecen como raw joystick, usar su modo Xbox/XInput. El estado de conexión aparece bajo el juego. Desconectar libera sus acciones; teclado y táctil siguen disponibles. El navegador puede requerir un click/toque inicial para habilitar sonido. Prueba reproducible con mando simulado: `node scripts/gamepad-check.cjs`, con Vite en :5173; no reemplaza la comprobación física USB/Bluetooth.
+
 | Tecla | Acción |
 | --- | --- |
 | A / ← | Correr a la izquierda |
