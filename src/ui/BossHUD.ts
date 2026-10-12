@@ -29,10 +29,11 @@ export class BossHUD {
     this.lastState = boss.state;
     this.lastPhase = boss.phase;
     this.lastPattern = boss.pattern;
-    const hint = boss.vulnerable ? 'BLINDAJE ABIERTO'
+    const hint = boss.encounter ? 'RETROCEDE ← · DISPARA · ESQUIVA LOS MISILES' : boss.vulnerable ? 'BLINDAJE ABIERTO'
       : boss.state === 'TELEGRAPH' ? boss.pattern === 'HIGH' ? 'SALVA ALTA' : boss.pattern === 'LOW' ? 'SALVA BAJA' : 'DISPARO DIRIGIDO'
         : 'BLINDAJE CERRADO';
-    this.label.textContent = `${BOSS.name} · FASE ${boss.phase}\n${hint} · ${boss.health}/${boss.maxHealth}`;
+    this.label.textContent = `${boss.name} · FASE ${boss.phase}\n${hint} · ${boss.health}/${boss.maxHealth}`;
+    this.track.setAttribute('aria-valuemax', boss.maxHealth.toString());
     this.fill.style.width = `${boss.health / boss.maxHealth * 100}%`;
     this.fill.style.background = boss.vulnerable ? '#ffe3a2' : '#99edff';
     this.track.setAttribute('aria-valuenow', boss.health.toString());

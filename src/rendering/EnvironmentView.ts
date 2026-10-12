@@ -14,7 +14,8 @@ import { DecorationView } from './DecorationView';
 /** Builds full-level visuals once and leaves all level/collision data untouched. */
 export class EnvironmentView {
   readonly root = new Group();
-  private readonly tiles = new Map<EnvironmentId, TiledVisual>();
+  private readonly tiles = new Map<string, TiledVisual>();
+  private readonly skin: string;
   private readonly props: { id: EnvironmentId; sprite: SpriteVisual; fallback: Group }[] = [];
   private readonly geometry = new PlaneGeometry(1, 1);
   private readonly foliage = new MeshBasicMaterial({ color: 0x344c43 });
@@ -25,6 +26,7 @@ export class EnvironmentView {
   private readonly placed?: DecorationView;
 
   constructor(private readonly assets: AssetManager, level: LevelData) {
+    this.skin = level.environmentSkin ?? '';
     const layout = level.decorations ? { walls: [], props: [] } : environmentLayout(level);
     if (level.decorations) { this.placed = new DecorationView(assets, level.decorations); this.root.add(this.placed.root); }
     for (const { id, x, y, width, height } of layout.walls) {
@@ -53,8 +55,9 @@ export class EnvironmentView {
   }
 
   private tile(id: EnvironmentId): TiledVisual {
-    let tile = this.tiles.get(id);
-    if (!tile) { tile = new TiledVisual(this.assets, id); this.tiles.set(id, tile); this.root.add(tile.root); }
+    const assetId = this.skin ? id.replace('environment.', `environment.${this.skin}.`) : id;
+    let tile = this.tiles.get(assetId);
+    if (!tile) { tile = new TiledVisual(this.assets, assetId); this.tiles.set(assetId, tile); this.root.add(tile.root); }
     return tile;
   }
 

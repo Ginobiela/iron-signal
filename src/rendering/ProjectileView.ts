@@ -49,8 +49,8 @@ export class ProjectileView {
       sprite.root.position.set(Math.round(projectile.position.x), Math.round(projectile.position.y), DRAW.projectile);
       sprite.root.rotation.z = Math.atan2(projectile.velocity.y, projectile.velocity.x);
       this.transform.position.set(Math.round(projectile.position.x), Math.round(projectile.position.y), DRAW.projectile);
-      this.transform.scale.set(projectile.style === 'laser' ? LASER.visualLength / PROJECTILES.size : 1, 1, 1);
-      this.transform.rotation.z = projectile.style === 'laser'
+      this.transform.scale.set(projectile.style === 'laser' ? LASER.visualLength / PROJECTILES.size : projectile.style === 'missile' ? 3 : 1, projectile.style === 'missile' ? 1.5 : 1, 1);
+      this.transform.rotation.z = projectile.style !== 'bullet'
         ? Math.atan2(projectile.velocity.y, projectile.velocity.x) : 0;
       this.transform.updateMatrix();
       if (!textured) {

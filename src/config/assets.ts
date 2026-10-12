@@ -139,6 +139,34 @@ for (const [id, asset] of Object.entries(ASSETS)) {
   if (id === 'player.run' || id.startsWith('player.runShoot_')) asset.clip.syncGroup = 'player.run';
   if (id.startsWith('background.') || id === 'environment.ground' || id === 'environment.platform') asset.tileable = true;
 }
+// Approved underground kit: 2× sources retain the existing world dimensions.
+for (const [id, definition] of Object.entries(ENVIRONMENT_ASSETS)) {
+  if (!/^environment\.(ground|platform)\./.test(id)) continue;
+  const file = definition.file.split('/').at(-1)!.replace('ground_', 'ground_future_');
+  const asset = withArtScale(sprite(`environment/tiles/underground/${file}`, definition.width, definition.height, 1, 1), 2);
+  asset.url = asset.path;
+  asset.tileable = true;
+  ASSETS[id.replace('environment.', 'environment.underground.')] = asset;
+}
+for (const [id, file, width, height] of [
+  ['wall.panel', 'panel_wall', 16, 16], ['prop.pipe', 'prop_pipe_large', 32, 48],
+  ['prop.console', 'prop_console', 32, 24], ['prop.gate', 'prop_gate', 48, 80],
+] as const) {
+  const asset = withArtScale(sprite(`environment/props/underground/${file}`, width, height, 1, 1), 2);
+  asset.url = asset.path;
+  asset.tileable = id.startsWith('wall.'); ASSETS[`environment.underground.${id}`] = asset;
+}
+for (const layer of ['far','mid','near']) {
+  const asset = withArtScale(sprite(`environment/background/underground/bg_underground_${layer}`, 256, 240, 1, 1, 'center'), 2);
+  asset.url = asset.path;
+  asset.tileable = true; ASSETS[`background.underground.${layer}`] = asset;
+}
+for (const [clip, frames, fps, loop] of [['idle',4,6,true],['move',6,10,true],['fire',3,12,false],['damage',2,12,false],['death',6,10,false]] as const) {
+  ASSETS[`boss.mecha.${clip}`] = withArtScale(sprite(`sprites/boss/mecha/boss_mecha_${clip}`, 64, 80, frames, fps, 'bottom-center', loop), 2);
+  ASSETS[`boss.mecha.${clip}`]!.url = ASSETS[`boss.mecha.${clip}`]!.path;
+}
+ASSETS['projectile.enemy.missile'] = withArtScale(sprite('sprites/boss/mecha/boss_missile', 12, 6, 2, 12, 'center'), 2);
+ASSETS['projectile.enemy.missile'].url = ASSETS['projectile.enemy.missile'].path;
 for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
   ASSETS[`flying.carrier.${kind}`] = {
     ...sprite('sprites/enemies/flying/flying_carrier_labels', 3, 5, 3, 1),

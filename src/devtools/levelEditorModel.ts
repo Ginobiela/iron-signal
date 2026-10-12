@@ -1,6 +1,6 @@
 import { createLevel, parseLevel } from '../level/LevelDocument';
 import type { LevelDocument } from '../level/LevelDocument';
-export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss';
+export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss' | 'pickup';
 export interface EditorObject { id: string; type: ObjectType; path: string[]; value: Record<string, unknown>; group?: string }
 export interface Patch { path: string[]; before: unknown; after: unknown }
 export class LevelEditorModel {
@@ -24,6 +24,7 @@ export class LevelEditorModel {
       group.enemies.forEach((enemy, j) => add('enemy', ['spawnGroups', String(i), 'enemies', String(j)], enemy, group.id));
     });
     add('spawn', ['spawn'], this.data.spawn); add('boss', ['boss'], this.data.boss);
+    this.data.pickups?.forEach((item, i) => add('pickup', ['pickups', String(i)], item));
     return refs;
   }
   private write(path: string[], value: unknown): void {
@@ -75,6 +76,10 @@ export class LevelEditorModel {
   }
   deleteSelection(): void {
     const patches: Patch[] = [];
+    if (this.data.pickups) {
+      const after = this.data.pickups.filter(p => !this.selection.has(p.id));
+      if (after.length !== this.data.pickups.length) patches.push({ path: ['pickups'], before: structuredClone(this.data.pickups), after });
+    }
     for (const key of ['ground', 'platforms', 'checkpoints', 'decorations', 'spawnGroups'] as const) {
       const before = this.data[key], after = before.filter(o => !this.selection.has(o.id));
       if (after.length !== before.length) patches.push({ path: [key], before: structuredClone(before), after });

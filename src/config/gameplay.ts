@@ -1,4 +1,5 @@
 import { PLAYER, GAMEPLAY, RIFLE, MACHINE_GUN, SPREAD_GUN, LASER, PROJECTILES, ENEMIES, BOSS, POWERUPS, CAMERA, FEEDBACK } from './constants';
+import { MECHA } from './mecha';
 
 type Values<T> = T extends number ? number : T extends string ? string : T extends readonly (infer U)[] ? readonly Values<U>[] : { readonly [K in keyof T]: Values<T[K]> };
 function freeze<T>(value: T): T {
@@ -16,7 +17,7 @@ const defaults = {
     spread: { ...SPREAD_GUN, projectileLifetime: PROJECTILES.lifetime },
     laser: { ...LASER, projectileLifetime: PROJECTILES.lifetime },
   },
-  enemies: ENEMIES, boss: BOSS, powerups: POWERUPS, camera: CAMERA,
+  enemies: ENEMIES, boss: BOSS, mecha: MECHA, powerups: POWERUPS, camera: CAMERA,
   feedback: { shakeLimit: FEEDBACK.shakeLimit },
 };
 export type GameplayConfig = Values<typeof defaults>;
@@ -54,6 +55,8 @@ add('ENEMIES','enemies.soldier',[['stopDistance',0,256,1]],'LIVE',true);
 add('ENEMIES','enemies.runner',[['jumpSpeed',10,600,1]],'LIVE',true);
 add('ENEMIES','enemies.flying',[['amplitude',0,60,1],['frequency',.1,10,.1]],'LIVE',true);
 add('BOSS','boss',[['health',1,999,1]],'RESTART');
+add('MECHA PURSUIT', 'mecha', [['health',1,999,1]], 'RESTART');
+add('MECHA PURSUIT', 'mecha', [['chaseSpeed',1,94,1,'Velocidad world/s, limitada además al 95% de la velocidad del Player.'],['missileCooldown',.3,10,.1],['missileSpeed',20,400,5],['missileTurnRate',.1,4,.05,'Radianes por segundo; limita el giro del misil.'],['missileLifetime',.5,8,.1],['missileDamage',1,20,1],['introTime',.2,5,.1]]);
 add('BOSS','boss',[['phase2Threshold',.02,.99,.01],['phase3Threshold',.01,.98,.01]],'LIVE',true);
 for (const key of ['telegraphTimes','recoveryTimes','bulletSpeeds']) for (let i = 0; i < 3; i++) add('BOSS',`boss.${key}`,[[String(i),key === 'bulletSpeeds' ? 10 : .05,key === 'bulletSpeeds' ? 1000 : 10,key === 'bulletSpeeds' ? 5 : .05]],'LIVE',true);
 add('BOSS','boss',[['burstCount',1,10,1],['burstInterval',.02,1,.01],['attackTime',.05,5,.01],['introTime',.1,10,.1]],'LIVE',true);

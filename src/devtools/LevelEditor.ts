@@ -16,7 +16,7 @@ const RECOVERY_DIRTY = 'iron-signal-editor-recovery-dirty-v1';
 type Tool = 'select' | 'pan' | 'terrain' | 'solid' | 'one-way' | 'pit' | 'enemy' | 'decoration' | 'checkpoint' | 'trigger' | 'spawn' | 'boss' | 'camera';
 type Layer = 'background' | 'decorations' | 'terrain' | 'collisions' | 'platforms' | 'enemies' | 'triggers' | 'checkpoints' | 'special';
 const layerNames: Layer[] = ['background', 'decorations', 'terrain', 'collisions', 'platforms', 'enemies', 'triggers', 'checkpoints', 'special'];
-const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc' };
+const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc', pickup: '#ffe3a2' };
 export class LevelEditor {
   readonly model = new LevelEditorModel();
   private readonly assets = new AssetManager();
@@ -164,7 +164,7 @@ export class LevelEditor {
     if (!this.visible.has('decorations')) data.decorations = data.decorations.filter(d => d.layer === 'terrain');
     if (!this.visible.has('terrain')) { data.ground = []; data.platforms = []; data.automaticTerrain = false; data.decorations = data.decorations.filter(d => d.layer !== 'terrain'); }
     if (!this.visible.has('platforms')) data.platforms = [];
-    const sceneryKey = JSON.stringify([data.ground, data.platforms, data.decorations, data.automaticTerrain, data.exitX, data.width]);
+    const sceneryKey = JSON.stringify([data.ground, data.platforms, data.decorations, data.automaticTerrain, data.exitX, data.width, data.environmentSkin, data.boss.encounter]);
     if (sceneryKey !== this.sceneryKey) {
       this.levelView?.dispose(); this.scenery.clear(); this.sceneryKey = sceneryKey;
       this.levelView = new LevelView(this.scenery, new Level(data), this.assets); this.levelView.update(0);
@@ -212,6 +212,17 @@ export class LevelEditor {
     const keys = ref.type === 'trigger' ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft']
       : ref.type === 'solid' || ref.type === 'platform' || ref.type === 'decoration' ? ['x', 'y', 'width', 'height'] : ['x', 'y'];
     for (const key of keys) this.input(root, key, ref.value[key], v => this.model.set(ref, key, v));
+    if (ref.type === 'pickup') this.input(root, 'kind', ref.value.kind, v => this.model.set(ref, 'kind', v), ['M','S','L']);
+    if (ref.type === 'boss') {
+      this.input(root, 'encounter', this.model.data.boss.encounter ? 'pursuit' : 'arena', v => this.model.set(ref, 'encounter', v === 'arena' ? undefined : {
+        type: 'pursuit', retreatLeft: Math.max(0, this.model.data.boss.arenaLeft - 768),
+        barrierX: this.model.data.boss.x - 16, cameraAnchor: .2,
+      }), ['arena','pursuit']);
+      const encounter = this.model.data.boss.encounter;
+      if (encounter) for (const key of ['retreatLeft','barrierX','cameraAnchor'] as const) this.input(root, key, encounter[key], value =>
+        this.model.commit([{ path: ['boss','encounter',key], before: encounter[key], after: value }]));
+      root.append(document.createTextNode('arenaLeft = activation trigger. x/y = boss spawn. Pursuit limits and exitX are independent editable markers.'));
+    }
     if (ref.type === 'checkpoint') this.input(root, 'name', ref.value.name, v => this.model.set(ref, 'name', v));
     if (ref.type === 'platform') this.input(root, 'kind', ref.value.kind, v => this.model.set(ref, 'kind', v), ['solid', 'one-way']);
     if (ref.type === 'enemy') {
@@ -232,6 +243,12 @@ export class LevelEditor {
     const root = $('world-properties'); root.replaceChildren();
     for (const key of ['id', 'name', 'width', 'height', 'exitX', 'automaticTerrain'] as const) this.input(root, key, this.model.data[key], value =>
       this.model.commit([{ path: [key], before: this.model.data[key], after: value }]));
+    this.input(root, 'environmentSkin', this.model.data.environmentSkin ?? 'legacy', value =>
+      this.model.commit([{path:['environmentSkin'], before:this.model.data.environmentSkin, after:value === 'legacy' ? undefined : value}]), ['legacy','underground']);
+    const pickup = document.createElement('button'); pickup.textContent = 'ADD WEAPON PICKUP';
+    pickup.onclick = () => { const before = this.model.data.pickups;
+      this.model.commit([{ path: ['pickups'], before, after: [...before ?? [], {id:newId('pickup'),kind:'M',x:this.model.data.spawn.x,y:this.model.data.spawn.y}] }]); this.refresh(); };
+    root.append(pickup);
     const backgrounds = $('background-properties'); backgrounds.replaceChildren();
     this.model.data.backgrounds.forEach((b, i) => {
       const title = document.createElement('strong'); title.textContent = ['FAR', 'MID', 'NEAR'][i]!; backgrounds.append(title);
@@ -361,6 +378,12 @@ export class LevelEditor {
       }
     }
     if ($<HTMLInputElement>('camera-preview').checked) { ctx.strokeStyle = '#fff079'; ctx.setLineDash([4 / z, 4 / z]); ctx.strokeRect(this.preview.x, this.preview.y, 256, 240); ctx.setLineDash([]); }
+    const encounter = this.model.data.boss.encounter;
+    if (encounter) {
+      ctx.strokeStyle = '#ff72bc'; ctx.strokeRect(encounter.retreatLeft, 0, encounter.barrierX - encounter.retreatLeft, 240);
+      for (const x of [encounter.barrierX, this.model.data.exitX]) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,240); ctx.stroke(); }
+      ctx.strokeRect(this.model.data.boss.x, this.model.data.boss.y, 56, 72);
+    }
     if (this.drag?.mode === 'create') { ctx.strokeStyle = '#fff'; ctx.strokeRect(this.snap(this.drag.worldX), this.snap(this.drag.worldY), this.snap(this.cursor.x) - this.snap(this.drag.worldX), this.snap(this.cursor.y) - this.snap(this.drag.worldY)); }
     ctx.restore();
   }

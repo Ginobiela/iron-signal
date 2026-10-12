@@ -3,8 +3,9 @@ import type { GameplayConfigSource } from '../config/gameplay';
 import { BOSS, ENEMIES } from '../config/constants';
 import type { EnemyContext } from '../entities/enemies/Enemy';
 
-export interface BossPlacement { x: number; y: number; arenaLeft: number }
-export type BossState = 'DORMANT' | 'INTRO' | 'TELEGRAPH' | 'ATTACK' | 'RECOVER' | 'DEAD';
+export interface PursuitEncounter { type: 'pursuit'; retreatLeft: number; barrierX: number; cameraAnchor: number }
+export interface BossPlacement { x: number; y: number; arenaLeft: number; encounter?: PursuitEncounter }
+export type BossState = 'DORMANT' | 'INTRO' | 'TELEGRAPH' | 'ATTACK' | 'RECOVER' | 'CHASE' | 'DEAD';
 export type BossPattern = 'HIGH' | 'LOW' | 'AIMED';
 
 const aimedRotations = BOSS.aimedAngles.map((angle) => {
@@ -28,11 +29,16 @@ export class Boss {
   hitFlashTimer = 0;
   shieldFlashTimer = 0;
   active = false;
+  visualFireCount = 0;
   private cycle = 0;
   private shotsFired = 0;
   private shotTimer = 0;
+  readonly encounter?: PursuitEncounter;
+  get name(): string { return BOSS.name; }
+  get visualPrefix(): string { return 'boss'; }
 
-  constructor(placement: BossPlacement, private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+  constructor(placement: BossPlacement, protected readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    this.encounter = placement.encounter;
     this.health = this.maxHealth = config.get().boss.health;
     this.position = { x: placement.x, y: placement.y };
     this.arenaLeft = placement.arenaLeft;

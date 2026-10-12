@@ -42,6 +42,8 @@ import { TouchControls } from '../ui/TouchControls';
 import { GameStateManager } from './GameStateManager';
 import { ScoreManager } from './ScoreManager';
 import { Boss } from '../bosses/Boss';
+import { PursuitBoss } from '../bosses/PursuitBoss';
+import { updatePursuit, pursuitExitReached } from '../level/PursuitSequence';
 import { BossView } from '../rendering/BossView';
 import { BossHUD } from '../ui/BossHUD';
 import { AudioManager } from './AudioManager';
@@ -110,6 +112,7 @@ export class Game {
   private ticks = 0;
   private readonly volumeControl = document.querySelector<HTMLInputElement>('#audio-volume');
   private readonly gamepadStatus = document.querySelector<HTMLElement>('#gamepad-status');
+  private readonly levelPickups = new Set<string>();
 
   constructor(private readonly viewport: HTMLElement, private readonly debug: HTMLElement,
     status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData,
@@ -119,14 +122,14 @@ export class Game {
     this.fxSprites = new FxSpritePool(this.assets, this.particles, this.shake);
     this.powerups = new PowerupManager(this.collision, undefined, config);
     this.powerupView = new PowerupView(this.powerups, this.assets);
-    this.projectiles = new ProjectileManager(this.collision);
+    this.projectiles = new ProjectileManager(this.collision, undefined, (x, y) => this.fxSprites.spawn('fx.explosion.small', x, y));
     this.projectileView = new ProjectileView(this.projectiles.items.length, this.assets);
     this.enemies = new EnemyManager(config);
     this.level = new Level(this.levelData);
     this.checkpoints = new CheckpointManager({ ...this.levelData.spawn, name: 'Inicio' }, this.levelData.checkpoints);
     this.checkpointView = new CheckpointView(this.checkpoints, this.assets);
     this.player = new Player(this.levelData.spawn.x, this.levelData.spawn.y, config);
-    this.boss = new Boss(this.levelData.boss, config);
+    this.boss = this.levelData.boss.encounter ? new PursuitBoss(this.levelData.boss, config) : new Boss(this.levelData.boss, config);
     this.bossView = new BossView(this.boss, this.assets);
     this.spawner = new EnemySpawner(this.levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
     this.combat = new CombatSystem(this.collision, this.player, this.enemies.items,
@@ -150,7 +153,7 @@ export class Game {
     this.scene.add(this.projectileView.sprites, this.fxSprites.root);
     void this.assets.preload();
     this.hud = new CombatHUD(status, notice);
-    this.menu = new Menu(menu, () => this.startOrResume());
+    this.menu = new Menu(menu, () => this.startOrResume(), this.levelData.name);
     this.bossHUD = new BossHUD(bossStatus);
     this.input = new InputManager();
     this.states.ready();
@@ -261,7 +264,7 @@ export class Game {
     this.updateHUD();
     this.projectileView.update(this.projectiles, visualStep);
     this.powerupView.update(visualStep);
-    this.levelView.update(visualStep);
+    this.levelView.update(visualStep, this.boss.active, !this.boss.alive);
     this.checkpointView.update(visualStep);
     this.bossView.update(effectStep);
     this.playerView.update(this.player, effectStep);
@@ -306,17 +309,26 @@ export class Game {
     this.cameraController.update(this.player.position.x + this.player.width / 2);
     if (this.player.alive) {
       this.checkpoints.update(dt, this.player);
-      if (this.player.grounded && this.boss.activate(this.player.position.x)) this.projectiles.clear(false);
+      if (this.player.grounded && this.boss.activate(this.player.position.x)) {
+        this.projectiles.clear(false);
+        if (this.boss.encounter) { this.audio.play('bossWarning'); this.shake.trigger(VFX_SHAKE.boss, VFX_SHAKE.bossTime); }
+      }
       if (this.boss.active) {
-        this.collision.constrainHorizontal(this.player, this.boss.arenaLeft, this.boss.position.x - this.player.width);
-        this.cameraController.x = this.boss.arenaLeft;
+        if (this.boss.encounter) updatePursuit(this.boss, this.player, this.controls, this.collision, this.cameraController, this.levelData.width);
+        else {
+          this.collision.constrainHorizontal(this.player, this.boss.arenaLeft, this.boss.position.x - this.player.width);
+          this.cameraController.x = this.boss.arenaLeft;
+        }
+      }
+      for (const pickup of this.levelData.pickups ?? []) if (!this.levelPickups.has(pickup.id) && Math.abs(pickup.x - this.player.position.x) < 96) {
+        if (this.powerups.spawn(pickup.kind, pickup.x, pickup.y)) this.levelPickups.add(pickup.id);
       }
       this.powerups.update(dt, this.player, this.level.solids, this.level.oneWays, this.levelData.width);
       this.player.updateCombat(dt, this.controls, this.projectiles);
       if (!this.bossRun) this.spawner.update(this.cameraController.x);
       this.enemies.update(dt, this.enemyContext, this.cameraController.x);
       this.boss.update(dt, this.enemyContext);
-      this.projectiles.update(dt, this.level.solids, this.levelData.width, this.combat);
+      this.projectiles.update(dt, this.level.solids, this.levelData.width, this.combat, this.playerHitPoint);
       this.combat.updateContacts();
     }
     if (this.projectiles.playerSpawned !== shots) {
@@ -346,7 +358,7 @@ export class Game {
       this.input.clear();
       this.debugTimer = 0;
     } else {
-      if (this.boss.state === 'DEAD') {
+      if (this.boss.state === 'DEAD' && (!this.boss.encounter || pursuitExitReached(this.boss, this.player, this.levelData.exitX))) {
         this.audio.play('victory');
         this.states.complete();
         this.projectiles.clear(false);
@@ -422,6 +434,7 @@ export class Game {
     this.player.reset(this.levelData.spawn.x, this.levelData.spawn.y);
     this.projectiles.clear();
     this.powerups.reset();
+    this.levelPickups.clear();
     this.checkpoints.reset();
     this.score.reset();
     this.boss.reset();
@@ -450,10 +463,13 @@ export class Game {
     this.playerView.resetFeedback();
     const checkpoint = this.checkpoints.current;
     this.player.respawn(checkpoint.x, checkpoint.y);
-    this.boss.prepareRespawn();
+    if (this.boss.encounter) {
+      if (this.boss.alive) this.boss.reset(); // Retry a live encounter; a defeated boss stays dead until a new run.
+      this.projectiles.clear(false); this.powerups.reset(); this.levelPickups.clear();
+    } else this.boss.prepareRespawn();
     this.cameraController.x = 0;
     this.cameraController.update(this.player.position.x + this.player.width / 2);
-    if (this.boss.active) this.cameraController.x = this.boss.arenaLeft;
+    if (this.boss.active && !this.boss.encounter) this.cameraController.x = this.boss.arenaLeft;
     this.input.clear();
     this.debugTimer = 0;
   }
@@ -474,6 +490,7 @@ export class Game {
       if (drop) this.fxSprites.spawn('fx.pickup.drop', drop.x + drop.width / 2, drop.y + drop.height / 2);
     }
     const boss = enemy.kind === 'boss';
+    if (boss && this.boss.encounter) this.projectiles.clear(false);
     this.fxSprites.spawn(boss || enemy.kind === 'flying' ? 'fx.explosion.medium' : 'fx.explosion.small',
       enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2);
     this.audio.play('enemyDeath');
@@ -505,7 +522,7 @@ export class Game {
     }
     this.hud.update(this.states, this.score, this.player, this.checkpoints.current,
       Math.floor(this.player.position.x / this.levelData.width * 100), this.level.sectionAt(this.player.position.x),
-      this.checkpoints.message || this.powerups.message);
+      this.checkpoints.message || this.powerups.message || (this.boss.encounter && !this.boss.alive ? 'CENTINELA DESTRUIDO · SALIDA / ASCENSOR ←' : ''));
     this.menu.update(this.states, this.score, this.checkpoints);
     this.bossHUD.update(this.boss);
   }

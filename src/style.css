@@ -21,6 +21,7 @@ footer p { width: 100%; margin: 0; font-size: 11px; line-height: 1.5; }
 #game-menu:not([hidden]) { animation: menu-enter 120ms ease-out; }
 #game-menu[data-state="PLAYER_DEAD"] { border-color: #ff776b; }
 #game-menu[data-state="LEVEL_COMPLETE"] { border-color: #99edff; }
+#game-menu[data-state="MENU"] { max-height: 95%; overflow-y: auto; pointer-events: auto; }
 #powerup-notice:not([hidden]) { animation: notice-enter 100ms ease-out; }
 @keyframes menu-enter { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes notice-enter { from { opacity: 0; } to { opacity: 1; } }

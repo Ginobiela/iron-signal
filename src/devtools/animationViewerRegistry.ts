@@ -7,6 +7,7 @@ export interface ViewerEntity { id: string; animations: { id: string; asset: Spr
 export function discoverAnimations(manifest: AssetManifest = ASSETS): ViewerEntity[] {
   const groups = new Map<string, ViewerEntity>();
   for (const [id, asset] of Object.entries(manifest)) {
+    if (id.startsWith('projectile.')) continue;
     if (!/^assets\/sprites\/(player\/|enemies\/|boss\/)/.test(asset.path)) continue;
     const entity = id.split('.')[0] ?? id;
     if (!groups.has(entity)) groups.set(entity, { id: entity, animations: [] });

@@ -1,7 +1,7 @@
 import type { AABB, CollisionSystem } from '../collision/CollisionSystem';
 import type { CombatSystem } from '../collision/CombatSystem';
 import { PROJECTILES, VIEW } from '../config/constants';
-import { Projectile } from './Projectile';
+import { Projectile, steerHoming } from './Projectile';
 import type { ProjectileOwner, ProjectileStyle } from './Projectile';
 
 export class ProjectileManager {
@@ -11,7 +11,8 @@ export class ProjectileManager {
   enemySpawned = 0;
   private count = 0;
 
-  constructor(private readonly collision: CollisionSystem, capacity: number = PROJECTILES.maxCount) {
+  constructor(private readonly collision: CollisionSystem, capacity: number = PROJECTILES.maxCount,
+    private readonly onMissileEnd?: (x: number, y: number) => void) {
     this.items = Array.from({ length: capacity }, () => new Projectile());
   }
 
@@ -24,7 +25,7 @@ export class ProjectileManager {
   }
 
   spawn(x: number, y: number, vx: number, vy: number, damage: number,
-    owner: ProjectileOwner, muzzleDistance = 0, style: ProjectileStyle = 'bullet', lifetime: number = PROJECTILES.lifetime): boolean {
+    owner: ProjectileOwner, muzzleDistance = 0, style: ProjectileStyle = 'bullet', lifetime: number = PROJECTILES.lifetime, turnRate = 0): boolean {
     for (const projectile of this.items) {
       if (projectile.active) continue;
       const speed = Math.hypot(vx, vy);
@@ -39,6 +40,7 @@ export class ProjectileManager {
       projectile.damage = damage;
       projectile.owner = owner;
       projectile.style = style;
+      projectile.turnRate = turnRate;
       projectile.lifeRemaining = lifetime;
       projectile.active = true;
       projectile.fresh = true;
@@ -51,7 +53,11 @@ export class ProjectileManager {
     return false;
   }
 
-  update(dt: number, solids: readonly AABB[], worldWidth: number, combat?: CombatSystem): void {
+  spawnHoming(x: number, y: number, vx: number, vy: number, damage: number, turnRate: number, lifetime: number): boolean {
+    return this.spawn(x, y, vx, vy, damage, 'enemy', 0, 'missile', lifetime, turnRate);
+  }
+
+  update(dt: number, solids: readonly AABB[], worldWidth: number, combat?: CombatSystem, homingTarget?: { x: number; y: number }): void {
     const margin = PROJECTILES.boundsMargin;
     for (const projectile of this.items) {
       if (!projectile.active) continue;
@@ -60,6 +66,7 @@ export class ProjectileManager {
         projectile.previousPosition.y = projectile.position.y;
       }
       projectile.fresh = false;
+      if (projectile.style === 'missile' && homingTarget) steerHoming(projectile, homingTarget, dt);
       const x = projectile.position.x + projectile.velocity.x * dt;
       const y = projectile.position.y + projectile.velocity.y * dt;
       projectile.lifeRemaining -= dt;
@@ -69,6 +76,7 @@ export class ProjectileManager {
           : this.collision.hitsSolidSegment(projectile.previousPosition.x, projectile.previousPosition.y,
             x, y, PROJECTILES.size / 2, solids))) {
         this.deactivate(projectile);
+        if (projectile.style === 'missile') this.onMissileEnd?.(x, y);
         continue;
       }
       projectile.position.x = x;

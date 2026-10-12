@@ -14,7 +14,7 @@ export class GameplayTuner {
       <p>DEVELOPER MODE · Los defaults permanecen intactos. LIVE: próximo update/evento. RESPAWN: nueva instancia. RESTART: reiniciar nivel.</p>
       <nav><button id="reset-all">RESET ALL</button><button id="export">EXPORT TUNING JSON</button>
       <label class="file-label">IMPORT JSON <input id="import" type="file" accept=".json,application/json"></label>
-      <button id="playtest">PLAYTEST LEVEL 1</button><button id="boss-test">PLAYTEST BOSS</button></nav>
+      <button id="playtest">PLAYTEST LEVEL 1</button><button id="boss-test">PLAYTEST BOSS</button><button id="level2-test">PLAYTEST LEVEL 2</button></nav>
       <p id="dirty" role="status"></p><p id="tuner-error" role="alert"></p>
       <nav><label>Preset <select id="presets"></select></label><button id="load-preset">LOAD PRESET</button>
       <label>Nombre <input id="preset-name" maxlength="80" placeholder="Mi experimento"></label><button id="save-preset">SAVE CUSTOM PRESET</button></nav>
@@ -67,6 +67,7 @@ export class GameplayTuner {
       saveTuningSession(this.store); location.href = `./?tuning=1${boss ? '&mode=boss' : ''}`;
     });
     this.get('#playtest').onclick = () => play(false); this.get('#boss-test').onclick = () => play(true);
+    this.get('#level2-test').onclick = () => this.attempt(() => { saveTuningSession(this.store); location.href = './?tuning=1&level=levels/level-02.json'; });
     this.refresh();
   }
   dispose(): void { this.unsubscribe(); this.controls.dispose(); }

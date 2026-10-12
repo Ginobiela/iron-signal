@@ -21,6 +21,7 @@ export interface LevelDocument extends LevelData {
   decorations: Decoration[];
   backgrounds: BackgroundLayer[];
   automaticTerrain: boolean;
+  pickups?: { id: string; kind: 'M' | 'S' | 'L'; x: number; y: number }[];
 }
 export const defaultBackgrounds = (): BackgroundLayer[] => [
   { asset: 'background.far', speed: PARALLAX.background, offsetX: 0, offsetY: 0 },
@@ -31,6 +32,7 @@ export function convertLegacyLevel(data: LevelData, id = 'level-01'): LevelDocum
   const layout = environmentLayout(data);
   return {
     ...structuredClone(data), version: 1, id, height: 240, automaticTerrain: true,
+    pickups: data.pickups?.map(p => ({ ...p })),
     spawn: { ...data.spawn, id: 'player-spawn' }, boss: { ...data.boss, id: 'boss' },
     ground: data.ground.map((o, i) => ({ ...o, id: `ground-${i + 1}` })),
     platforms: data.platforms.map((o, i) => ({ ...o, id: `platform-${i + 1}` })),
@@ -64,6 +66,7 @@ export function validateLevel(value: unknown): Validation {
   if (!num(value.width) || value.width < 256 || value.width > 100000) errors.push('World width must be 256–100000.');
   if (value.height !== 240) errors.push('Current runtime supports height 240 only; vertical camera modes are not implemented.');
   if (typeof value.automaticTerrain !== 'boolean') errors.push('automaticTerrain must be boolean.');
+  if (value.environmentSkin !== undefined && value.environmentSkin !== 'underground') errors.push('Unknown environmentSkin.');
   const object = (v: unknown, label: string, size = false) => {
     if (!record(v)) { errors.push(`${label}: object required.`); return false; }
     if (typeof v.id !== 'string' || !v.id || ids.has(v.id)) errors.push(`${label}: missing/duplicate id.`);
@@ -82,6 +85,15 @@ export function validateLevel(value: unknown): Validation {
   if (record(value.boss) && (!num(value.boss.arenaLeft) || value.boss.arenaLeft < 0
     || !num(value.width) || value.boss.arenaLeft > value.width - 256
     || !num(value.boss.x) || value.boss.x < value.boss.arenaLeft)) errors.push('Invalid boss trigger/arena.');
+  if (record(value.boss) && value.boss.encounter !== undefined) {
+    const e = value.boss.encounter;
+    if (!record(e) || e.type !== 'pursuit' || !num(e.retreatLeft) || !num(e.barrierX) || !num(e.cameraAnchor)
+      || e.retreatLeft < 0 || !num(value.boss.arenaLeft) || e.retreatLeft >= value.boss.arenaLeft
+      || e.barrierX <= value.boss.arenaLeft || !num(value.width) || e.barrierX > value.width
+      || !num(value.boss.x) || value.boss.x < e.barrierX
+      || e.cameraAnchor < .1 || e.cameraAnchor > .5
+      || !num(value.exitX) || value.exitX < e.retreatLeft || value.exitX >= value.boss.arenaLeft) errors.push('Invalid pursuit encounter/retreat exit.');
+  }
   if (!num(value.exitX) || value.exitX < 0 || !num(value.width) || value.exitX > value.width) errors.push('Invalid exitX.');
   const array = (key: string): unknown[] => {
     if (!Array.isArray(value[key])) { errors.push(`${key}: array required.`); return []; }
@@ -89,6 +101,10 @@ export function validateLevel(value: unknown): Validation {
     return value[key];
   };
   for (const item of array('ground')) object(item, 'ground', true);
+  if (value.pickups !== undefined) {
+    if (!Array.isArray(value.pickups) || value.pickups.length > 100) errors.push('Invalid pickups array.');
+    else for (const item of value.pickups) if (object(item, 'pickup') && record(item) && !['M','S','L'].includes(String(item.kind))) errors.push('Invalid pickup kind.');
+  }
   for (const item of array('platforms')) if (object(item, 'platform', true) && record(item)
     && !['solid', 'one-way'].includes(String(item.kind))) errors.push('Invalid platform kind.');
   for (const item of array('checkpoints')) if (object(item, 'checkpoint') && record(item)

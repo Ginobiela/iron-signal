@@ -12,6 +12,36 @@ import { Soldier } from '../src/entities/enemies/Soldier';
 import { Runner } from '../src/entities/enemies/Runner';
 import { EnemyView } from '../src/rendering/EnemyView';
 import { CollisionSystem } from '../src/collision/CollisionSystem';
+import { PursuitBoss } from '../src/bosses/PursuitBoss';
+import { BossView } from '../src/rendering/BossView';
+import { ProjectileManager } from '../src/projectiles/ProjectileManager';
+
+it('mecha visuals reflect missile fire and finish death without generating gameplay attacks', async () => {
+  vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async () =>
+    new Texture({ width: 768, height: 160 } as HTMLImageElement));
+  const assets = new AssetManager(Object.fromEntries(Object.entries(ASSETS).filter(([id]) => id.startsWith('boss.mecha.'))));
+  await assets.preload();
+  const boss = new PursuitBoss({ x: 500, y: 44, arenaLeft: 400,
+    encounter: { type: 'pursuit', retreatLeft: 0, barrierX: 480, cameraAnchor: .2 } });
+  const view = new BossView(boss, assets), collision = new CollisionSystem(), projectiles = new ProjectileManager(collision);
+  const context = { player: new Player(400, 44), collision, projectiles, solids: [], worldWidth: 1000 };
+  const visibleTexture = (id: string): boolean => {
+    let found = false;
+    view.root.traverse(node => { if (node instanceof Mesh && node.material instanceof MeshBasicMaterial)
+      found ||= node.visible && node.material.map === assets.getTexture(id); });
+    return found;
+  };
+  boss.activate(400); view.update(); expect(visibleTexture('boss.mecha.idle')).toBe(true);
+  boss.update(2, context); boss.update(.7, context);
+  expect(boss.visualFireCount).toBe(1); expect(projectiles.totalSpawned).toBe(1);
+  view.update(); expect(visibleTexture('boss.mecha.fire')).toBe(true);
+  view.update(.3); expect(visibleTexture('boss.mecha.move')).toBe(true);
+  expect(projectiles.totalSpawned).toBe(1);
+  boss.takeDamage(boss.health); view.update(); expect(visibleTexture('boss.mecha.death')).toBe(true);
+  view.update(.61); expect(view.root.visible).toBe(false);
+  expect(projectiles.totalSpawned).toBe(1);
+  view.dispose(); assets.dispose();
+});
 
 afterEach(() => vi.restoreAllMocks());
 const asset = (url = 'assets/test.png'): SpriteAsset => ({

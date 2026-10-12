@@ -21,6 +21,8 @@ export interface LevelData {
   decorations?: readonly Decoration[];
   backgrounds?: readonly BackgroundLayer[];
   automaticTerrain?: boolean;
+  environmentSkin?: 'underground';
+  pickups?: readonly { id: string; kind: 'M' | 'S' | 'L'; x: number; y: number }[];
 }
 
 export class Level {

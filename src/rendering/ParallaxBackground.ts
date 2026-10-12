@@ -47,7 +47,8 @@ export class ParallaxBackground {
         tiles.add(x0, 0, PERIOD, 240, z + DRAW.detail);
         if (layer.speed === PARALLAX.background) {
           for (let i = 0; i < 8; i++) rect(layer.root, x0 + i * 64, 85, 64, 32 + (i * 13) % 40, 0x202c3b, DRAW.backgroundFar);
-          rect(layer.root, x0 + 186, 172, 20, 20, 0xc0bb9b, DRAW.backgroundFar);
+          if (!id.includes('.underground.')) rect(layer.root, x0 + 186, 172, 20, 20, 0xc0bb9b, DRAW.backgroundFar);
+          else rect(layer.root, x0, 216, PERIOD, 24, 0x182433, DRAW.backgroundFar);
         } else if (layer.speed === PARALLAX.midground) {
           for (let i = 0; i < 12; i++) {
             const h = 40 + (i * 17) % 50;

@@ -19,8 +19,13 @@ export class BossView {
   private readonly gun = new Group();
   private readonly shutters: Mesh[] = [];
   private readonly bounds: Mesh;
+  private lastFireCount = 0;
+  private fireTimer = 0;
+  private readonly fireDuration: number;
 
   constructor(private readonly boss: Boss, assets: AssetManager) {
+    const fire = assets.manifest[`${boss.visualPrefix}.fire`]?.clip;
+    this.fireDuration = fire ? fire.frames.length * (fire.frameTime ?? 1 / (fire.frameRate ?? 1)) : 0;
     this.sprite = new SpriteVisual(assets, { width: 56, height: 72, offsetX: 0, offsetY: 0, anchor: 'bottom-center' });
     this.sprite.root.position.x = boss.width / 2;
     this.sprite.setEntityOrigin(-boss.width / 2, 0);
@@ -55,17 +60,23 @@ export class BossView {
 
   update(dt = 0): void {
     this.root.visible = this.boss.state !== 'DORMANT';
-    if (!this.root.visible) return;
+    if (!this.root.visible) { this.fireTimer = 0; this.lastFireCount = this.boss.visualFireCount; return; }
+    this.fireTimer = Math.max(0, this.fireTimer - dt);
+    if (this.boss.visualFireCount > this.lastFireCount) this.fireTimer = this.fireDuration;
+    this.lastFireCount = this.boss.visualFireCount;
+    this.root.position.set(Math.round(this.boss.position.x), Math.round(this.boss.position.y), DRAW.entity);
     const dead = !this.boss.alive;
     const animation = dead ? 'death' : this.boss.hitFlashTimer > 0 ? 'damage'
+      : this.boss.encounter ? this.fireTimer > 0 ? 'fire' : this.boss.state === 'CHASE' ? 'move' : 'idle'
       : this.boss.state === 'ATTACK' || this.boss.state === 'TELEGRAPH' ? 'attack' : 'idle';
-    this.placeholder.visible = !this.sprite.update(`boss.${animation}`, dt, false, dead ? '' : 'boss.idle');
+    this.placeholder.visible = !this.sprite.update(`${this.boss.visualPrefix}.${animation}`, dt, !!this.boss.encounter, dead ? '' : `${this.boss.visualPrefix}.idle`);
     if (dead && this.sprite.available && this.sprite.animator.completed) this.root.visible = false;
     const flash = this.boss.hitFlashTimer > 0 || this.boss.shieldFlashTimer > 0;
+    this.sprite.tint(flash ? 0xfff3c4 : 0xffffff);
     this.armor.color.setHex(flash ? 0xfff3c4 : dead ? 0x273b49 : 0x456260);
     this.core.color.setHex(dead ? 0x172631 : this.boss.vulnerable ? 0xffe3a2
       : this.boss.phase === 3 ? 0xff776b : this.boss.phase === 2 ? 0xb09bd5 : 0x99edff);
-    for (const shutter of this.shutters) shutter.visible = !this.boss.vulnerable && !dead;
+    for (const shutter of this.shutters) shutter.visible = !this.boss.encounter && !this.boss.vulnerable && !dead;
     this.highMaterial.color.setHex(this.boss.state === 'TELEGRAPH' && this.boss.pattern === 'HIGH' ? 0xff776b : 0xe4dbc5);
     this.lowMaterial.color.setHex(this.boss.state === 'TELEGRAPH' && this.boss.pattern === 'LOW' ? 0xff776b : 0xe4dbc5);
     this.gun.visible = !dead && this.boss.pattern === 'AIMED';
