@@ -44,6 +44,7 @@ const playerSprite = (file: string, count: number, fps: number, loop = true): Sp
   return { ...asset, url: asset.path, includesWeapon: true };
 };
 
+
 // Each animation may point to its own strip, or share a sheet/atlas URL with different frame indices.
 export const ASSETS: Record<string, SpriteAsset> = {
   'player.idle': playerSprite('player_idle_2x (2)', 4, 6),
@@ -67,6 +68,10 @@ export const ASSETS: Record<string, SpriteAsset> = {
   'player.jumpShoot_diagonal': playerSprite('player_jumpShoot_diagonal_2x', 2, 12),
   'player.crouchShoot': playerSprite('player_crouchShoot_horizontal_2x', 2, 12),
   'player.crouchShoot_horizontal': playerSprite('player_crouchShoot_horizontal_2x', 2, 12),
+  'player.aim_down': playerSprite('player_aim_down', 1, 1),
+  'player.aim_diagonalDown': playerSprite('player_aim_diagonalDown', 1, 1),
+  'player.jumpShoot_down': playerSprite('player_jumpShoot_down', 2, 12),
+  'player.jumpShoot_diagonalDown': playerSprite('player_jumpShoot_diagonalDown', 2, 12),
   'player.death': playerSprite('player_death_2x', 6, 10, false),
   'soldier.idle': { ...withArtScale(sprite('sprites/enemies/soldier/soldier_idle', 32, 32, 4, 6), 2),
     url: 'assets/sprites/enemies/soldier/soldier_idle.png', includesWeapon: true },

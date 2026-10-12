@@ -7,13 +7,8 @@ import { SpriteAnimator } from './SpriteAnimator';
 import { SpriteVisual } from './SpriteVisual';
 import type { AssetManager } from '../core/AssetManager';
 import { DRAW } from '../config/assets';
-
-const groundedSprites: Partial<Record<PlayerAnimation, Record<'horizontal' | 'up' | 'diagonal', string>>> = {
-  idle: { horizontal: 'player.idle', up: 'player.idle_up', diagonal: 'player.idle_diagonal' },
-  run: { horizontal: 'player.run', up: 'player.runShoot_up', diagonal: 'player.runShoot_diagonal' },
-  shoot: { horizontal: 'player.shoot_horizontal', up: 'player.shoot_up', diagonal: 'player.shoot_diagonal' },
-  runShoot: { horizontal: 'player.runShoot_horizontal', up: 'player.runShoot_up', diagonal: 'player.runShoot_diagonal' },
-};
+import { playerAimMuzzle, playerAimPose } from '../entities/playerAim';
+import { resolvePlayerSprite } from './playerAnimation';
 
 export class PlayerView {
   readonly root = new Group();
@@ -101,20 +96,22 @@ export class PlayerView {
     this.silhouette.scale.y = (player.crouching ? PLAYER_VISUAL.crouchHeight : PLAYER_VISUAL.height) / 26;
     this.silhouette.position.set(PLAYER_VISUAL.offsetX, PLAYER_VISUAL.offsetY, 0);
     this.gun.position.y = player.gunPivotY;
-    this.gun.position.x = this.muzzleTimer > 0 ? -player.aimDirection.x * FEEDBACK.recoilPixels : 0;
+    this.gun.position.x = playerAimMuzzle(player.aimDirection).offsetX * player.direction
+      + (this.muzzleTimer > 0 ? -player.aimDirection.x * FEEDBACK.recoilPixels : 0);
+    this.gun.scale.x = player.muzzleDistance / PLAYER.muzzleDistance;
     this.bounds.scale.y = player.height;
     this.bounds.position.y = player.height / 2;
     this.gun.rotation.z = Math.atan2(player.aimDirection.y, player.aimDirection.x);
     this.root.position.x = Math.round(player.position.x + player.width / 2);
     this.root.position.y = Math.round(player.position.y);
-    const aim = player.aimDirection.y > 0 ? (player.aimDirection.x === 0 ? 'up' : 'diagonal') : 'horizontal';
+    const aim = playerAimPose(player.aimDirection);
     const base = `player.${this.animation}`;
     const fallback = player.crouching ? 'player.crouch' : !player.grounded
       ? (player.velocity.y > 0 ? 'player.jump' : 'player.fall') : player.velocity.x !== 0 ? 'player.run' : 'player.idle';
     // Baked rifles cannot represent an unavailable shooting/airborne/upward pose correctly.
     const poseFallback = player.alive && player.grounded && !player.shooting && aim === 'horizontal';
     const baseMatchesAim = this.animation === 'death' || aim === 'horizontal' || !this.assets.getSpriteSheet(base)?.includesWeapon;
-    const spriteId = groundedSprites[this.animation]?.[aim] ?? `${base}_${aim}`;
+    const spriteId = resolvePlayerSprite(this.animation, player.aimDirection);
     const hasSprite = this.sprite.update(spriteId, dt, player.direction < 0,
       poseFallback ? fallback : '', baseMatchesAim ? base : '', poseFallback);
     this.silhouette.visible = !hasSprite;

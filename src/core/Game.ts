@@ -16,6 +16,7 @@ import { EnemyManager } from '../entities/enemies/EnemyManager';
 import type { EnemyPlacement } from '../entities/enemies/EnemyManager';
 import type { EnemyContext } from '../entities/enemies/Enemy';
 import { Player } from '../entities/Player';
+import { playerAimName } from '../entities/playerAim';
 import type { PlayerControls } from '../entities/Player';
 import { Level } from '../level/Level';
 import type { LevelData } from '../level/Level';
@@ -178,7 +179,8 @@ export class Game {
       snapshot: () => ({
         state: this.states.state, health: this.player.health, maxHealth: this.config.get().player.maxHealth,
         lives: this.states.lives, position: { ...this.player.position }, velocity: { ...this.player.velocity },
-        weapon: this.player.weapon.name, grounded: this.player.grounded,
+        weapon: this.player.weapon.name, grounded: this.player.grounded, airborne: !this.player.grounded,
+        aimDirection: playerAimName(this.player.aimDirection), aimVector: { ...this.player.aimDirection },
         enemies: this.enemies.activeCount, projectiles: this.projectiles.activeCount,
         infiniteLives: this.states.infiniteLives, invulnerable: this.devInvulnerable,
       }),
@@ -386,7 +388,7 @@ export class Game {
         `VELOCITY ${this.player.velocity.x.toFixed(1)}, ${this.player.velocity.y.toFixed(1)}`,
         `STATE ${this.player.state} | GROUND ${this.player.grounded}`,
         `HEIGHT ${this.player.height} | ONE-WAY ${this.player.onOneWay}`,
-        `WEAPON ${this.player.weapon.name} | AIM ${this.player.aimDirection.x.toFixed(2)}, ${this.player.aimDirection.y.toFixed(2)}`,
+        `WEAPON ${this.player.weapon.name} | ${playerAimName(this.player.aimDirection)} | AIM ${this.player.aimDirection.x.toFixed(2)}, ${this.player.aimDirection.y.toFixed(2)}`,
         `HP ${this.player.health} | INVUL ${this.player.invulnerabilityTimer.toFixed(2)}`,
         `ENEMIES ${this.enemies.activeCount} | PENDING ${this.spawner.pendingEnemies}`,
         `SPAWNS ${this.spawner.triggeredCount}/${this.spawner.groups.length}`,

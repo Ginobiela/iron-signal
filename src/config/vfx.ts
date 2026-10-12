@@ -41,3 +41,8 @@ export const PLAYER_MUZZLES = {
   crouching: { horizontal: { x: 11, y: 7 }, up: { x: 4, y: 12 }, diagonal: { x: 8, y: 10 } },
 } as const;
 export const ENEMY_MUZZLES = { soldier: { x: 12, y: 13 }, turret: { x: 11, y: 12 } } as const;
+
+/** Baked lower rifle tips relative to bottom-center, in world units. */
+export const PLAYER_LOWER_VISUAL_MUZZLES = {
+  down: { x: 8, y: 4 }, diagonalDown: { x: 14, y: 7 },
+} as const;

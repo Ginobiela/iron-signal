@@ -11,8 +11,8 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('supplied player art', () => {
   it('registers every Player clip at 2x without changing world size or anchor', () => {
-    const clips = Object.entries(ASSETS).filter(([id]) => id.startsWith('player.'));
-    expect(clips).toHaveLength(22);
+    const clips = Object.entries(ASSETS).filter(([id, asset]) => id.startsWith('player.') && asset.url !== undefined);
+    expect(clips).toHaveLength(26);
     for (const [, asset] of clips) {
       expect(asset.artScale).toBe(2);
       expect(asset.sheet.frameWidth).toBe(64);

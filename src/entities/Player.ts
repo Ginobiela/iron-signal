@@ -6,6 +6,7 @@ import type { KinematicBody } from './Entity';
 import { Rifle } from '../weapons/Rifle';
 import type { Weapon } from '../weapons/Weapon';
 import type { ProjectileManager } from '../projectiles/ProjectileManager';
+import { playerAimMuzzle, resolvePlayerAim } from './playerAim';
 
 export type PlayerState = 'IDLE' | 'RUN' | 'JUMP' | 'FALL' | 'CROUCH' | 'SHOOT' | 'DEAD';
 
@@ -80,6 +81,13 @@ export class Player implements KinematicBody {
     return PLAYER.gunPivotY * this.height / PLAYER.height;
   }
 
+  get projectileOriginX(): number {
+    return this.position.x + this.width / 2 + playerAimMuzzle(this.aimDirection).offsetX * this.direction;
+  }
+
+  get projectileOriginY(): number { return this.position.y + this.gunPivotY; }
+  get muzzleDistance(): number { return playerAimMuzzle(this.aimDirection).distance; }
+
   die(): void {
     this.health = 0;
     this.state = 'DEAD';
@@ -123,14 +131,12 @@ export class Player implements KinematicBody {
 
   updateCombat(dt: number, controls: PlayerControls, projectiles: ProjectileManager): void {
     if (!this.alive) return;
-    const movingAim = controls.left !== controls.right;
-    this.aimDirection.x = controls.up ? (movingAim ? this.direction * Math.SQRT1_2 : 0) : this.direction;
-    this.aimDirection.y = controls.up ? (movingAim ? Math.SQRT1_2 : 1) : 0;
+    resolvePlayerAim(this.aimDirection, controls, this.direction, this.grounded);
     this.shooting = controls.shoot;
     this.weapon.update(dt);
     if (this.shooting) {
-      this.weapon.fire(projectiles, this.position.x + this.width / 2,
-        this.position.y + this.gunPivotY, this.aimDirection, 'player', PLAYER.muzzleDistance);
+      this.weapon.fire(projectiles, this.projectileOriginX,
+        this.projectileOriginY, this.aimDirection, 'player', this.muzzleDistance);
       if (this.state === 'IDLE') this.state = 'SHOOT';
     }
   }
