@@ -40,7 +40,7 @@ El workflow `.github/workflows/pages.yml` publica automáticamente al hacer push
 
 ## Controles
 
-**Mando Xbox y compatibles:** conectar por USB o Bluetooth y pulsar un botón con la página activa. La cruceta o el stick izquierdo mueven y apuntan (incluidas diagonales y apuntado inferior en el aire); A salta, X o RT disparan, Menu/Start pausa o continúa. En el menú, arriba/abajo selecciona COMENZAR, BOSS RUN o herramientas; A/Menu confirma. A también continúa o reinicia tras game over. La zona muerta del stick es 0.30 y el umbral de RT 0.50 (`src/config/gamepad.ts`), sin cambiar velocidades ni física.
+**Mando Xbox y compatibles:** conectar por USB o Bluetooth y pulsar un botón con la página activa. La cruceta o el stick izquierdo mueven y apuntan; A salta, X o RT disparan, **mantener LT fija la posición horizontal y permite apuntar en las 8 direcciones incluso estando en suelo/plataforma**, Menu/Start pausa o continúa. Soltar LT restaura movimiento y crouch. En el menú, arriba/abajo selecciona COMENZAR, BOSS RUN o herramientas; A/Menu confirma. A también continúa o reinicia tras game over. La zona muerta del stick es 0.30 y el umbral de los gatillos 0.50 (`src/config/gamepad.ts`).
 
 Se usa el [mapping standard de Gamepad API](https://www.w3.org/TR/gamepad/#remapping), sin dependencias. Los mandos compatibles deben ser reconocidos con ese mapping por el navegador; si aparecen como raw joystick, usar su modo Xbox/XInput. El estado de conexión aparece bajo el juego. Desconectar libera sus acciones; teclado y táctil siguen disponibles. El navegador puede requerir un click/toque inicial para habilitar sonido. Prueba reproducible con mando simulado: `node scripts/gamepad-check.cjs`, con Vite en :5173; no reemplaza la comprobación física USB/Bluetooth.
 
@@ -53,10 +53,13 @@ Se usa el [mapping standard de Gamepad API](https://www.w3.org/TR/gamepad/#remap
 | Space | Saltar; mantener no repite el salto |
 | S + Space | Bajar de la plataforma one-way actual |
 | J | Disparar el arma actual; mantener para repetir a su cadencia |
+| Mantener K | Fijar posición horizontal; WASD/flechas apuntan sin caminar. K + S dispara abajo y K + S + A/D en diagonal inferior, sin saltar (J dispara) |
 | Enter | Comenzar desde menú; nueva partida tras game over o completar la ruta; continuar desde pausa |
 | F1 | Mostrar debug y bounding boxes |
 | F2 | Mostrar sprite bounds, anchors y orígenes visuales |
 | Escape | Pausar / reanudar la partida |
+
+Fijar posición es una acción mantenida, no un toggle: no congela gravedad ni bloquea el salto. Sin K/LT, S conserva crouch y S + Space conserva drop-through. Durante K/LT, abajo se usa para apuntar; Space salta normalmente. Las balas respetan sólidos y pueden atravesar one-way como antes. Se reutilizan aim_down/aim_diagonalDown y jumpShoot_down/jumpShoot_diagonalDown, sin PNG nuevos. Verificación de navegador: `node scripts/aim-lock-check.cjs` (Vite :5173, joystick simulado).
 
 F1 muestra FPS, frecuencia de simulación, posición, velocidad, cámara, estado de partida y jugador, vidas, score, checkpoint, altura, soporte one-way, arma, apuntado, invulnerabilidad, enemigos activos y pendientes, triggers ejecutados, drops creados/activos/recogidos, proyectiles, impactos y bajas. Los contornos azules indican el collider de pie, ámbar el agachado y verde el activo; magenta indica colliders de proyectiles. Ambos colliders del jugador comparten los pies. Perder foco pausa una partida activa; cambiar de pestaña también suspende el loop. Al volver, Escape o Enter continúa con teclas limpias. Las letras M/S/L identifican la carga de los portadores y sus drops, no teclas de selección; S sigue siendo agacharse.
 

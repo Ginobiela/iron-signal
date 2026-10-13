@@ -2,10 +2,10 @@ import { PLAYER } from '../config/constants';
 import type { Vector2 } from './Entity';
 import type { PlayerControls } from './Player';
 
-/** Writes into Player's existing vector. Down is crouch on ground, aim in air. */
+/** Down aims in air or while position is held; otherwise it preserves grounded crouch. */
 export function resolvePlayerAim(out: Vector2, controls: PlayerControls, facing: -1 | 1, grounded: boolean): void {
   const axis = Number(controls.right) - Number(controls.left);
-  const vertical = controls.down ? (grounded ? 0 : -1) : controls.up ? 1 : 0;
+  const vertical = controls.down ? (grounded && !controls.aimLock ? 0 : -1) : controls.up ? 1 : 0;
   out.x = vertical ? axis * (axis ? Math.SQRT1_2 : 0) : facing;
   out.y = vertical * (axis ? Math.SQRT1_2 : 1);
 }

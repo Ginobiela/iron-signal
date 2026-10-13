@@ -12,6 +12,20 @@ function setup() {
 }
 
 describe('standard gamepad input', () => {
+  it('maps K and LT to held aim lock, independently of RT fire, and releases on blur/disconnect', () => {
+    const {input,pad,target,setPads}=setup();
+    const key = new Event('keydown',{cancelable:true}); Object.assign(key,{code:'KeyK',repeat:false});
+    target.dispatchEvent(key); expect(input.isDown('aimLock')).toBe(true); expect(input.isDown('shoot')).toBe(false);
+    const up = new Event('keyup',{cancelable:true}); Object.assign(up,{code:'KeyK'}); target.dispatchEvent(up);
+    expect(input.isDown('aimLock')).toBe(false);
+    pad.buttons[6]!.value=.4; input.pollGamepads(); expect(input.isDown('aimLock')).toBe(false);
+    pad.buttons[6]!.value=.8; input.pollGamepads(); expect(input.isDown('aimLock')).toBe(true);
+    expect(input.isDown('shoot')).toBe(false);
+    pad.buttons[7]!.value=.8; input.pollGamepads(); expect(input.isDown('shoot')).toBe(true);
+    setPads([]); input.pollGamepads(); expect(input.isDown('aimLock')).toBe(false);
+    setPads([pad as unknown as Gamepad]); input.pollGamepads(); target.dispatchEvent(new Event('blur'));
+    expect(input.isDown('aimLock')).toBe(false); input.dispose();
+  });
   it('maps stick diagonals and D-pad to existing aim/movement actions with a deadzone', () => {
     const { input, pad } = setup();
     pad.axes = [0.2, -0.2]; input.pollGamepads();

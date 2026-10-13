@@ -302,6 +302,7 @@ export class Game {
     this.controls.up = this.input.isDown('up');
     this.controls.down = this.input.isDown('down');
     this.controls.shoot = this.input.isDown('shoot') || this.input.wasPressed('shoot');
+    this.controls.aimLock = this.input.isDown('aimLock');
     this.player.update(dt, this.controls, this.collision, this.level.solids, this.levelData.width, this.level.oneWays);
     this.playerHitPoint.x = this.player.position.x + this.player.width / 2;
     this.playerHitPoint.y = this.player.position.y + this.player.height / 2;

@@ -17,6 +17,7 @@ export interface PlayerControls {
   up: boolean;
   shoot: boolean;
   down: boolean;
+  aimLock?: boolean;
 }
 
 export class Player implements KinematicBody {
@@ -149,13 +150,13 @@ export class Player implements KinematicBody {
     this.coyoteTimer = this.grounded ? this.config.get().player.coyoteTime : Math.max(0, this.coyoteTimer - dt);
     this.jumpBufferTimer = controls.jumpPressed ? this.config.get().player.jumpBuffer : Math.max(0, this.jumpBufferTimer - dt);
     const axis = Number(controls.right) - Number(controls.left);
-    if (controls.down && this.grounded) this.height = PLAYER.crouchHeight;
+    if (controls.down && this.grounded && !controls.aimLock) this.height = PLAYER.crouchHeight;
     else if (this.canStandUp(collision, solids)) {
       this.height = PLAYER.height;
     }
-    this.velocity.x = this.crouching && this.grounded ? 0 : axis * this.config.get().player.speed;
+    this.velocity.x = controls.aimLock || (this.crouching && this.grounded) ? 0 : axis * this.config.get().player.speed;
     if (axis !== 0) this.direction = axis > 0 ? 1 : -1;
-    if (controls.down && controls.jumpPressed && this.grounded && this.supportPlatform) {
+    if (!controls.aimLock && controls.down && controls.jumpPressed && this.grounded && this.supportPlatform) {
       this.ignoredPlatform = this.supportPlatform;
       this.position.y -= PLAYER.dropOffset;
       this.velocity.y = -this.config.get().player.dropSpeed;

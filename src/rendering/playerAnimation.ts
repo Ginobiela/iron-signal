@@ -12,7 +12,7 @@ export function resolvePlayerSprite(animation: PlayerAnimation, aim: Vector2): s
   if (animation === 'death') return 'player.death';
   const pose = playerAimPose(aim);
   if (pose === 'down' || pose === 'diagonalDown') {
-    return `player.${animation === 'jumpShoot' ? 'jumpShoot' : 'aim'}_${pose}`;
+    return `player.${animation === 'jumpShoot' || animation === 'shoot' || animation === 'crouchShoot' ? 'jumpShoot' : 'aim'}_${pose}`;
   }
   return groundedSprites[animation]?.[pose] ?? `player.${animation}_${pose}`;
 }

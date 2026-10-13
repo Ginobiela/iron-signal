@@ -12,6 +12,17 @@ import { ProjectileManager } from '../src/projectiles/ProjectileManager';
 import { CheckpointManager } from '../src/level/Checkpoint';
 import { CombatSystem } from '../src/collision/CombatSystem';
 
+it('explicit aim lock keeps directional aiming during pursuit instead of forcing backpedal facing', () => {
+  const data=parseLevel(json), player=new Player(3680,44), boss=new PursuitBoss(data.boss);
+  const controls={left:true,right:false,up:false,down:true,jumpPressed:false,shoot:false,aimLock:true};
+  const collision=new CollisionSystem(); boss.activate(3680);
+  player.update(1/60,controls,collision,new Level(data).solids,data.width);
+  updatePursuit(boss,player,controls,collision,new CameraController(data.width),data.width);
+  player.updateCombat(1/60,controls,new ProjectileManager(collision));
+  expect(player.velocity.x).toBe(0); expect(player.direction).toBe(-1);
+  expect(player.aimDirection).toEqual({x:-Math.SQRT1_2,y:-Math.SQRT1_2});
+});
+
 it('backpedal combat faces the threat without changing physical movement, level colliders or input bindings', () => {
   const data = parseLevel(json), level = new Level(data), collision = new CollisionSystem();
   const player = new Player(3680,44), boss = new PursuitBoss(data.boss), camera = new CameraController(data.width);

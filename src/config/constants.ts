@@ -22,6 +22,7 @@ export const CONTROLS = {
   down: ['KeyS', 'ArrowDown'],
   jump: ['Space'],
   shoot: ['KeyJ'],
+  aimLock: ['KeyK'],
   start: ['Enter'],
   pause: ['Escape'],
   debug: ['F1'],
