@@ -23,7 +23,9 @@ try {
   const levelUrl = params.get('level');
   const data = playtest ? parseLevel(JSON.parse(sessionStorage.getItem('iron-signal-playtest-v1') ?? 'null'))
     : levelUrl ? await loadLevel(new URL(levelUrl, location.href).href) : undefined;
-  const game = new Game(viewport!, debug!, status!, notice!, menu!, bossStatus!, data, tuningStore);
+  const createGame = (level: typeof data): Game => new Game(viewport!, debug!, status!, notice!, menu!, bossStatus!, level, tuningStore,
+    playtest || tuning || params.has('lab') ? undefined : nextLevel);
+  let game = createGame(data);
   const disposeFullscreen = attachFullscreen(document.querySelector<HTMLElement>('#app')!,
     document.querySelector<HTMLButtonElement>('#fullscreen-toggle')!);
   if (playtest) {
@@ -41,6 +43,21 @@ try {
     window.addEventListener('pagehide', () => disposeTuning?.(), { once: true });
   }
   game.start();
+  async function nextLevel(path: string): Promise<void> {
+    try {
+      const next = await loadLevel(new URL(path, location.href).href);
+      const previous = game;
+      previous.dispose();
+      const url = new URL(location.href); url.searchParams.set('level', path); url.searchParams.delete('mode');
+      history.replaceState(null, '', url);
+      game = createGame(next);
+      game.continueFrom(previous);
+      game.start();
+    } catch (cause) {
+      error!.hidden = false; error!.textContent = `No se pudo cargar el siguiente nivel: ${String(cause)}`;
+      console.error(cause);
+    }
+  }
   if (import.meta.hot) import.meta.hot.dispose(() => { disposeFullscreen(); disposeTuning?.(); game.dispose(); });
 } catch (cause: unknown) {
   error!.hidden = false;

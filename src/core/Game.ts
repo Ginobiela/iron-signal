@@ -116,7 +116,8 @@ export class Game {
 
   constructor(private readonly viewport: HTMLElement, private readonly debug: HTMLElement,
     status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData,
-    private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
+    private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE,
+    private readonly onLevelComplete?: (nextLevel: string) => void) {
     this.states = new GameStateManager(config);
     this.shake = new ScreenShakeManager(config);
     this.fxSprites = new FxSpritePool(this.assets, this.particles, this.shake);
@@ -211,6 +212,15 @@ export class Game {
 
   beginPlaytest(): void {
     if (this.states.start()) this.resetRun();
+  }
+
+  /** Starts the next campaign stage without resetting lives, score or equipped weapon. */
+  continueFrom(previous: Game): void {
+    if (!this.states.start(previous.states.lives)) return;
+    this.resetRun();
+    this.score.add(previous.score.value);
+    this.player.weapon = previous.player.weapon;
+    this.audio.unlock();
   }
 
   start(): void {
@@ -366,6 +376,7 @@ export class Game {
         this.states.complete();
         this.projectiles.clear(false);
         this.input.clear();
+        if (this.levelData.nextLevel) this.onLevelComplete?.(this.levelData.nextLevel);
       }
     }
   }
@@ -441,12 +452,7 @@ export class Game {
     this.checkpoints.reset();
     this.score.reset();
     this.boss.reset();
-    for (const view of this.enemyViews) {
-      this.scene.remove(view.root);
-      view.dispose();
-    }
-    this.enemyViews.length = 0;
-    this.enemies.clear();
+    this.clearEnemies();
     this.spawner.reset();
     this.combat.reset();
     this.cameraController.x = 0;
@@ -468,11 +474,16 @@ export class Game {
     this.player.respawn(checkpoint.x, checkpoint.y);
     if (this.boss.encounter) {
       if (this.boss.alive) this.boss.reset(); // Retry a live encounter; a defeated boss stays dead until a new run.
-      this.projectiles.clear(false); this.powerups.reset(); this.levelPickups.clear();
     } else this.boss.prepareRespawn();
+    this.projectiles.clear(false);
+    this.powerups.reset(); this.levelPickups.clear();
+    this.particles.clear(); this.fxSprites.clear();
+    this.clearEnemies();
     this.cameraController.x = 0;
     this.cameraController.update(this.player.position.x + this.player.width / 2);
     if (this.boss.active && !this.boss.encounter) this.cameraController.x = this.boss.arenaLeft;
+    this.spawner.reset(this.cameraController.x);
+    if (!this.bossRun) this.spawner.update(this.cameraController.x);
     this.input.clear();
     this.debugTimer = 0;
   }
@@ -484,6 +495,12 @@ export class Game {
     view.setGraphicsDebug(this.graphicsDebugVisible);
     this.enemyViews.push(view);
     this.scene.add(view.root);
+  }
+
+  private clearEnemies(): void {
+    for (const view of this.enemyViews) { this.scene.remove(view.root); view.dispose(); }
+    this.enemyViews.length = 0;
+    this.enemies.clear();
   }
 
   private onEnemyKilled(enemy: Enemy | Boss): void {

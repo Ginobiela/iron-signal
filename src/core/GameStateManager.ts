@@ -18,9 +18,9 @@ export class GameStateManager {
     if (this.current === 'BOOT') this.current = 'MENU';
   }
 
-  start(): boolean {
+  start(lives = this.config.get().game.initialLives): boolean {
     if (this.current !== 'MENU' && this.current !== 'GAME_OVER' && this.current !== 'LEVEL_COMPLETE') return false;
-    this.remainingLives = this.config.get().game.initialLives;
+    this.remainingLives = lives;
     this.deathTimer = 0;
     this.current = 'PLAYING';
     return true;

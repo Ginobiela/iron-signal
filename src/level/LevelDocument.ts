@@ -63,6 +63,7 @@ export function validateLevel(value: unknown): Validation {
   if (value.version !== 1) errors.push('Unsupported schema version; expected 1.');
   if (typeof value.id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(value.id)) errors.push('Invalid level id.');
   if (typeof value.name !== 'string' || !value.name.trim()) errors.push('Level name required.');
+  if (value.nextLevel !== undefined && (typeof value.nextLevel !== 'string' || !/^levels\/[a-zA-Z0-9_-]+\.json$/.test(value.nextLevel))) errors.push('Invalid nextLevel: expected levels/<id>.json.');
   if (!num(value.width) || value.width < 256 || value.width > 100000) errors.push('World width must be 256–100000.');
   if (value.height !== 240) errors.push('Current runtime supports height 240 only; vertical camera modes are not implemented.');
   if (typeof value.automaticTerrain !== 'boolean') errors.push('automaticTerrain must be boolean.');

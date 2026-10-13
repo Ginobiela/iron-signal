@@ -10,6 +10,7 @@ export class EnemySpawner {
   triggeredCount = 0;
   pendingEnemies: number;
   private readonly fired: boolean[];
+  private minimumX = -Infinity;
 
   constructor(readonly groups: readonly SpawnGroup[], private readonly spawn: (placement: EnemyPlacement) => void) {
     this.fired = groups.map(() => false);
@@ -23,14 +24,22 @@ export class EnemySpawner {
       if (!group || this.fired[i] || cameraX < group.x) continue;
       this.fired[i] = true;
       this.triggeredCount++;
-      this.pendingEnemies -= group.enemies.length;
-      for (const placement of group.enemies) this.spawn(placement);
+      for (const placement of group.enemies) if (placement.x >= this.minimumX) {
+        this.pendingEnemies--;
+        this.spawn(placement);
+      }
     }
   }
 
-  reset(): void {
-    this.fired.fill(false);
+  reset(fromX = -Infinity): void {
+    this.minimumX = fromX;
     this.triggeredCount = 0;
-    this.pendingEnemies = this.totalEnemies;
+    this.pendingEnemies = 0;
+    for (let i = 0; i < this.groups.length; i++) {
+      const remaining = this.groups[i]!.enemies.filter(placement => placement.x >= fromX).length;
+      this.fired[i] = remaining === 0;
+      if (this.fired[i]) this.triggeredCount++;
+      this.pendingEnemies += remaining;
+    }
   }
 }

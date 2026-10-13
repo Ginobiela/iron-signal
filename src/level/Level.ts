@@ -22,6 +22,7 @@ export interface LevelData {
   backgrounds?: readonly BackgroundLayer[];
   automaticTerrain?: boolean;
   environmentSkin?: 'underground';
+  nextLevel?: string;
   pickups?: readonly { id: string; kind: 'M' | 'S' | 'L'; x: number; y: number }[];
 }
 

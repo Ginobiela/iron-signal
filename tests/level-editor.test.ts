@@ -13,7 +13,7 @@ import type { LevelData } from '../src/level/Level';
 
 describe('versioned levels / Level 1 migration', () => {
   it('preserves every legacy gameplay value and generated decoration in canonical JSON', () => {
-    expect(SIGNAL_WORKS).toEqual(convertLegacyLevel(legacy as LevelData));
+    expect(SIGNAL_WORKS).toEqual({ ...convertLegacyLevel(legacy as LevelData), nextLevel: 'levels/level-02.json' });
     expect(validateLevel(SIGNAL_WORKS).errors).toEqual([]);
     expect(parseLevel(JSON.parse(exportLevel(SIGNAL_WORKS)))).toEqual(SIGNAL_WORKS);
     const oldLevel = new Level(legacy as LevelData), newLevel = new Level(SIGNAL_WORKS);

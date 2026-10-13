@@ -245,6 +245,8 @@ export class LevelEditor {
       this.model.commit([{ path: [key], before: this.model.data[key], after: value }]));
     this.input(root, 'environmentSkin', this.model.data.environmentSkin ?? 'legacy', value =>
       this.model.commit([{path:['environmentSkin'], before:this.model.data.environmentSkin, after:value === 'legacy' ? undefined : value}]), ['legacy','underground']);
+    this.input(root, 'nextLevel', this.model.data.nextLevel ?? '', value =>
+      this.model.commit([{path:['nextLevel'],before:this.model.data.nextLevel,after:value || undefined}]));
     const pickup = document.createElement('button'); pickup.textContent = 'ADD WEAPON PICKUP';
     pickup.onclick = () => { const before = this.model.data.pickups;
       this.model.commit([{ path: ['pickups'], before, after: [...before ?? [], {id:newId('pickup'),kind:'M',x:this.model.data.spawn.x,y:this.model.data.spawn.y}] }]); this.refresh(); };
