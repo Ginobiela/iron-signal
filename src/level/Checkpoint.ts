@@ -1,7 +1,9 @@
 import { GAMEPLAY } from '../config/constants';
 import type { Player } from '../entities/Player';
+import type { AABB } from '../collision/CollisionSystem';
+import { containsPoint } from '../camera/CameraZone';
 
-export interface Checkpoint { x: number; y: number; name: string }
+export interface Checkpoint { x: number; y: number; name: string;id?:string;area?:AABB;order?:number }
 
 export class CheckpointManager {
   current: Checkpoint;
@@ -19,6 +21,10 @@ export class CheckpointManager {
     if (!player.alive || !player.grounded) return;
     let latest = this.current;
     for (const checkpoint of this.items) {
+      if(checkpoint.area){
+        if(containsPoint(checkpoint.area,player.position.x+player.width/2,player.position.y+1)&&(checkpoint.order??0)>(latest.order??-1))latest=checkpoint;
+        continue;
+      }
       if (checkpoint.x <= player.position.x && checkpoint.x > latest.x) latest = checkpoint;
     }
     if (latest === this.current) return;

@@ -9,11 +9,13 @@ import { Soldier } from '../entities/enemies/Soldier';
 import { Turret } from '../entities/enemies/Turret';
 
 const placeholderSize = {
+  robotDog:{width:18,height:10},
   soldier: { width: 12, height: 24 }, runner: { width: 14, height: 16 },
   turret: { width: 20, height: 20 }, flying: { width: 20, height: 14 },
 } as const;
 
 export class EnemyView {
+  get entity():Enemy{return this.enemy;}
   readonly root = new Group();
   private readonly body = new Group();
   private readonly gun = new Group();
@@ -36,7 +38,7 @@ export class EnemyView {
     private readonly onVisualFire?: (enemy: Enemy) => void) {
     const visual = ENEMY_VISUALS[enemy.kind];
     this.lastAttackTimer = this.readAttackTimer();
-    this.sprite = new SpriteVisual(assets, visual, `${enemy.kind}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' ? 'run' : 'idle'}`);
+    this.sprite = new SpriteVisual(assets, visual, `${enemy.visualPrefix}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' || enemy.kind === 'robotDog' ? 'run' : 'idle'}`);
     this.sprite.setEntityOrigin(-enemy.width / 2, visual.anchor === 'center' ? -enemy.height / 2 : 0);
     this.root.add(this.sprite.root);
     this.armor = new MeshBasicMaterial({ color: enemy.color });
@@ -58,6 +60,9 @@ export class EnemyView {
       rect(this.body, -6, 8, 12, 10, this.armor);
       rect(this.body, -4, 18, 8, 6, this.armor);
       rect(this.body, 1, 20, 4, 2, red, DRAW.detail);
+    } else if (enemy.kind === 'robotDog') {
+      this.legs.push(rect(this.body,-9,0,3,4,dark),rect(this.body,5,0,3,4,dark));
+      rect(this.body,-9,4,18,6,this.armor);rect(this.body,6,7,4,3,red,DRAW.detail);
     } else if (enemy.kind === 'runner') {
       this.legs.push(rect(this.body, -7, 0, 4, 5, dark), rect(this.body, 3, 0, 4, 5, dark));
       rect(this.body, -7, 5, 14, 9, this.armor);
@@ -110,10 +115,10 @@ export class EnemyView {
       this.onVisualFire?.(enemy);
     }
     this.lastAttackTimer = attackTimer;
-    const animation = !enemy.alive ? 'death' : enemy.kind === 'flying'
-      ? (enemy.hitFlashTimer > 0 ? 'hit' : 'fly') : enemy.warning || this.shootPoseTimer > 0 ? 'shoot' : enemy.velocity.x !== 0 ? 'run' : 'idle';
-    const hasSprite = this.sprite.update(`${enemy.kind}.${animation}`, dt, enemy.direction < 0,
-      enemy.alive ? `${enemy.kind}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' ? 'run' : 'idle'}` : '');
+    const animation = !enemy.alive ? enemy.deathAnimation : enemy.kind === 'flying'
+      ? (enemy.hitFlashTimer > 0 ? 'hit' : 'fly') : enemy.warning || this.shootPoseTimer > 0 ? enemy.shootAnimation : enemy.velocity.x !== 0 ? 'run' : 'idle';
+    const hasSprite = this.sprite.update(`${enemy.visualPrefix}.${animation}`, dt, enemy.direction < 0,
+      enemy.alive ? `${enemy.visualPrefix}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' || enemy.kind === 'robotDog' ? 'run' : 'idle'}` : '');
     this.root.visible = enemy.alive ? enemy.active : hasSprite && !this.sprite.animator.completed;
     this.body.visible = !hasSprite;
     this.sprite.tint(enemy.alive && enemy.hitFlashTimer > 0 ? 0xfff3c4 : 0xffffff);

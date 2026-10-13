@@ -55,6 +55,7 @@ export class Menu {
       level2.className = 'viewer-link'; level2.textContent = 'LEVEL 2 · NEXO SUBTERRÁNEO';
       this.element.append(document.createElement('br'), level2);
       this.element.append(document.createElement('br'), level1);
+      const level3=document.createElement('a');level3.href='./?level=levels/level-03.json';level3.className='viewer-link';level3.textContent='LEVEL 3 · TORRE BASTIÓN';this.element.append(document.createElement('br'),level3);
       if (DEV_TOOLS) {
         for (const [href, label] of [
           ['./animation-viewer.html', 'ANIMATION VIEWER'],

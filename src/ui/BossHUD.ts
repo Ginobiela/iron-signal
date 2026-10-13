@@ -29,7 +29,7 @@ export class BossHUD {
     this.lastState = boss.state;
     this.lastPhase = boss.phase;
     this.lastPattern = boss.pattern;
-    const hint = boss.encounter ? 'RETROCEDE ← · DISPARA · ESQUIVA LOS MISILES' : boss.vulnerable ? 'BLINDAJE ABIERTO'
+    const hint = boss.visualPrefix==='bossGate'?(boss.vulnerable?'PUERTA VULNERABLE · CONTROLA LOS PERROS':'DESTRUYE LAS DOS TORRETAS'): boss.encounter ? 'RETROCEDE ← · DISPARA · ESQUIVA LOS MISILES' : boss.vulnerable ? 'BLINDAJE ABIERTO'
       : boss.state === 'TELEGRAPH' ? boss.pattern === 'HIGH' ? 'SALVA ALTA' : boss.pattern === 'LOW' ? 'SALVA BAJA' : 'DISPARO DIRIGIDO'
         : 'BLINDAJE CERRADO';
     this.label.textContent = `${boss.name} · FASE ${boss.phase}\n${hint} · ${boss.health}/${boss.maxHealth}`;

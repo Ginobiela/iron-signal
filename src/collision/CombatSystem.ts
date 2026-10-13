@@ -33,11 +33,11 @@ export class CombatSystem {
           target = enemy;
         }
       }
-      if (this.boss?.active && this.boss.alive) {
-        const time = this.hitTime(projectile, x, y, this.boss);
+      for(const part of this.boss?.damageTargets??[]) if(part.active&&part.alive){
+        const time = this.hitTime(projectile, x, y, part);
         if (time < nearest) {
           nearest = time;
-          target = this.boss;
+          target = part;
         }
       }
     } else if (this.player.alive) {
@@ -67,12 +67,12 @@ export class CombatSystem {
     for (const enemy of this.enemies) {
       if (!enemy.active || !enemy.alive) continue;
       this.setBounds(this.targetBounds, enemy);
-      if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(this.config.get().enemies.contactDamage)) {
+      if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(enemy.contactDamage)) {
         this.playerHits++;
       }
     }
-    if (this.boss?.active && this.boss.alive) {
-      this.setBounds(this.targetBounds, this.boss);
+    for(const part of this.boss?.damageTargets??[]) if(part.active&&part.alive){
+      this.setBounds(this.targetBounds, part);
       if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(this.config.get().enemies.contactDamage)) this.playerHits++;
     }
   }

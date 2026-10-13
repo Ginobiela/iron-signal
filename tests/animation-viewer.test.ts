@@ -7,7 +7,7 @@ const run = ASSETS['player.run']!;
 describe('animation viewer registry', () => {
   it('discovers all character clips, including planned ones, without loading gameplay', () => {
     const entities = discoverAnimations();
-    expect(entities.map(entity => entity.id)).toEqual(['player', 'soldier', 'runner', 'turret', 'flying', 'boss']);
+    expect(entities.map(entity => entity.id)).toEqual(['player', 'soldier', 'runner', 'turret', 'flying', 'boss','robotDog','bossGate','bossGateTurret','bossGateHatch']);
     expect(entities.find(entity => entity.id === 'player')?.animations.find(animation => animation.id === 'player.run')?.asset).toBe(run);
     expect(entities.find(entity => entity.id === 'player')?.animations.some(animation => animation.id === 'player.shoot')).toBe(true);
     expect(entities.some(entity => entity.id === 'fx' || entity.id === 'environment')).toBe(false);

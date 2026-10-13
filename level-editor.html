@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Iron Signal · Level Editor</title></head>
 <body>
   <header><strong>LEVEL EDITOR</strong><a href="./">BACK TO GAME</a>
-    <select id="levels" aria-label="Known levels"><option value="level-01">Level 1 · Complejo de Relevo</option><option value="level-02">Level 2 · Nexo Subterráneo</option></select>
+    <select id="levels" aria-label="Known levels"><option value="level-01">Level 1 · Complejo de Relevo</option><option value="level-02">Level 2 · Nexo Subterráneo</option><option value="level-03">Level 3 · Torre Bastión</option></select>
     <button id="new">NEW</button><button id="load">LOAD</button><button id="save">SAVE LOCAL</button>
     <button id="export">EXPORT JSON</button><button id="import">IMPORT JSON</button><input id="file" type="file" accept=".json,application/json" hidden>
     <button id="undo">UNDO</button><button id="redo">REDO</button><button id="play">PLAY FROM START</button><button id="play-here">PLAY FROM HERE</button>
@@ -22,7 +22,7 @@
     <aside><h2>Selection</h2><div id="properties"></div><button id="duplicate">DUPLICATE</button><button id="delete">DELETE</button>
       <h2>Level / World</h2><div id="world-properties"></div><h2>FAR / MID / NEAR</h2><div id="background-properties"></div>
       <h2>Validation</h2><pre id="validation" role="status"></pre>
-      <p>Middle/right drag: pan · Wheel: zoom · Shift+click: multiselect.<br>Camera tool: move preview only.<br>Pit tool: cut ground; existing kill plane applies.</p>
+      <p>Middle/right drag: pan · Wheel: zoom · Shift+click: multiselect.<br>CAMERA: move preview · CAMERA-ZONE: drag a zone · KILL-ZONE: drag a hazard.<br>Pit tool: cut ground; existing kill plane applies.</p>
     </aside>
   </main>
   <footer id="status" role="status"></footer>

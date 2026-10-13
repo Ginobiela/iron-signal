@@ -4,6 +4,9 @@ import type { Boss } from '../bosses/Boss';
 import type { AssetManager } from '../core/AssetManager';
 import { SpriteVisual } from './SpriteVisual';
 import { DRAW } from '../config/assets';
+import { EnemyView } from './EnemyView';
+import { FortifiedGateBoss } from '../bosses/FortifiedGateBoss';
+import type { Enemy } from '../entities/enemies/Enemy';
 
 export class BossView {
   readonly root = new Group();
@@ -22,8 +25,10 @@ export class BossView {
   private lastFireCount = 0;
   private fireTimer = 0;
   private readonly fireDuration: number;
+  private readonly componentViews:EnemyView[]=[];
+  private readonly hatchVisuals:{sprite:SpriteVisual;fallback:Mesh}[]=[];
 
-  constructor(private readonly boss: Boss, assets: AssetManager) {
+  constructor(private readonly boss: Boss, assets: AssetManager,onVisualFire?:(enemy:Enemy)=>void) {
     const fire = assets.manifest[`${boss.visualPrefix}.fire`]?.clip;
     this.fireDuration = fire ? fire.frames.length * (fire.frameTime ?? 1 / (fire.frameRate ?? 1)) : 0;
     this.sprite = new SpriteVisual(assets, { width: 56, height: 72, offsetX: 0, offsetY: 0, anchor: 'bottom-center' });
@@ -56,6 +61,13 @@ export class BossView {
     this.bounds.visible = false;
     this.root.position.set(boss.position.x, boss.position.y, DRAW.entity);
     this.root.visible = false;
+    for(const part of boss.components){const view=new EnemyView(part,assets,onVisualFire);this.componentViews.push(view);this.root.add(view.root);}
+    if(boss instanceof FortifiedGateBoss)for(const hatch of boss.hatches){
+      const sprite=new SpriteVisual(assets,{width:32,height:32,offsetX:0,offsetY:0,anchor:'bottom-center'});
+      sprite.root.position.set(hatch.x-boss.position.x+16,hatch.y-boss.position.y,0);
+      const fallback=rect(this.root,hatch.x-boss.position.x,hatch.y-boss.position.y,28,24,this.dark,DRAW.detail);
+      this.root.add(sprite.root);this.hatchVisuals.push({sprite,fallback});
+    }
   }
 
   update(dt = 0): void {
@@ -66,10 +78,11 @@ export class BossView {
     this.lastFireCount = this.boss.visualFireCount;
     this.root.position.set(Math.round(this.boss.position.x), Math.round(this.boss.position.y), DRAW.entity);
     const dead = !this.boss.alive;
-    const animation = dead ? 'death' : this.boss.hitFlashTimer > 0 ? 'damage'
+    const animation = dead ? this.boss.deathAnimation : this.boss.hitFlashTimer > 0 ? 'damage'
       : this.boss.encounter ? this.fireTimer > 0 ? 'fire' : this.boss.state === 'CHASE' ? 'move' : 'idle'
-      : this.boss.state === 'ATTACK' || this.boss.state === 'TELEGRAPH' ? 'attack' : 'idle';
+      : this.boss instanceof FortifiedGateBoss ? 'idle' : this.boss.state === 'ATTACK' || this.boss.state === 'TELEGRAPH' ? 'attack' : 'idle';
     this.placeholder.visible = !this.sprite.update(`${this.boss.visualPrefix}.${animation}`, dt, !!this.boss.encounter, dead ? '' : `${this.boss.visualPrefix}.idle`);
+    if(dead&&this.boss instanceof FortifiedGateBoss&&!this.sprite.available)this.placeholder.visible=false;
     if (dead && !this.boss.encounter && this.sprite.available && this.sprite.animator.completed) this.root.visible = false;
     const flash = !dead && (this.boss.hitFlashTimer > 0 || this.boss.shieldFlashTimer > 0);
     this.sprite.tint(flash ? 0xfff3c4 : 0xffffff);
@@ -81,12 +94,21 @@ export class BossView {
     this.lowMaterial.color.setHex(this.boss.state === 'TELEGRAPH' && this.boss.pattern === 'LOW' ? 0xff776b : 0xe4dbc5);
     this.gun.visible = !dead && this.boss.pattern === 'AIMED';
     this.gun.rotation.z = Math.atan2(this.boss.aimDirection.y, this.boss.aimDirection.x);
+    this.componentViews.forEach(view=>{view.update(dt);view.root.position.x-=this.boss.position.x;view.root.position.y-=this.boss.position.y;view.root.position.z=0;});
+    if(this.boss instanceof FortifiedGateBoss)this.hatchVisuals.forEach((visual,i)=>{
+      const open=['OPENING','OPEN'].includes(this.boss instanceof FortifiedGateBoss?this.boss.hatches[i]!.state:'CLOSED');
+      visual.sprite.root.visible=!dead;
+      visual.fallback.visible=!dead&&!visual.sprite.update(`bossGateHatch.${open?'open':'close'}`,dt);
+      visual.fallback.scale.y=open?12:24;
+    });
   }
 
-  setDebug(visible: boolean): void { this.bounds.visible = visible; }
-  setGraphicsDebug(visible: boolean): void { this.sprite.setDebug(visible); }
+  setDebug(visible: boolean): void { this.bounds.visible = visible;for(const view of this.componentViews)view.setDebug(visible); }
+  setGraphicsDebug(visible: boolean): void { this.sprite.setDebug(visible);for(const view of this.componentViews)view.setGraphicsDebug(visible); }
 
   dispose(): void {
+    for(const view of this.componentViews)view.dispose();
+    for(const visual of this.hatchVisuals)visual.sprite.dispose();
     this.geometry.dispose();
     this.sprite.dispose();
     for (const material of [this.armor, this.core, this.dark, this.outline, this.highMaterial, this.lowMaterial]) material.dispose();

@@ -7,7 +7,7 @@ import type { KinematicBody } from '../Entity';
 import type { Player } from '../Player';
 import type { PowerupKind } from '../../level/PowerupManager';
 
-export type EnemyKind = 'soldier' | 'runner' | 'turret' | 'flying';
+export type EnemyKind = 'soldier' | 'runner' | 'turret' | 'flying' | 'robotDog';
 
 export interface EnemyContext {
   player: Player;
@@ -36,6 +36,7 @@ export abstract class Enemy implements KinematicBody {
   health: number;
   grounded = false;
   active = false;
+  bossOwned = false;
   direction: -1 | 1 = -1;
   hitFlashTimer = 0;
 
@@ -51,6 +52,10 @@ export abstract class Enemy implements KinematicBody {
   get alive(): boolean {
     return this.health > 0;
   }
+  get contactDamage():number {return this.config.get().enemies.contactDamage;}
+  get visualPrefix():string{return this.kind;}
+  get deathAnimation():string{return 'death';}
+  get shootAnimation():string{return 'shoot';}
 
   get gunPivotY(): number {
     return this.height * 0.6;
@@ -84,6 +89,7 @@ export abstract class Enemy implements KinematicBody {
   }
 
   reset(): void {
+    this.bossOwned=false;
     this.position.x = this.spawnX;
     this.position.y = this.spawnY;
     this.velocity.x = this.velocity.y = 0;

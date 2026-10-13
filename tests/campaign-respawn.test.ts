@@ -28,9 +28,9 @@ it('rearms checkpoint enemies, including past triggers with enemies ahead, witho
   enemies.clear(); spawner.reset(); spawner.update(1000); expect(enemies.items).toHaveLength(4);
 });
 
-it('links Level 1 to Level 2 through validated data and keeps Level 2 terminal', () => {
+it('links Level 1 to Level 2 through validated data and links Level 2 to Level 3', () => {
   expect(parseLevel(level1).nextLevel).toBe('levels/level-02.json');
-  expect(parseLevel(level2).nextLevel).toBeUndefined();
+  expect(parseLevel(level2).nextLevel).toBe('levels/level-03.json');
   for(const path of ['https://example.com/level.json','../level.json','levels/../../level.json','']) {
     expect(()=>parseLevel({...level1,nextLevel:path})).toThrow(/nextLevel/);
   }

@@ -37,7 +37,7 @@ INTRO → CHASE → DEAD. El boss avanza incluso durante el aviso de introducci�
 
 `PursuitSequence` aplica los límites declarativos, el encuadre horizontal y **backpedal automático**: después del movimiento, el Player mira al boss y puede correr hacia la izquierda mientras dispara a la derecha. Las diagonales verticales también se orientan hacia la amenaza. No cambia bindings, velocidad, salto, colliders ni el apuntado fuera del encuentro. La cámara conserva al jugador dentro del encuadre y muestra parte del boss cuando la separación lo permite; nunca aplica escala a world coordinates.
 
-La compuerta roja indica el límite de avance. Tras la muerte, desaparece el bloqueo, el ascensor cambia a verde y aparece la indicación de salida a la izquierda. El nivel se completa solo con boss muerto + Player vivo, en suelo y X ≤ exitX. Matar al boss lejos de la salida no completa inmediatamente el nivel.
+La compuerta roja indica el límite de avance. Tras la muerte, desaparece el bloqueo, el ascensor cambia a verde y aparece la indicación de salida a la izquierda. El nivel se completa solo con boss muerto + Player vivo, en suelo y X ≤ exitX; en campaña continúa automáticamente a Level 3 por nextLevel. Matar al boss lejos de la salida no completa inmediatamente el nivel.
 
 Si el Player muere durante el chase: se limpian proyectiles, el checkpoint se conserva, el mecha vivo vuelve a DORMANT con HP completo y se reactiva al volver a cruzar el trigger. Pickups declarados vuelven a estar disponibles al acercarse. Si el boss ya estaba muerto, permanece muerto durante el respawn; no se puede cobrar su score otra vez. Un nuevo run sí reinicia todo.
 

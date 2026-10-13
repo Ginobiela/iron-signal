@@ -36,7 +36,7 @@ export class CheckpointView {
       const flag = this.flags[i];
       const checkpoint = this.manager.items[i];
       if (flag && checkpoint) {
-        const active = checkpoint.x <= this.manager.current.x;
+        const active = checkpoint.order!==undefined?checkpoint.order<=(this.manager.current.order??-1):checkpoint.x <= this.manager.current.x;
         flag.material = active ? this.activeMaterial : this.waitingMaterial;
         const hasSprite = this.sprites[i]?.update(`environment.checkpoint.${active ? 'active' : 'waiting'}`, dt) ?? false;
         flag.visible = !hasSprite;

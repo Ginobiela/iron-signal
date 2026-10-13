@@ -13,6 +13,7 @@ export const PICKUP_VISUAL = {
   width: 14, height: 14, offsetX: 0, offsetY: 0, anchor: 'bottom-center',
 } as const satisfies VisualConfig;
 export const ENEMY_VISUALS = {
+  robotDog:{width:24,height:16,offsetX:0,offsetY:0,anchor:'bottom-center'},
   soldier: { width: 12, height: 24, offsetX: 0, offsetY: 0, anchor: 'bottom-center' },
   runner: { width: 14, height: 16, offsetX: 0, offsetY: 0, anchor: 'bottom-center' },
   turret: { width: 20, height: 20, offsetX: 0, offsetY: 0, anchor: 'bottom-center' },

@@ -2,9 +2,12 @@ import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
 import type { GameplayConfigSource } from '../config/gameplay';
 import { BOSS, ENEMIES } from '../config/constants';
 import type { EnemyContext } from '../entities/enemies/Enemy';
+import type { Enemy } from '../entities/enemies/Enemy';
+import type { AABB } from '../collision/CollisionSystem';
+import { containsPoint } from '../camera/CameraZone';
 
 export interface PursuitEncounter { type: 'pursuit'; retreatLeft: number; barrierX: number; cameraAnchor: number }
-export interface BossPlacement { x: number; y: number; arenaLeft: number; encounter?: PursuitEncounter }
+export interface BossPlacement { x: number; y: number; arenaLeft: number; encounter?: PursuitEncounter;kind?:'gate';arena?:AABB;trigger?:AABB }
 export type BossState = 'DORMANT' | 'INTRO' | 'TELEGRAPH' | 'ATTACK' | 'RECOVER' | 'CHASE' | 'DEAD';
 export type BossPattern = 'HIGH' | 'LOW' | 'AIMED';
 
@@ -34,11 +37,17 @@ export class Boss {
   private shotsFired = 0;
   private shotTimer = 0;
   readonly encounter?: PursuitEncounter;
+  readonly damageTargets:readonly (Enemy|Boss)[]=[this];
+  readonly components:readonly Enemy[]=[];
+  readonly arena?:AABB;
+  private readonly trigger?:AABB;
   get name(): string { return BOSS.name; }
   get visualPrefix(): string { return 'boss'; }
+  get deathAnimation():string{return 'death';}
 
   constructor(placement: BossPlacement, protected readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
     this.encounter = placement.encounter;
+    this.arena=placement.arena;this.trigger=placement.trigger;
     this.health = this.maxHealth = config.get().boss.health;
     this.position = { x: placement.x, y: placement.y };
     this.arenaLeft = placement.arenaLeft;
@@ -50,8 +59,8 @@ export class Boss {
     return this.pattern === 'HIGH' ? BOSS.highHeight : this.pattern === 'LOW' ? BOSS.lowHeight : BOSS.aimedHeight;
   }
 
-  activate(playerX: number): boolean {
-    if (this.state !== 'DORMANT' || playerX < this.arenaLeft) return false;
+  activate(playerX: number,playerY=0): boolean {
+    if (this.state !== 'DORMANT' || (this.trigger?!containsPoint(this.trigger,playerX,playerY):playerX < this.arenaLeft)) return false;
     this.active = true;
     this.prepareRespawn();
     return true;

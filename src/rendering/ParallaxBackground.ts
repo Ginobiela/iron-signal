@@ -21,7 +21,7 @@ export class ParallaxBackground {
   ];
   private readonly textures: TiledVisual[] = [];
 
-  constructor(scene: Scene, assets: AssetManager, private readonly config?: readonly BackgroundLayer[]) {
+  constructor(scene: Scene, assets: AssetManager, private readonly config?: readonly BackgroundLayer[],private readonly vertical=false) {
     const rect = (group: Group, x: number, y: number, width: number, height: number,
       color: number, z: number): void => {
       let material = this.materials.get(color);
@@ -29,10 +29,12 @@ export class ParallaxBackground {
         material = new MeshBasicMaterial({ color });
         this.materials.set(color, material);
       }
+      for(const row of this.vertical?[-1,0,1]:[0]){
       const mesh = new Mesh(this.geometry, material);
-      mesh.position.set(x + width / 2, y + height / 2, z);
+      mesh.position.set(x + width / 2, y + height / 2+row*240, z);
       mesh.scale.set(width, height, 1);
       group.add(mesh);
+      }
     };
     for (let index = 0; index < this.layers.length; index++) {
       const layer = this.layers[index];
@@ -44,10 +46,10 @@ export class ParallaxBackground {
       scene.add(tiles.root);
       for (let copy = -1; copy <= 1; copy++) {
         const x0 = copy * PERIOD;
-        tiles.add(x0, 0, PERIOD, 240, z + DRAW.detail);
+        for(const row of this.vertical?[-1,0,1]:[0])tiles.add(x0,row*240,PERIOD,240,z+DRAW.detail);
         if (layer.speed === PARALLAX.background) {
           for (let i = 0; i < 8; i++) rect(layer.root, x0 + i * 64, 85, 64, 32 + (i * 13) % 40, 0x202c3b, DRAW.backgroundFar);
-          if (!id.includes('.underground.')) rect(layer.root, x0 + 186, 172, 20, 20, 0xc0bb9b, DRAW.backgroundFar);
+          if (!id.includes('.underground.')&&!id.includes('.tower.')) rect(layer.root, x0 + 186, 172, 20, 20, 0xc0bb9b, DRAW.backgroundFar);
           else rect(layer.root, x0, 216, PERIOD, 24, 0x182433, DRAW.backgroundFar);
         } else if (layer.speed === PARALLAX.midground) {
           for (let i = 0; i < 12; i++) {
@@ -64,14 +66,14 @@ export class ParallaxBackground {
     }
   }
 
-  update(cameraX: number): void {
+  update(cameraX: number,cameraY=0): void {
     for (let i = 0; i < this.layers.length; i++) {
       const layer = this.layers[i], tiles = this.textures[i];
       if (!layer || !tiles) continue;
       const options = this.config?.[i];
       const x = parallaxPosition(cameraX, options?.speed ?? layer.speed) + (options?.offsetX ?? 0);
       layer.root.position.x = tiles.root.position.x = x;
-      layer.root.position.y = tiles.root.position.y = options?.offsetY ?? 0;
+      layer.root.position.y = tiles.root.position.y = cameraY-(cameraY*(options?.speed??layer.speed))%240+(options?.offsetY??0);
       const loaded = tiles.update();
       tiles.root.visible = loaded;
       layer.root.visible = !loaded;

@@ -1,7 +1,6 @@
 import { Color, OrthographicCamera, Scene, WebGLRenderer } from 'three';
 import { AssetManager } from '../core/AssetManager';
 import { ASSETS } from '../config/assets';
-import { ENVIRONMENT_ASSETS } from '../config/environment';
 import { Level } from '../level/Level';
 import { createLevel, exportLevel, loadLevel, parseLevel, validateLevel } from '../level/LevelDocument';
 import { LevelView } from '../rendering/LevelView';
@@ -13,10 +12,10 @@ import type { EditorObject, ObjectType } from './levelEditorModel';
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
 const RECOVERY = 'iron-signal-editor-recovery-v1', SAVED = 'iron-signal-editor-saved-v1';
 const RECOVERY_DIRTY = 'iron-signal-editor-recovery-dirty-v1';
-type Tool = 'select' | 'pan' | 'terrain' | 'solid' | 'one-way' | 'pit' | 'enemy' | 'decoration' | 'checkpoint' | 'trigger' | 'spawn' | 'boss' | 'camera';
+type Tool = 'select' | 'pan' | 'terrain' | 'solid' | 'one-way' | 'pit' | 'enemy' | 'decoration' | 'checkpoint' | 'trigger' | 'spawn' | 'boss' | 'camera' | 'camera-zone' | 'kill-zone';
 type Layer = 'background' | 'decorations' | 'terrain' | 'collisions' | 'platforms' | 'enemies' | 'triggers' | 'checkpoints' | 'special';
 const layerNames: Layer[] = ['background', 'decorations', 'terrain', 'collisions', 'platforms', 'enemies', 'triggers', 'checkpoints', 'special'];
-const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc', pickup: '#ffe3a2' };
+const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc', pickup: '#ffe3a2',cameraZone:'#bb99ff',killZone:'#ff3355' };
 export class LevelEditor {
   readonly model = new LevelEditorModel();
   private readonly assets = new AssetManager();
@@ -73,7 +72,7 @@ export class LevelEditor {
     this.model.load(data); this.model.dirty = recovered && localStorage.getItem(RECOVERY_DIRTY) === 'true'; this.refresh(); this.resetView();
   }
   private setupUI(): void {
-    const tools: Tool[] = ['select', 'pan', 'terrain', 'solid', 'one-way', 'pit', 'enemy', 'decoration', 'checkpoint', 'trigger', 'spawn', 'boss', 'camera'];
+    const tools: Tool[] = ['select', 'pan', 'terrain', 'solid', 'one-way', 'pit', 'enemy', 'decoration', 'checkpoint', 'trigger', 'spawn', 'boss', 'camera','camera-zone','kill-zone'];
     for (const tool of tools) {
       const button = document.createElement('button'); button.textContent = tool.toUpperCase(); button.dataset.tool = tool;
       button.onclick = () => { this.tool = tool; this.updateToolUI(); this.palette(); }; $('tools').append(button);
@@ -91,7 +90,7 @@ export class LevelEditor {
       const id = prompt('Level ID', 'level-02'); if (!id) return;
       const name = prompt('Level name', 'New Level'); if (!name) return;
       const width = Number(prompt('World width (world units)', '2048'));
-      const height = Number(prompt('World height (current runtime: 240)', '240'));
+      const height = Number(prompt('World height (world units)', '240'));
       this.model.load(createLevel(id, name, width, height)); this.refresh(); this.resetView();
     });
     action('load', async () => {
@@ -115,7 +114,7 @@ export class LevelEditor {
     };
     action('undo', () => { this.model.undo(); this.refresh(); }); action('redo', () => { this.model.redo(); this.refresh(); });
     action('duplicate', () => { this.unlockedSelection(); this.model.duplicate(); this.refresh(); }); action('delete', () => { this.unlockedSelection(); this.model.deleteSelection(); this.refresh(); });
-    action('reset-view', () => this.resetView()); action('overview', () => { this.zoom = Math.max(.005, Math.min(this.stage.clientWidth / this.model.data.width, this.stage.clientHeight / 240)); this.pan = { x: 0, y: 0 }; this.resize(); });
+    action('reset-view', () => this.resetView()); action('overview', () => { this.zoom = Math.max(.005, Math.min(this.stage.clientWidth / this.model.data.width, this.stage.clientHeight / this.model.data.height)); this.pan = { x: 0, y: 0 }; this.resize(); });
     action('play', () => this.playtest(false)); action('play-here', () => this.playtest(true));
     for (const id of ['grid', 'snap', 'camera-preview']) $<HTMLInputElement>(id).onchange = () => this.requestDraw();
     $<HTMLInputElement>('search').oninput = () => this.palette();
@@ -126,10 +125,11 @@ export class LevelEditor {
   private updateToolUI(): void { document.querySelectorAll<HTMLElement>('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === this.tool)); }
   private palette(): void {
     const root = $('palette'); root.replaceChildren();
+    if(!['enemy','terrain','decoration'].includes(this.tool))return;
     if (this.tool === 'enemy') this.input(root, 'Place in trigger', this.groupId, value => { this.groupId = String(value); }, this.model.data.spawnGroups.map(g => g.id));
     const search = $<HTMLInputElement>('search').value.toLowerCase();
-    const entries = this.tool === 'enemy' ? ['soldier.idle', 'runner.run', 'turret.idle', 'flying.fly'] : Object.keys(ENVIRONMENT_ASSETS).filter(id =>
-      this.tool === 'terrain' ? id.startsWith('environment.ground.') || id.startsWith('environment.platform.') : id.startsWith('environment.') && !id.includes('checkpoint') && !id.includes('.ground.') && !id.includes('.platform.'));
+    const entries = this.tool === 'enemy' ? ['soldier.idle', 'runner.run', 'turret.idle', 'flying.fly','robotDog.run'] : Object.keys(ASSETS).filter(id =>
+      this.tool === 'terrain' ? /^environment\.(?:(?:tower|underground)\.)?(?:ground|platform)\./.test(id) : id.startsWith('environment.') && !id.includes('checkpoint') && !id.includes('.ground.') && !id.includes('.platform.'));
     if (this.tool !== 'enemy' && !entries.includes(this.asset)) this.asset = entries[0]!;
     for (const id of entries.filter(id => id.toLowerCase().includes(search))) {
       const spec = ASSETS[id]!, button = document.createElement('button'), canvas = document.createElement('canvas');
@@ -150,10 +150,11 @@ export class LevelEditor {
   }
   private bounds(ref: EditorObject): { x: number; y: number; width: number; height: number } {
     const o = ref.value, x = Number(o.x), y = Number(o.y ?? 0);
-    if (ref.type === 'trigger') return { x: x - 2, y: 0, width: 4, height: 240 };
-    if (ref.type === 'boss') return { x: Number(o.arenaLeft), y: 0, width: 256, height: 240 };
+    if(ref.type==='checkpoint'&&o.area)return o.area as {x:number;y:number;width:number;height:number};
+    if (ref.type === 'trigger') return o.y===undefined?{ x:x-2,y:0,width:4,height:this.model.data.height }:{x,y,width:Number(o.width),height:Number(o.height)};
+    if (ref.type === 'boss') return this.model.data.boss.arena??{x:Number(o.arenaLeft),y:0,width:256,height:240};
     if (ref.type === 'enemy' || ref.type === 'spawn') {
-      const id = ref.type === 'spawn' ? 'player.idle' : `${o.kind}.${o.kind === 'flying' ? 'fly' : o.kind === 'runner' ? 'run' : 'idle'}`;
+      const id = ref.type === 'spawn' ? 'player.idle' : `${o.kind}.${o.kind === 'flying' ? 'fly' : o.kind === 'runner'||o.kind==='robotDog' ? 'run' : 'idle'}`;
       const spec = ASSETS[id]!; return { x: x - 6, y: y - (o.kind === 'flying' ? spec.visual.height / 2 : 0), width: spec.visual.width, height: spec.visual.height };
     }
     return { x: x - (ref.type === 'decoration' && !o.tiled ? Number(o.width) / 2 : 0), y, width: Number(o.width ?? 16), height: Number(o.height ?? 32) };
@@ -164,7 +165,7 @@ export class LevelEditor {
     if (!this.visible.has('decorations')) data.decorations = data.decorations.filter(d => d.layer === 'terrain');
     if (!this.visible.has('terrain')) { data.ground = []; data.platforms = []; data.automaticTerrain = false; data.decorations = data.decorations.filter(d => d.layer !== 'terrain'); }
     if (!this.visible.has('platforms')) data.platforms = [];
-    const sceneryKey = JSON.stringify([data.ground, data.platforms, data.decorations, data.automaticTerrain, data.exitX, data.width, data.environmentSkin, data.boss.encounter]);
+    const sceneryKey = JSON.stringify([data.ground, data.platforms, data.decorations, data.automaticTerrain, data.exitX, data.width, data.environmentSkin, data.boss.encounter,data.boss.arena,data.height,data.exitArea]);
     if (sceneryKey !== this.sceneryKey) {
       this.levelView?.dispose(); this.scenery.clear(); this.sceneryKey = sceneryKey;
       this.levelView = new LevelView(this.scenery, new Level(data), this.assets); this.levelView.update(0);
@@ -172,13 +173,13 @@ export class LevelEditor {
     const backgroundKey = JSON.stringify([this.visible.has('background'), data.backgrounds]);
     if (backgroundKey !== this.backgroundKey) {
       this.background?.dispose(); this.backScene.clear(); this.background = undefined; this.backgroundKey = backgroundKey;
-      if (this.visible.has('background')) this.background = new ParallaxBackground(this.backScene, this.assets, data.backgrounds);
+      if (this.visible.has('background')) this.background = new ParallaxBackground(this.backScene, this.assets, data.backgrounds,data.height>240);
     }
-    this.background?.update(this.pan.x);
+    this.background?.update(this.pan.x,this.pan.y);
     for (const ref of this.model.objects()) {
       if (!['enemy', 'spawn', 'checkpoint'].includes(ref.type) || !this.visible.has(this.layer(ref))) continue;
       const o = ref.value, id = ref.type === 'spawn' ? 'player.idle' : ref.type === 'checkpoint' ? 'environment.checkpoint.waiting'
-        : `${o.kind}.${o.kind === 'flying' ? 'fly' : o.kind === 'runner' ? 'run' : 'idle'}`;
+        : `${o.kind}.${o.kind === 'flying' ? 'fly' : o.kind === 'runner'||o.kind==='robotDog' ? 'run' : 'idle'}`;
       const spec = ASSETS[id]!, sprite = new SpriteVisual(this.assets, spec.visual);
       sprite.root.position.set(Number(o.x) + (ref.type === 'enemy' || ref.type === 'spawn' ? 6 : 0), Number(o.y), 0);
       sprite.update(id, 0, o.facing === -1); this.scene.add(sprite.root); this.sprites.push({ ref, sprite });
@@ -209,12 +210,23 @@ export class LevelEditor {
     const ref = selected[0]!; root.append(document.createTextNode(`${ref.type.toUpperCase()} · ${ref.id}`));
     if (this.locked.has(this.layer(ref))) { root.append(document.createTextNode(' · LOCKED')); return; }
     this.input(root, 'id', ref.id, value => { this.model.set(ref, 'id', value); this.model.selection = new Set([String(value)]); });
-    const keys = ref.type === 'trigger' ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft']
-      : ref.type === 'solid' || ref.type === 'platform' || ref.type === 'decoration' ? ['x', 'y', 'width', 'height'] : ['x', 'y'];
+    const keys = ref.type === 'trigger'&&ref.value.y===undefined ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft']
+      : ['solid','platform','decoration','cameraZone','killZone','trigger'].includes(ref.type) ? ['x', 'y', 'width', 'height'] : ['x', 'y'];
     for (const key of keys) this.input(root, key, ref.value[key], v => this.model.set(ref, key, v));
+    if(ref.type==='cameraZone'){
+      this.input(root,'mode',ref.value.mode,v=>this.model.set(ref,'mode',v),['HORIZONTAL_FOLLOW','VERTICAL_FOLLOW','LOCKED']);
+      this.input(root,'transitionDuration',ref.value.transitionDuration??.35,v=>this.model.set(ref,'transitionDuration',v));
+    }
     if (ref.type === 'pickup') this.input(root, 'kind', ref.value.kind, v => this.model.set(ref, 'kind', v), ['M','S','L']);
     if (ref.type === 'boss') {
-      this.input(root, 'encounter', this.model.data.boss.encounter ? 'pursuit' : 'arena', v => this.model.set(ref, 'encounter', v === 'arena' ? undefined : {
+      this.input(root,'boss kind',ref.value.kind??'arena',v=>{
+        const before=this.model.data.boss,after={...before,kind:v==='gate'?'gate' as const:undefined,encounter:undefined,
+          arena:v==='gate'?{x:before.arenaLeft,y:Math.max(0,Math.min(this.model.data.height-240,before.y-28)),width:256,height:240}:undefined,
+          trigger:v==='gate'?{x:before.arenaLeft,y:before.y,width:32,height:64}:undefined};
+        this.model.commit([{path:['boss'],before,after}]);
+      },['arena','gate']);
+      for(const field of ['arena','trigger'] as const)if(this.model.data.boss[field])for(const key of ['x','y','width','height'] as const){const box=this.model.data.boss[field]!;this.input(root,`${field}.${key}`,box[key],v=>this.model.commit([{path:['boss',field,key],before:box[key],after:v}]));}
+      if(this.model.data.boss.kind!=='gate')this.input(root, 'encounter', this.model.data.boss.encounter ? 'pursuit' : 'arena', v => this.model.set(ref, 'encounter', v === 'arena' ? undefined : {
         type: 'pursuit', retreatLeft: Math.max(0, this.model.data.boss.arenaLeft - 768),
         barrierX: this.model.data.boss.x - 16, cameraAnchor: .2,
       }), ['arena','pursuit']);
@@ -223,7 +235,10 @@ export class LevelEditor {
         this.model.commit([{ path: ['boss','encounter',key], before: encounter[key], after: value }]));
       root.append(document.createTextNode('arenaLeft = activation trigger. x/y = boss spawn. Pursuit limits and exitX are independent editable markers.'));
     }
-    if (ref.type === 'checkpoint') this.input(root, 'name', ref.value.name, v => this.model.set(ref, 'name', v));
+    if (ref.type === 'checkpoint') {
+      this.input(root,'name',ref.value.name,v=>this.model.set(ref,'name',v));
+      if(ref.value.area){this.input(root,'order',ref.value.order,v=>this.model.set(ref,'order',v));for(const key of ['x','y','width','height']){const box=ref.value.area as Record<string,number>;this.input(root,`area.${key}`,box[key],v=>this.model.commit([{path:[...ref.path,'area',key],before:box[key],after:v} ]));}}
+    }
     if (ref.type === 'platform') this.input(root, 'kind', ref.value.kind, v => this.model.set(ref, 'kind', v), ['solid', 'one-way']);
     if (ref.type === 'enemy') {
       this.input(root, 'facing', String(ref.value.facing ?? -1), v => this.model.set(ref, 'facing', Number(v)), ['-1', '1']);
@@ -244,9 +259,10 @@ export class LevelEditor {
     for (const key of ['id', 'name', 'width', 'height', 'exitX', 'automaticTerrain'] as const) this.input(root, key, this.model.data[key], value =>
       this.model.commit([{ path: [key], before: this.model.data[key], after: value }]));
     this.input(root, 'environmentSkin', this.model.data.environmentSkin ?? 'legacy', value =>
-      this.model.commit([{path:['environmentSkin'], before:this.model.data.environmentSkin, after:value === 'legacy' ? undefined : value}]), ['legacy','underground']);
+      this.model.commit([{path:['environmentSkin'], before:this.model.data.environmentSkin, after:value === 'legacy' ? undefined : value}]), ['legacy','underground','tower']);
     this.input(root, 'nextLevel', this.model.data.nextLevel ?? '', value =>
       this.model.commit([{path:['nextLevel'],before:this.model.data.nextLevel,after:value || undefined}]));
+    if(this.model.data.exitArea)for(const key of ['x','y','width','height'] as const){const box=this.model.data.exitArea;this.input(root,`exitArea.${key}`,box[key],v=>this.model.commit([{path:['exitArea',key],before:box[key],after:v}]));}
     const pickup = document.createElement('button'); pickup.textContent = 'ADD WEAPON PICKUP';
     pickup.onclick = () => { const before = this.model.data.pickups;
       this.model.commit([{ path: ['pickups'], before, after: [...before ?? [], {id:newId('pickup'),kind:'M',x:this.model.data.spawn.x,y:this.model.data.spawn.y}] }]); this.refresh(); };
@@ -265,13 +281,13 @@ export class LevelEditor {
     const state = this.model.dirty ? 'UNSAVED CHANGES' : 'SAVED / LOADED';
     $('status').textContent = `${state} · Cursor ${this.cursor.x.toFixed(1)}, ${this.cursor.y.toFixed(1)} · Grid 16 · Zoom ${Math.round(this.zoom * 100)}% · Objects ${this.model.objects().length} · Selection ${[...this.model.selection].join(', ') || 'none'}`;
   }
-  private resetView(): void { this.zoom = 2; this.pan = { x: 0, y: 0 }; this.preview = { x: this.model.data.spawn.x - 32, y: 0 }; this.resize(); }
+  private resetView(): void { this.zoom = 2; this.pan = { x: 0, y: 0 }; this.preview = { x: this.model.data.spawn.x - 32, y: Math.max(0,this.model.data.spawn.y-44) }; this.resize(); }
   private resize(): void {
     const w = this.stage.clientWidth, h = this.stage.clientHeight;
     this.renderer.setSize(w, h, false); this.overlay.width = w; this.overlay.height = h;
     this.camera.left = this.pan.x; this.camera.right = this.pan.x + w / this.zoom;
     this.camera.bottom = this.pan.y; this.camera.top = this.pan.y + h / this.zoom; this.camera.updateProjectionMatrix();
-    this.background?.update(this.pan.x); this.requestDraw();
+    this.background?.update(this.pan.x,this.pan.y); this.requestDraw();
   }
   private world(event: PointerEvent | WheelEvent): { x: number; y: number } {
     const rect = this.overlay.getBoundingClientRect(); return { x: this.pan.x + (event.clientX - rect.left) / this.zoom, y: this.pan.y + (rect.bottom - event.clientY) / this.zoom };
@@ -324,8 +340,10 @@ export class LevelEditor {
     else if (this.tool === 'one-way' && !this.locked.has('platforms')) this.model.insert('platforms', { id, kind: 'one-way', x: left, y, width, height: 6 });
     else if (this.tool === 'pit' && !this.locked.has('collisions')) this.model.cutPit(left, width);
     else if (this.tool === 'enemy' && !this.locked.has('enemies')) this.model.insertEnemy(this.groupId, { id, kind: this.enemyKind, x, y, facing: -1 });
-    else if (this.tool === 'trigger' && !this.locked.has('triggers')) { this.model.insert('spawnGroups', { id, x, enemies: [] }); this.groupId = id; }
-    else if (this.tool === 'checkpoint' && !this.locked.has('checkpoints')) this.model.insert('checkpoints', { id, x, y, name: 'Checkpoint' });
+    else if (this.tool === 'trigger' && !this.locked.has('triggers')) { this.model.insert('spawnGroups', this.model.data.height>240?{id,x:left,y:bottom,width,height,enemies:[]}:{id,x,enemies:[]}); this.groupId=id; }
+    else if(this.tool==='camera-zone')this.model.insert('cameraZones',{id,x:left,y:bottom,width,height,mode:'VERTICAL_FOLLOW',transitionDuration:.35});
+    else if(this.tool==='kill-zone')this.model.insert('killZones',{id,x:left,y:bottom,width,height});
+    else if (this.tool === 'checkpoint' && !this.locked.has('checkpoints')) this.model.insert('checkpoints', {id,x,y,name:'Checkpoint',...(this.model.data.height>240?{order:Math.max(0,...this.model.data.checkpoints.map(c=>c.order??0))+1,area:{x:Math.max(0,x-12),y:Math.max(0,y-2),width:40,height:40}}:{})});
     else if (this.tool === 'spawn' || this.tool === 'boss') {
       if (this.locked.has('special')) return;
       const before = this.model.data[this.tool === 'spawn' ? 'spawn' : 'boss'];
@@ -364,18 +382,18 @@ export class LevelEditor {
       for (let y = Math.floor(this.pan.y / 16) * 16; y < this.pan.y + h / z; y += 16) { ctx.moveTo(this.pan.x, y); ctx.lineTo(this.pan.x + w / z, y); }
       ctx.stroke();
     }
-    ctx.strokeStyle = '#c4e5e0'; ctx.strokeRect(0, 0, this.model.data.width, 240);
+    ctx.strokeStyle = '#c4e5e0'; ctx.strokeRect(0, 0, this.model.data.width, this.model.data.height);
     for (const ref of this.model.objects()) {
       if (!this.visible.has(this.layer(ref))) continue;
       const b = this.bounds(ref), selected = this.model.selection.has(ref.id), linked = ref.type === 'enemy' && this.model.selection.has(ref.group ?? '');
-      if (selected && this.drag?.mode === 'move') { b.x += this.dragDelta.x; b.y += ref.type === 'trigger' ? 0 : this.dragDelta.y; }
+      if (selected && this.drag?.mode === 'move') { b.x += this.dragDelta.x; b.y += ref.type === 'trigger'&&ref.value.y===undefined ? 0 : this.dragDelta.y; }
       if (b.x + b.width < this.pan.x || b.x > this.pan.x + w / z) continue;
       ctx.strokeStyle = selected ? '#ffffff' : linked ? '#fff079' : colors[ref.type]; ctx.lineWidth = (selected || linked ? 2 : 1) / z;
       if (ref.type === 'solid' || ref.type === 'platform') { ctx.fillStyle = colors[ref.type] + '25'; ctx.fillRect(b.x, b.y, b.width, b.height); }
       ctx.strokeRect(b.x, b.y, b.width, b.height);
-      if (z >= .5 && ['enemy', 'trigger', 'boss', 'checkpoint', 'spawn'].includes(ref.type)) {
+      if ((z >= .5||selected) && ['enemy', 'trigger', 'boss', 'checkpoint', 'spawn','cameraZone','killZone'].includes(ref.type)) {
         ctx.save(); ctx.translate(b.x, b.y + b.height + 3); ctx.scale(1 / z, -1 / z); ctx.fillStyle = ctx.strokeStyle; ctx.font = '11px monospace';
-        const label = ref.type === 'enemy' ? `${ref.value.kind}${ref.value.weaponDrop ? ' [' + ref.value.weaponDrop + ']' : ''}` : ref.type === 'boss' ? 'BOSS TRIGGER' : ref.type;
+        const label = ref.type === 'enemy' ? `${ref.value.kind}${ref.value.weaponDrop ? ' [' + ref.value.weaponDrop + ']' : ''}` : ref.type==='cameraZone'?`${ref.value.mode==='VERTICAL_FOLLOW'?'↑':ref.value.mode==='LOCKED'?'▣':'→'} ${ref.value.mode}`:ref.type === 'boss' ? 'BOSS TRIGGER' : ref.type;
         ctx.fillText(label, 0, 0); ctx.restore();
       }
     }
@@ -403,7 +421,7 @@ export class LevelEditor {
   private unlockedSelection(): void { const allowed = this.model.objects().filter(o => !this.locked.has(this.layer(o))); this.model.selection = new Set(allowed.filter(o => this.model.selection.has(o.id)).map(o => o.id)); }
   private playtest(here: boolean): void {
     const document = parseLevel(this.model.data); localStorage.setItem(RECOVERY, JSON.stringify(this.model.data)); localStorage.setItem(RECOVERY_DIRTY, String(this.model.dirty));
-    if (here) document.spawn = { ...document.spawn, x: Math.max(0, Math.min(document.width - 12, this.preview.x + 32)), y: Math.max(0, Math.min(214, this.preview.y + 44)) };
+    if (here) document.spawn = { ...document.spawn, x: Math.max(0, Math.min(document.width - 12, this.preview.x + 32)), y: Math.max(0, Math.min(document.height-26, this.preview.y + 44)) };
     sessionStorage.setItem('iron-signal-playtest-v1', JSON.stringify(document)); this.model.dirty = false;
     location.href = './?playtest=1';
   }

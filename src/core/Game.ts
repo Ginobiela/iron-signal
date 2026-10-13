@@ -43,6 +43,8 @@ import { GameStateManager } from './GameStateManager';
 import { ScoreManager } from './ScoreManager';
 import { Boss } from '../bosses/Boss';
 import { PursuitBoss } from '../bosses/PursuitBoss';
+import { FortifiedGateBoss } from '../bosses/FortifiedGateBoss';
+import { overlaps } from '../collision/CollisionSystem';
 import { updatePursuit, pursuitExitReached } from '../level/PursuitSequence';
 import { BossView } from '../rendering/BossView';
 import { BossHUD } from '../ui/BossHUD';
@@ -130,15 +132,16 @@ export class Game {
     this.checkpoints = new CheckpointManager({ ...this.levelData.spawn, name: 'Inicio' }, this.levelData.checkpoints);
     this.checkpointView = new CheckpointView(this.checkpoints, this.assets);
     this.player = new Player(this.levelData.spawn.x, this.levelData.spawn.y, config);
-    this.boss = this.levelData.boss.encounter ? new PursuitBoss(this.levelData.boss, config) : new Boss(this.levelData.boss, config);
-    this.bossView = new BossView(this.boss, this.assets);
+    this.boss = this.levelData.boss.kind==='gate'?new FortifiedGateBoss(this.levelData.boss,config,
+      (x,y)=>{this.spawnEnemy({kind:'robotDog',x,y}).bossOwned=true;},()=>this.enemies.items.filter(e=>e.bossOwned&&e.active&&e.alive).length):this.levelData.boss.encounter ? new PursuitBoss(this.levelData.boss, config) : new Boss(this.levelData.boss, config);
+    this.bossView = new BossView(this.boss, this.assets,this.onEnemyVisualFire);
     this.spawner = new EnemySpawner(this.levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
     this.combat = new CombatSystem(this.collision, this.player, this.enemies.items,
     (enemy) => this.onEnemyKilled(enemy), this.boss,
     (target, x, y, damaged) => this.onImpact(target, x, y, damaged), config);
     this.enemyContext = { player: this.player, projectiles: this.projectiles,
     collision: this.collision, solids: this.level.solids, oneWays: this.level.oneWays, worldWidth: this.levelData.width };
-    this.cameraController = new CameraController(this.levelData.width, config);
+    this.cameraController = new CameraController(this.levelData.width, config,this.levelData.height??240,this.levelData.cameraZones);
     this.renderer = new WebGLRenderer({ antialias: false, alpha: false });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(RENDER_VIEW.width, RENDER_VIEW.height, false);
@@ -146,7 +149,7 @@ export class Game {
     viewport.prepend(this.renderer.domElement);
     this.scene.background = new Color(0x101e2c);
     this.camera.position.z = 10;
-    this.background = new ParallaxBackground(this.scene, this.assets, this.levelData.backgrounds);
+    this.background = new ParallaxBackground(this.scene, this.assets, this.levelData.backgrounds,(this.levelData.height??240)>240);
     this.levelView = new LevelView(this.scene, this.level, this.assets);
     this.scene.add(this.playerView.root, this.projectileView.mesh, this.powerupView.root, this.checkpointView.root, this.bossView.root);
     this.scene.add(this.particleView.mesh);
@@ -204,7 +207,7 @@ export class Game {
           this.player.position.x = this.checkpoints.current.x; this.player.position.y = this.checkpoints.current.y;
           this.player.velocity.x = this.player.velocity.y = 0;
           this.projectiles.clear(false);
-          this.cameraController.update(this.player.position.x + this.player.width / 2);
+          this.cameraController.update(this.player.position.x + this.player.width / 2,this.player.position.y+this.player.height/2);
         } else if (command === 'restart') { this.states.restart(); this.resetRun(); this.input.clear(); }
       },
     };
@@ -281,8 +284,8 @@ export class Game {
     this.bossView.update(effectStep);
     this.playerView.update(this.player, effectStep);
     this.camera.position.x = Math.round(this.cameraController.x) + this.shake.offset.x;
-    this.camera.position.y = this.shake.offset.y;
-    this.background.update(this.cameraController.x);
+    this.camera.position.y = Math.round(this.cameraController.y)+this.shake.offset.y;
+    this.background.update(this.cameraController.x,this.cameraController.y);
     if (this.states.state === 'PAUSED') this.audio.silence();
     this.updateDebug(dt);
     this.input.endStep();
@@ -316,32 +319,37 @@ export class Game {
     this.controls.shoot = this.input.isDown('shoot') || this.input.wasPressed('shoot');
     this.controls.aimLock = this.input.isDown('aimLock');
     this.player.update(dt, this.controls, this.collision, this.level.solids, this.levelData.width, this.level.oneWays);
+    if(this.levelData.killZones?.some(zone=>overlaps(zone,this.player.collisionBounds)))this.player.die();
     this.playerHitPoint.x = this.player.position.x + this.player.width / 2;
     this.playerHitPoint.y = this.player.position.y + this.player.height / 2;
     if (this.player.jumpCount !== jumps) this.audio.play('jump');
-    this.cameraController.update(this.player.position.x + this.player.width / 2);
+    this.cameraController.update(this.player.position.x + this.player.width / 2,this.player.position.y+this.player.height/2);
     if (this.player.alive) {
       this.checkpoints.update(dt, this.player);
-      if (this.player.grounded && this.boss.activate(this.player.position.x)) {
+      if (this.player.grounded && this.boss.activate(this.player.position.x,this.player.position.y+this.player.height/2)) {
         this.projectiles.clear(false);
         if (this.boss.encounter) { this.audio.play('bossWarning'); this.shake.trigger(VFX_SHAKE.boss, VFX_SHAKE.bossTime); }
       }
       if (this.boss.active) {
         if (this.boss.encounter) updatePursuit(this.boss, this.player, this.controls, this.collision, this.cameraController, this.levelData.width);
         else {
-          this.collision.constrainHorizontal(this.player, this.boss.arenaLeft, this.boss.position.x - this.player.width);
-          this.cameraController.x = this.boss.arenaLeft;
+          const arenaX=this.boss.arena?.x??this.boss.arenaLeft;
+          this.collision.constrainHorizontal(this.player, arenaX, this.boss.position.x - this.player.width);
+          this.cameraController.x = arenaX;
+          if(this.boss.arena)this.cameraController.y=this.boss.arena.y;
         }
       }
-      for (const pickup of this.levelData.pickups ?? []) if (!this.levelPickups.has(pickup.id) && Math.abs(pickup.x - this.player.position.x) < 96) {
+      for (const pickup of this.levelData.pickups ?? []) if (!this.levelPickups.has(pickup.id) && Math.abs(pickup.x - this.player.position.x) < 96
+        &&((this.levelData.height??240)<=240||Math.abs(pickup.y-this.player.position.y)<VIEW.height)) {
         if (this.powerups.spawn(pickup.kind, pickup.x, pickup.y)) this.levelPickups.add(pickup.id);
       }
       this.powerups.update(dt, this.player, this.level.solids, this.level.oneWays, this.levelData.width);
       this.player.updateCombat(dt, this.controls, this.projectiles);
-      if (!this.bossRun) this.spawner.update(this.cameraController.x);
-      this.enemies.update(dt, this.enemyContext, this.cameraController.x);
+      if (!this.bossRun) this.spawner.update(this.cameraController.x,this.player.collisionBounds);
+      this.enemies.update(dt, this.enemyContext, this.cameraController.x,(this.levelData.height??240)>240?this.cameraController.y:undefined);
+      if(this.checkpoints.current!==checkpoint)this.spawner.captureCheckpoint(this.player.collisionBounds);
       this.boss.update(dt, this.enemyContext);
-      this.projectiles.update(dt, this.level.solids, this.levelData.width, this.combat, this.playerHitPoint);
+      this.projectiles.update(dt, this.level.solids, this.levelData.width, this.combat, this.playerHitPoint,this.levelData.height??240);
       this.combat.updateContacts();
     }
     if (this.projectiles.playerSpawned !== shots) {
@@ -371,7 +379,7 @@ export class Game {
       this.input.clear();
       this.debugTimer = 0;
     } else {
-      if (this.boss.state === 'DEAD' && (!this.boss.encounter || pursuitExitReached(this.boss, this.player, this.levelData.exitX))) {
+      if (this.boss.state === 'DEAD' && (this.boss instanceof FortifiedGateBoss?this.level.reachedExit(this.player):!this.boss.encounter || pursuitExitReached(this.boss, this.player, this.levelData.exitX))) {
         this.audio.play('victory');
         this.states.complete();
         this.projectiles.clear(false);
@@ -455,15 +463,16 @@ export class Game {
     this.clearEnemies();
     this.spawner.reset();
     this.combat.reset();
-    this.cameraController.x = 0;
+    this.cameraController.reset(this.player.position.x+this.player.width/2,this.player.position.y+this.player.height/2);
     this.debugTimer = 0;
     if (this.bossRun) {
-      const checkpoint = this.levelData.checkpoints.find(item => item.x >= this.boss.arenaLeft)
+      const checkpoint = (this.boss.arena?this.levelData.checkpoints.find(item=>item.area&&overlaps(item.area,this.boss.arena!)):this.levelData.checkpoints.find(item => item.x >= this.boss.arenaLeft))
         ?? { x: this.boss.arenaLeft + this.player.width, y: this.boss.position.y, name: 'Boss Run' };
       this.checkpoints.current = checkpoint;
       this.player.reset(checkpoint.x, checkpoint.y);
-      this.boss.activate(checkpoint.x);
+      this.boss.activate(checkpoint.x,checkpoint.y+this.player.height/2);
       this.cameraController.x = this.boss.arenaLeft;
+      if(this.boss.arena)this.cameraController.y=this.boss.arena.y;
     }
   }
 
@@ -472,29 +481,31 @@ export class Game {
     this.playerView.resetFeedback();
     const checkpoint = this.checkpoints.current;
     this.player.respawn(checkpoint.x, checkpoint.y);
-    if (this.boss.encounter) {
+    if(this.boss instanceof FortifiedGateBoss)this.boss.reset();
+    else if (this.boss.encounter) {
       if (this.boss.alive) this.boss.reset(); // Retry a live encounter; a defeated boss stays dead until a new run.
     } else this.boss.prepareRespawn();
     this.projectiles.clear(false);
     this.powerups.reset(); this.levelPickups.clear();
     this.particles.clear(); this.fxSprites.clear();
     this.clearEnemies();
-    this.cameraController.x = 0;
-    this.cameraController.update(this.player.position.x + this.player.width / 2);
+    this.cameraController.reset(this.player.position.x+this.player.width/2,this.player.position.y+this.player.height/2);
     if (this.boss.active && !this.boss.encounter) this.cameraController.x = this.boss.arenaLeft;
-    this.spawner.reset(this.cameraController.x);
-    if (!this.bossRun) this.spawner.update(this.cameraController.x);
+    this.spawner.rewind(this.cameraController.x);
+    if (!this.bossRun) this.spawner.update(this.cameraController.x,this.player.collisionBounds);
     this.input.clear();
     this.debugTimer = 0;
   }
 
-  private spawnEnemy(placement: EnemyPlacement): void {
+  private spawnEnemy(placement: EnemyPlacement): Enemy {
     const enemy = this.enemies.spawn(placement);
+    if(this.enemyViews.some(view=>view.entity===enemy))return enemy;
     const view = new EnemyView(enemy, this.assets, this.onEnemyVisualFire);
     view.setDebug(this.debugVisible);
     view.setGraphicsDebug(this.graphicsDebugVisible);
     this.enemyViews.push(view);
     this.scene.add(view.root);
+    return enemy;
   }
 
   private clearEnemies(): void {
@@ -510,7 +521,8 @@ export class Game {
       if (drop) this.fxSprites.spawn('fx.pickup.drop', drop.x + drop.width / 2, drop.y + drop.height / 2);
     }
     const boss = enemy.kind === 'boss';
-    if (boss && this.boss.encounter) this.projectiles.clear(false);
+    if (boss && (this.boss.encounter||this.boss instanceof FortifiedGateBoss)) {this.projectiles.clear(false);
+      if(this.boss instanceof FortifiedGateBoss)for(const enemy of this.enemies.items)if(enemy.bossOwned)enemy.die();}
     this.fxSprites.spawn(boss || enemy.kind === 'flying' ? 'fx.explosion.medium' : 'fx.explosion.small',
       enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2);
     this.audio.play('enemyDeath');
@@ -541,7 +553,7 @@ export class Game {
       this.gamepadStatus.textContent = this.input.gamepadStatus;
     }
     this.hud.update(this.states, this.score, this.player, this.checkpoints.current,
-      Math.floor(this.player.position.x / this.levelData.width * 100), this.level.sectionAt(this.player.position.x),
+      Math.floor(((this.levelData.height??240)>240?this.player.position.y/(this.levelData.height??240):this.player.position.x/this.levelData.width)*100), this.level.sectionAt(this.player.position.x,this.player.position.y),
       this.checkpoints.message || this.powerups.message || (this.boss.encounter && !this.boss.alive ? 'CENTINELA DESTRUIDO · SALIDA / ASCENSOR ←' : ''));
     this.menu.update(this.states, this.score, this.checkpoints);
     this.bossHUD.update(this.boss);

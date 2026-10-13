@@ -76,7 +76,7 @@ export const POWERUPS = {
   initialYSpeed: 35, initialXSpeed: 10, lifetime: 10, warningTime: 2, blinkRate: 8,
 } as const;
 export const GAMEPLAY = { initialLives: 10, deathDelay: 0.65, checkpointNoticeTime: 1.5 } as const;
-export const SCORE = { soldier: 100, runner: 100, turret: 200, flying: 300, boss: 5000 } as const;
+export const SCORE = { soldier: 100, runner: 100, turret: 200, flying: 300, robotDog:150, boss: 5000 } as const;
 export const BOSS = {
   name: 'GUARDIÁN CENITAL', width: 56, height: 72, health: 100,
   phase2Threshold: 0.66, phase3Threshold: 0.30, introTime: 1,
@@ -94,6 +94,7 @@ export const PROJECTILES = {
 } as const;
 
 export const ENEMIES = {
+  robotDog: {width:18,height:10,health:2,speed:72,contactDamage:1,activationDistance:160,jumpSpeed:160,spawnCooldown:.4,color:0x92a7b1},
   contactDamage: 1,
   bulletDamage: 1,
   hitFlashTime: 0.10,

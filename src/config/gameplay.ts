@@ -1,5 +1,6 @@
 import { PLAYER, GAMEPLAY, RIFLE, MACHINE_GUN, SPREAD_GUN, LASER, PROJECTILES, ENEMIES, BOSS, POWERUPS, CAMERA, FEEDBACK } from './constants';
 import { MECHA } from './mecha';
+import { GATE } from './gate';
 
 type Values<T> = T extends number ? number : T extends string ? string : T extends readonly (infer U)[] ? readonly Values<U>[] : { readonly [K in keyof T]: Values<T[K]> };
 function freeze<T>(value: T): T {
@@ -17,7 +18,8 @@ const defaults = {
     spread: { ...SPREAD_GUN, projectileLifetime: PROJECTILES.lifetime },
     laser: { ...LASER, projectileLifetime: PROJECTILES.lifetime },
   },
-  enemies: ENEMIES, boss: BOSS, mecha: MECHA, powerups: POWERUPS, camera: CAMERA,
+  enemies: ENEMIES, boss: BOSS, mecha: MECHA, gate:GATE, powerups: POWERUPS,
+  camera:{...CAMERA,verticalDeadzone:20,verticalFollowSpeed:600,cameraTransitionDuration:.35},
   feedback: { shakeLimit: FEEDBACK.shakeLimit },
 };
 export type GameplayConfig = Values<typeof defaults>;
@@ -61,7 +63,11 @@ add('BOSS','boss',[['phase2Threshold',.02,.99,.01],['phase3Threshold',.01,.98,.0
 for (const key of ['telegraphTimes','recoveryTimes','bulletSpeeds']) for (let i = 0; i < 3; i++) add('BOSS',`boss.${key}`,[[String(i),key === 'bulletSpeeds' ? 10 : .05,key === 'bulletSpeeds' ? 1000 : 10,key === 'bulletSpeeds' ? 5 : .05]],'LIVE',true);
 add('BOSS','boss',[['burstCount',1,10,1],['burstInterval',.02,1,.01],['attackTime',.05,5,.01],['introTime',.1,10,.1]],'LIVE',true);
 add('POWERUPS','powerups',[['lifetime',1,60,.5,'Solo los pickups nuevos.'],['warningTime',0,10,.1]]);
-add('CAMERA / FEEDBACK','camera',[['deadZone',0,64,1]]);
+add('CAMERA / FEEDBACK','camera',[['deadZone',0,64,1],['verticalDeadzone',0,80,1],['verticalFollowSpeed',100,2000,10],['cameraTransitionDuration',0,1,.05]]);
+add('ROBOT DOG','enemies.robotDog',[['health',1,999,1]],'RESPAWN');
+add('ROBOT DOG','enemies.robotDog',[['speed',1,300,1],['contactDamage',1,20,1],['activationDistance',32,500,1],['jumpSpeed',20,300,5],['spawnCooldown',.2,10,.1]]);
+add('FORTIFIED GATE','gate',[['mainHealth',1,999,1],['turretHealth',1,999,1]],'RESTART');
+add('FORTIFIED GATE','gate',[['turretFireCooldown',.3,10,.1],['turretBulletSpeed',20,500,5],['hatchCooldown',.5,10,.1],['maxActiveDogs',1,4,1]]);
 add('CAMERA / FEEDBACK','feedback',[['shakeLimit',0,5,.1,'Límite de intensidad de shake; 0 lo desactiva.']], 'LIVE');
 export const GAMEPLAY_SETTINGS: readonly Setting[] = freeze(settings);
 const byPath = new Map(GAMEPLAY_SETTINGS.map(setting => [setting.path, setting]));

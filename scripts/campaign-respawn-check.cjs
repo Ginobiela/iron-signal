@@ -51,6 +51,8 @@ const assert = require('node:assert/strict');
   await page.evaluate(()=>{g.loop.stop();g.player.position.x=g.levelData.exitX;g.player.position.y=44;
    g.player.grounded=true;g.boss.die();g.update(1/60);});
   assert.equal(await page.evaluate(()=>g.states.state),'LEVEL_COMPLETE');
+  await page.waitForFunction(()=>window.g?.levelData.id==='level-03'&&g.states.state==='PLAYING');
+  assert.equal(new URL(page.url()).searchParams.get('level'),'levels/level-03.json');
   await page.goto('http://127.0.0.1:5173/?mode=boss');
   await page.waitForFunction(()=>window.g?.boss.active&&g.states.state==='PLAYING');
   await page.evaluate(()=>{g.loop.stop();g.boss.state='RECOVER';g.boss.attackTimer=10;g.player.invulnerabilityTimer=100;

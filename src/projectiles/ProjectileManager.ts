@@ -57,7 +57,7 @@ export class ProjectileManager {
     return this.spawn(x, y, vx, vy, damage, 'enemy', 0, 'missile', lifetime, turnRate);
   }
 
-  update(dt: number, solids: readonly AABB[], worldWidth: number, combat?: CombatSystem, homingTarget?: { x: number; y: number }): void {
+  update(dt: number, solids: readonly AABB[], worldWidth: number, combat?: CombatSystem, homingTarget?: { x: number; y: number },worldHeight:number=VIEW.height): void {
     const margin = PROJECTILES.boundsMargin;
     for (const projectile of this.items) {
       if (!projectile.active) continue;
@@ -71,7 +71,7 @@ export class ProjectileManager {
       const y = projectile.position.y + projectile.velocity.y * dt;
       projectile.lifeRemaining -= dt;
       if (projectile.lifeRemaining <= Number.EPSILON || x < -margin || x > worldWidth + margin
-        || y < -margin || y > VIEW.height + margin
+        || y < -margin || y > worldHeight + margin
         || (combat ? combat.resolveProjectile(projectile, x, y, solids)
           : this.collision.hitsSolidSegment(projectile.previousPosition.x, projectile.previousPosition.y,
             x, y, PROJECTILES.size / 2, solids))) {

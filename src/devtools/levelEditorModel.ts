@@ -1,6 +1,6 @@
 import { createLevel, parseLevel } from '../level/LevelDocument';
 import type { LevelDocument } from '../level/LevelDocument';
-export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss' | 'pickup';
+export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss' | 'pickup' | 'cameraZone' | 'killZone';
 export interface EditorObject { id: string; type: ObjectType; path: string[]; value: Record<string, unknown>; group?: string }
 export interface Patch { path: string[]; before: unknown; after: unknown }
 export class LevelEditorModel {
@@ -19,6 +19,8 @@ export class LevelEditorModel {
     for (const [key, type] of [['ground', 'solid'], ['platforms', 'platform'], ['checkpoints', 'checkpoint'], ['decorations', 'decoration']] as const) {
       this.data[key].forEach((item, i) => add(type, [key, String(i)], item));
     }
+    this.data.cameraZones?.forEach((item,i)=>add('cameraZone',['cameraZones',String(i)],item));
+    this.data.killZones?.forEach((item,i)=>add('killZone',['killZones',String(i)],item));
     this.data.spawnGroups.forEach((group, i) => {
       add('trigger', ['spawnGroups', String(i)], group);
       group.enemies.forEach((enemy, j) => add('enemy', ['spawnGroups', String(i), 'enemies', String(j)], enemy, group.id));
@@ -43,19 +45,25 @@ export class LevelEditorModel {
   get canUndo(): boolean { return !!this.undoStack.length; }
   get canRedo(): boolean { return !!this.redoStack.length; }
   set(ref: EditorObject, key: string, value: unknown): void {
-    this.commit([{ path: [...ref.path, key], before: ref.value[key], after: value }]);
+    const patches:Patch[]=[{path:[...ref.path,key],before:ref.value[key],after:value}];
+    if(ref.type==='checkpoint'&&ref.value.area&&(key==='x'||key==='y')&&typeof value==='number'){
+      const box=ref.value.area as Record<string,number>;
+      patches.push({path:[...ref.path,'area',key],before:box[key],after:box[key]!+value-Number(ref.value[key])});
+    }
+    this.commit(patches);
   }
   move(dx: number, dy: number): void {
     const objects = this.objects().filter(o => this.selection.has(o.id));
     const patches: Patch[] = [];
     for (const ref of objects) {
-      const keys = ref.type === 'trigger' ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft'] : ['x', 'y'];
+      const keys = ref.type === 'trigger' && ref.value.y===undefined ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft'] : ['x', 'y'];
+      for(const nested of ['area','arena','trigger'])if(ref.value[nested])for(const axis of ['x','y']){const obj=ref.value[nested] as Record<string,number>;patches.push({path:[...ref.path,nested,axis],before:obj[axis],after:obj[axis]!+(axis==='x'?dx:dy)});}
       for (const key of keys) patches.push({ path: [...ref.path, key], before: ref.value[key], after: Number(ref.value[key]) + (key === 'y' ? dy : dx) });
     }
     this.commit(patches);
   }
-  insert(collection: 'ground' | 'platforms' | 'checkpoints' | 'decorations' | 'spawnGroups', item: object): void {
-    const before = this.data[collection]; this.commit([{ path: [collection], before: structuredClone(before), after: [...before, item] }]);
+  insert(collection: 'ground' | 'platforms' | 'checkpoints' | 'decorations' | 'spawnGroups' | 'cameraZones' | 'killZones', item: object): void {
+    const before = this.data[collection]??[]; this.commit([{ path: [collection], before: structuredClone(before), after: [...before, item] }]);
     this.selection = new Set([String((item as Record<string, unknown>).id)]);
   }
   insertEnemy(groupId: string, enemy: object): void {
@@ -76,6 +84,7 @@ export class LevelEditorModel {
   }
   deleteSelection(): void {
     const patches: Patch[] = [];
+    for(const key of ['cameraZones','killZones'] as const)if(this.data[key]){const before=this.data[key]!,after=before.filter(z=>!this.selection.has(z.id));if(after.length!==before.length)patches.push({path:[key],before,after});}
     if (this.data.pickups) {
       const after = this.data.pickups.filter(p => !this.selection.has(p.id));
       if (after.length !== this.data.pickups.length) patches.push({ path: ['pickups'], before: structuredClone(this.data.pickups), after });
@@ -102,8 +111,10 @@ export class LevelEditorModel {
     for (const ref of refs) {
       if (ref.type === 'enemy' && refs.some(o => o.type === 'trigger' && o.id === ref.group)) continue;
       const copy = structuredClone(ref.value); copy.id = newId(ref.type); ids.push(String(copy.id)); copy.x = Number(copy.x) + 16;
-      if (ref.type !== 'trigger') copy.y = Number(copy.y) + 16;
+      if (ref.type !== 'trigger'||ref.value.y!==undefined) copy.y = Number(copy.y) + 16;
       else copy.enemies = (copy.enemies as Record<string, unknown>[]).map(e => ({ ...e, id: newId('enemy'), x: Number(e.x) + 16 }));
+      if(copy.area){const area=copy.area as Record<string,number>;area.x!+=16;area.y!+=16;}
+      if(ref.type==='checkpoint'&&copy.order!==undefined)copy.order=Math.max(...this.data.checkpoints.map(c=>c.order??0))+1;
       const path = ref.path.slice(0, -1), key = path.join('/');
       if (!collections.has(key)) {
         let before: unknown = this.data;

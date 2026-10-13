@@ -617,5 +617,6 @@
       "x": 3520,
       "y": 52
     }
-  ]
+  ],
+  "nextLevel": "levels/level-03.json"
 }

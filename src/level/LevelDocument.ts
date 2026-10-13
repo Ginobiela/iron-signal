@@ -1,4 +1,6 @@
 import type { LevelData } from './Level';
+import type { CameraZone } from '../camera/CameraZone';
+import type { AABB } from '../collision/CollisionSystem';
 import type { EnemyPlacement } from '../entities/enemies/EnemyManager';
 import { ASSETS } from '../config/assets';
 import { PARALLAX } from '../config/constants';
@@ -14,10 +16,12 @@ export interface LevelDocument extends LevelData {
   spawn: { id: string; x: number; y: number };
   ground: (LevelData['ground'][number] & { id: string })[];
   platforms: (LevelData['platforms'][number] & { id: string })[];
-  spawnGroups: { id: string; x: number; enemies: (EnemyPlacement & { id: string; facing?: -1 | 1 })[] }[];
+  spawnGroups: { id: string; x: number; y?:number;width?:number;height?:number; enemies: (EnemyPlacement & { id: string; facing?: -1 | 1 })[] }[];
   checkpoints: (LevelData['checkpoints'][number] & { id: string })[];
   boss: LevelData['boss'] & { id: string };
-  sections: { id: string; x: number; name: string }[];
+  sections: { id: string; x: number; name: string;area?:AABB }[];
+  cameraZones?:CameraZone[];
+  killZones?:(AABB&{id:string})[];
   decorations: Decoration[];
   backgrounds: BackgroundLayer[];
   automaticTerrain: boolean;
@@ -33,6 +37,8 @@ export function convertLegacyLevel(data: LevelData, id = 'level-01'): LevelDocum
   return {
     ...structuredClone(data), version: 1, id, height: 240, automaticTerrain: true,
     pickups: data.pickups?.map(p => ({ ...p })),
+    cameraZones:data.cameraZones?.map(z=>({...z})),
+    killZones:data.killZones?.map((z,i)=>({...z,id:'id' in z?String(z.id):`kill-${i}`})),
     spawn: { ...data.spawn, id: 'player-spawn' }, boss: { ...data.boss, id: 'boss' },
     ground: data.ground.map((o, i) => ({ ...o, id: `ground-${i + 1}` })),
     platforms: data.platforms.map((o, i) => ({ ...o, id: `platform-${i + 1}` })),
@@ -65,23 +71,40 @@ export function validateLevel(value: unknown): Validation {
   if (typeof value.name !== 'string' || !value.name.trim()) errors.push('Level name required.');
   if (value.nextLevel !== undefined && (typeof value.nextLevel !== 'string' || !/^levels\/[a-zA-Z0-9_-]+\.json$/.test(value.nextLevel))) errors.push('Invalid nextLevel: expected levels/<id>.json.');
   if (!num(value.width) || value.width < 256 || value.width > 100000) errors.push('World width must be 256–100000.');
-  if (value.height !== 240) errors.push('Current runtime supports height 240 only; vertical camera modes are not implemented.');
+  if (!num(value.height)||value.height<240||value.height>10000) errors.push('World height must be 240–10000.');
   if (typeof value.automaticTerrain !== 'boolean') errors.push('automaticTerrain must be boolean.');
-  if (value.environmentSkin !== undefined && value.environmentSkin !== 'underground') errors.push('Unknown environmentSkin.');
+  if (value.environmentSkin !== undefined && !['underground','tower'].includes(String(value.environmentSkin))) errors.push('Unknown environmentSkin.');
   const object = (v: unknown, label: string, size = false) => {
     if (!record(v)) { errors.push(`${label}: object required.`); return false; }
     if (typeof v.id !== 'string' || !v.id || ids.has(v.id)) errors.push(`${label}: missing/duplicate id.`);
     else ids.add(v.id);
     if (!num(v.x) || !num(v.y)) errors.push(`${label}: finite x/y required.`);
-    else if (num(value.width) && (v.x < 0 || v.x >= value.width || v.y < 0 || v.y > 240)) errors.push(`${label}: outside world.`);
+    else if (num(value.width) && (v.x < 0 || v.x >= value.width || v.y < 0 || !num(value.height) || v.y > value.height)) errors.push(`${label}: outside world.`);
     if (size && (!num(v.width) || !num(v.height) || v.width <= 0 || v.height <= 0)) errors.push(`${label}: positive width/height required.`);
     if (size && num(v.x) && num(v.width) && num(value.width)) {
       const half = label === 'decoration' && !v.tiled;
       if (v.x + v.width / (half ? 2 : 1) > value.width || (half && v.x - v.width / 2 < 0)) warnings.push(`${label}: extends beyond world.`);
     }
-    if (size && num(v.y) && num(v.height) && v.y + v.height > 240) warnings.push(`${label}: extends above world.`);
+    if (size && num(v.y) && num(v.height) && v.y + v.height > Number(value.height)) warnings.push(`${label}: extends above world.`);
     return true;
   };
+  const rect=(v:unknown,label:string):void=>{
+    if(!record(v)||!num(v.x)||!num(v.y)||!num(v.width)||!num(v.height)||v.width<=0||v.height<=0
+      ||v.x<0||v.y<0||v.x+v.width>Number(value.width)||v.y+v.height>Number(value.height))errors.push(`Invalid ${label} rectangle.`);
+  };
+  for(const key of ['cameraZones','killZones'])if(value[key]!==undefined){
+    if(!Array.isArray(value[key])||value[key].length>1000)errors.push(`Invalid ${key} array.`);
+    else for(const zone of value[key]){object(zone,key,true);rect(zone,key);
+      if(key==='cameraZones'&&record(zone)&&(!['HORIZONTAL_FOLLOW','VERTICAL_FOLLOW','LOCKED'].includes(String(zone.mode))
+        ||(zone.transitionDuration!==undefined&&(!num(zone.transitionDuration)||zone.transitionDuration<0||zone.transitionDuration>2))))errors.push('Invalid camera mode/transition.');}
+  }
+  if(value.exitArea!==undefined)rect(value.exitArea,'exitArea');
+  if(record(value.boss)){
+    if(value.boss.kind!==undefined&&value.boss.kind!=='gate')errors.push('Invalid boss kind.');
+    if(value.boss.kind==='gate'&&(value.boss.arena===undefined||value.boss.trigger===undefined||value.boss.encounter!==undefined))errors.push('Gate needs arena and trigger.');
+    if(value.boss.arena!==undefined)rect(value.boss.arena,'boss arena');
+    if(value.boss.trigger!==undefined)rect(value.boss.trigger,'boss trigger');
+  }
   object(value.spawn, 'playerSpawn'); object(value.boss, 'boss');
   if (record(value.boss) && (!num(value.boss.arenaLeft) || value.boss.arenaLeft < 0
     || !num(value.width) || value.boss.arenaLeft > value.width - 256
@@ -109,19 +132,23 @@ export function validateLevel(value: unknown): Validation {
   for (const item of array('platforms')) if (object(item, 'platform', true) && record(item)
     && !['solid', 'one-way'].includes(String(item.kind))) errors.push('Invalid platform kind.');
   for (const item of array('checkpoints')) if (object(item, 'checkpoint') && record(item)
-    && typeof item.name !== 'string') errors.push('Checkpoint name required.');
+    ) {
+      if(typeof item.name!=='string')errors.push('Checkpoint name required.');
+      if(item.area!==undefined){rect(item.area,'checkpoint');if(!num(item.order)||item.order<0||!Number.isInteger(item.order))errors.push('Checkpoint order required.');}
+    }
   for (const item of array('sections')) {
     if (!record(item) || typeof item.id !== 'string' || ids.has(item.id) || !num(item.x) || typeof item.name !== 'string') errors.push('Invalid section.');
-    else ids.add(item.id);
+    else {ids.add(item.id);if(item.area!==undefined)rect(item.area,'section');}
   }
   for (const group of array('spawnGroups')) {
     if (!record(group) || typeof group.id !== 'string' || ids.has(group.id) || !num(group.x)
       || group.x < 0 || !num(value.width) || group.x >= value.width || !Array.isArray(group.enemies)) { errors.push('Invalid spawn trigger.'); continue; }
     ids.add(group.id);
+    if(group.y!==undefined||group.width!==undefined||group.height!==undefined)rect(group,'trigger');
     if (!group.enemies.length) warnings.push(`${group.id}: trigger has no enemies.`);
     if (group.enemies.length > 1000) { errors.push('Too many enemies in trigger.'); continue; }
     for (const enemy of group.enemies) if (object(enemy, 'enemy') && record(enemy)) {
-      if (!['soldier', 'runner', 'turret', 'flying'].includes(String(enemy.kind))) errors.push('Invalid enemy kind.');
+      if (!['soldier', 'runner', 'turret', 'flying','robotDog'].includes(String(enemy.kind))) errors.push('Invalid enemy kind.');
       if (enemy.facing !== undefined && enemy.facing !== -1 && enemy.facing !== 1) errors.push('Invalid facing.');
       if (enemy.weaponDrop !== undefined && (enemy.kind !== 'flying' || !['M', 'S', 'L'].includes(String(enemy.weaponDrop)))) errors.push('Invalid FlyingEnemy drop.');
       if (enemy.firingMode !== undefined && (enemy.kind !== 'turret' || !['aimed', 'horizontal'].includes(String(enemy.firingMode)))) errors.push('Invalid Turret firingMode.');
