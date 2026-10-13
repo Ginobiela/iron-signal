@@ -57,6 +57,7 @@ Se usa el [mapping standard de Gamepad API](https://www.w3.org/TR/gamepad/#remap
 | Enter | Comenzar desde menú; nueva partida tras game over o completar la ruta; continuar desde pausa |
 | F1 | Mostrar debug y bounding boxes |
 | F2 | Mostrar sprite bounds, anchors y orígenes visuales |
+| F11 | Pantalla completa: solo juego, sin header/footer, proporción original y barras negras laterales. F11 o Esc sale; también disponible desde el botón superior |
 | Escape | Pausar / reanudar la partida |
 
 Fijar posición es una acción mantenida, no un toggle: no congela gravedad ni bloquea el salto. Sin K/LT, S conserva crouch y S + Space conserva drop-through. Durante K/LT, abajo se usa para apuntar; Space salta normalmente. Las balas respetan sólidos y pueden atravesar one-way como antes. Se reutilizan aim_down/aim_diagonalDown y jumpShoot_down/jumpShoot_diagonalDown, sin PNG nuevos. Verificación de navegador: `node scripts/aim-lock-check.cjs` (Vite :5173, joystick simulado).

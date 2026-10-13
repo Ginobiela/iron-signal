@@ -139,6 +139,11 @@ describe('keyboard state', () => {
 });
 
 describe('display scaling', () => {
+  it('fills fullscreen height with side bars without stretching or integer-scale top margins', () => {
+    expect(getDisplaySize(1920,1080,false)).toEqual({width:1152,height:1080});
+    const portrait=getDisplaySize(600,900,false);
+    expect(portrait.width).toBe(600); expect(portrait.height).toBe(562.5);
+  });
   it.each([[1920, 1080], [1920, 1200], [1024, 768], [200, 180]])(
     'fits %i×%i without stretching the logical view', (width, height) => {
       const size = getDisplaySize(width, height);

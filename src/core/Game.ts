@@ -165,6 +165,7 @@ export class Game {
     this.loop = new GameLoop(this.update, this.render);
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(viewport);
+    document.addEventListener('fullscreenchange', this.resize);
     document.addEventListener('visibilitychange', this.onVisibility);
     window.addEventListener('blur', this.onBlur);
     if (this.volumeControl) {
@@ -221,6 +222,7 @@ export class Game {
     this.touchControls?.dispose();
     this.input.dispose();
     this.resizeObserver.disconnect();
+    document.removeEventListener('fullscreenchange', this.resize);
     document.removeEventListener('visibilitychange', this.onVisibility);
     window.removeEventListener('blur', this.onBlur);
     this.volumeControl?.removeEventListener('input', this.onVolume);
@@ -533,7 +535,8 @@ export class Game {
   };
 
   private readonly resize = (): void => {
-    const size = getDisplaySize(this.viewport.clientWidth, this.viewport.clientHeight);
+    const fullscreen = document.fullscreenElement?.contains(this.viewport) ?? false;
+    const size = getDisplaySize(this.viewport.clientWidth, this.viewport.clientHeight, !fullscreen);
     this.renderer.domElement.style.width = `${size.width}px`;
     this.renderer.domElement.style.height = `${size.height}px`;
   };
