@@ -67,6 +67,11 @@ const assert = require('node:assert/strict');
       }
       if(g.boss.health>=health||g.boss.alive||g.states.state!=='LEVEL_COMPLETE')throw Error(`Boss defeat/extraction failed: ${g.boss.health}, ${g.states.state}, x=${p.position.x}`);
       if(g.projectiles.activeCount)throw Error('Attacks remain after completion');
+      for(let n=0;n<60;n++)step();
+      const corpse=g.bossView.sprite;
+      if(!g.bossView.root.visible||!corpse.mesh.visible||!corpse.animator.completed||corpse.animator.frame!==5)
+        throw Error('Mecha corpse did not retain the final death frame');
+      if(corpse.mesh.material.color.getHex()!==0xffffff)throw Error('Corpse retained hit-flash tint');
       return {level:g.levelData.name,checkpoints:g.checkpoints.items.length,kills:g.combat.kills,traversalPickups,weapon:p.weapon.name,state:g.states.state};
     }));
     // Verify editor can load/edit the new encounter and export a valid round-trip document.

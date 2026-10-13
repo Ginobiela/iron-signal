@@ -70,8 +70,8 @@ export class BossView {
       : this.boss.encounter ? this.fireTimer > 0 ? 'fire' : this.boss.state === 'CHASE' ? 'move' : 'idle'
       : this.boss.state === 'ATTACK' || this.boss.state === 'TELEGRAPH' ? 'attack' : 'idle';
     this.placeholder.visible = !this.sprite.update(`${this.boss.visualPrefix}.${animation}`, dt, !!this.boss.encounter, dead ? '' : `${this.boss.visualPrefix}.idle`);
-    if (dead && this.sprite.available && this.sprite.animator.completed) this.root.visible = false;
-    const flash = this.boss.hitFlashTimer > 0 || this.boss.shieldFlashTimer > 0;
+    if (dead && !this.boss.encounter && this.sprite.available && this.sprite.animator.completed) this.root.visible = false;
+    const flash = !dead && (this.boss.hitFlashTimer > 0 || this.boss.shieldFlashTimer > 0);
     this.sprite.tint(flash ? 0xfff3c4 : 0xffffff);
     this.armor.color.setHex(flash ? 0xfff3c4 : dead ? 0x273b49 : 0x456260);
     this.core.color.setHex(dead ? 0x172631 : this.boss.vulnerable ? 0xffe3a2

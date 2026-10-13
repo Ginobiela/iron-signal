@@ -16,7 +16,7 @@ import { PursuitBoss } from '../src/bosses/PursuitBoss';
 import { BossView } from '../src/rendering/BossView';
 import { ProjectileManager } from '../src/projectiles/ProjectileManager';
 
-it('mecha visuals reflect missile fire and finish death without generating gameplay attacks', async () => {
+it('mecha visuals reflect missile fire and retain the final death frame without generating gameplay attacks', async () => {
   vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async () =>
     new Texture({ width: 768, height: 160 } as HTMLImageElement));
   const assets = new AssetManager(Object.fromEntries(Object.entries(ASSETS).filter(([id]) => id.startsWith('boss.mecha.'))));
@@ -38,7 +38,14 @@ it('mecha visuals reflect missile fire and finish death without generating gamep
   view.update(.3); expect(visibleTexture('boss.mecha.move')).toBe(true);
   expect(projectiles.totalSpawned).toBe(1);
   boss.takeDamage(boss.health); view.update(); expect(visibleTexture('boss.mecha.death')).toBe(true);
-  view.update(.61); expect(view.root.visible).toBe(false);
+  view.update(.61); expect(view.root.visible).toBe(true);
+  const sprite = (view as unknown as {sprite: SpriteVisual}).sprite;
+  expect(sprite.animator.completed).toBe(true); expect(sprite.animator.frame).toBe(5);
+  expect(sprite.mesh.visible).toBe(true); expect(sprite.mesh.material.color.getHex()).toBe(0xffffff);
+  const position = {...boss.position};
+  boss.update(5,context); view.update(5);
+  expect(view.root.visible).toBe(true); expect(sprite.animator.frame).toBe(5);
+  expect(boss.position).toEqual(position); expect(boss.alive).toBe(false); expect(boss.active).toBe(false);
   expect(projectiles.totalSpawned).toBe(1);
   view.dispose(); assets.dispose();
 });
