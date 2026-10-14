@@ -907,6 +907,39 @@
       "layer": "back",
       "tiled": false,
       "flipX": false
+    },
+    {
+      "id": "entry-pipe",
+      "asset": "environment.tower.prop.pipe",
+      "x": 240,
+      "y": 44,
+      "width": 32,
+      "height": 48,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "corridor-console",
+      "asset": "environment.tower.prop.console",
+      "x": 752,
+      "y": 556,
+      "width": 32,
+      "height": 24,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
+    },
+    {
+      "id": "boss-access-gate",
+      "asset": "environment.tower.prop.gate",
+      "x": 1712,
+      "y": 1356,
+      "width": 48,
+      "height": 80,
+      "layer": "back",
+      "tiled": false,
+      "flipX": false
     }
   ]
 }

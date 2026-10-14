@@ -56,9 +56,9 @@ El spawn ocurre al entrar en OPEN y comprueba el límite de perros activos perte
 
 Tuner añade CAMERA (`verticalDeadzone`, `verticalFollowSpeed`, `cameraTransitionDuration`), ROBOT DOG (`health`, `speed`, `contactDamage`, `activationDistance`, `jumpSpeed`, `spawnCooldown`) y FORTIFIED GATE (`mainHealth`, `turretHealth`, `turretFireCooldown`, `turretBulletSpeed`, `hatchCooldown`, `maxActiveDogs`). HP al recrear/reiniciar; velocidad/timing afectan updates o eventos nuevos. Defaults de Levels 1/2 no cambiaron.
 
-## Contrato externo — 31 PNG pendientes
+## Arte integrado — 31 PNG
 
-**No se generó arte.** Todos estos IDs están preparados sin URL y muestran fallback. Tras producir PNG que coincidan con las dimensiones, activar sus URL en `src/config/assets.ts`. Source es 2× world; alpha binario, NearestFilter, sin smoothing, spritesheets horizontales. No cambiar colliders para acomodar dibujos.
+**Entrega externa integrada.** Los 31 PNG están activos en `src/config/assets.ts` y ubicados en las rutas canónicas de `public/assets/` indicadas abajo. Se verificaron dimensiones, frames y RGBA con alpha binario; no se modificaron las imágenes. Source es 2× world; alpha binario, NearestFilter, sin smoothing, spritesheets horizontales. No cambiar colliders para acomodar dibujos.
 
 ### Tiles: `public/assets/environment/tiles/tower/`
 
@@ -153,5 +153,14 @@ Validación final: **377 tests en 29 archivos**, typecheck, build release y buil
 - `tests/level3.test.ts`: cámara XY/modos/transiciones/bounds, carga, checkpoints por orden, triggers con rollback, activación y proyectiles elevados, daños por componentes y operaciones del editor.
 - `scripts/level3-check.cjs`: 44 saltos reales guiados, pickups, tres CameraModes, muerte/respawn elevado, torretas con tiros reales desde alturas distintas, hatches/dogs/límite, reset y salida. Después dibuja/edita una Camera Zone, crea trigger2D + RobotDog y verifica PLAY FROM HERE alto. Fixtures invulnerables: valida flujo y alcance, no dificultad humana.
 - Levels 1/2: tests anteriores conservados y scripts de editor legacy, Level 2, campaña/respawn pasan. El cambio de expectativa del Animation Viewer incluye los cuatro nuevos grupos, no elimina assertions.
-- Muestra Chrome headless local, 1100×900: Level 1 57 FPS/83 draw calls/23 texturas; shaft 57 FPS/167 calls/3 texturas; arena 57–58 FPS/118–119 calls/5 texturas. Referencia simultánea, sin caída de FPS detectada; no certifica 60 FPS en hardware real. Texturas de arte nuevo aún no cargadas.
+- Muestra Chrome headless local, 1100×900: Level 1 57 FPS/83 draw calls/23 texturas; shaft 57 FPS/167 calls/3 texturas; arena 57–58 FPS/118–119 calls/5 texturas. Referencia simultánea, sin caída de FPS detectada; no certifica 60 FPS en hardware real. Esta medición corresponde a la infraestructura anterior a integrar el arte definitivo; no mide el costo de los 31 PNG nuevos.
 - Sin wall jump, double jump, dash, física nueva, iluminación ni nuevo renderer. RobotDog usa AI simple, no pathfinding. El kit definitivo y el balance requieren revisión humana con arte disponible. No se promete duración exacta de una partida.
+
+
+## Validación de la entrega integrada
+
+31 PNG activados sin rescale ni edición: 12 tiles, 4 props, 3 backgrounds, warning light, 3 clips de Robot Dog y 8 clips del boss. Tamaños world, anchors bottom-center/center y offsets cero conservados. Las torretas incluyen el cañón en su sprite y no muestran el gun placeholder.
+
+El panel y warning light ya colocados usan su arte real; se añadieron únicamente decoraciones sin collider: tubería en (240,44), consola en (752,556) y puerta decorativa en (1712,1356). La geometría, spawns y gameplay permanecen iguales. Las copias idénticas encontradas bajo `public/environment/` no se usan ni se publican; las rutas canónicas son las de `public/assets/`.
+
+`tests/art-resolution.test.ts` valida los 31 headers PNG contra el manifest. `scripts/level3-assets-check.cjs` verifica carga real, dimensiones, NearestFilter, frames, flip y componentes del boss sin arma duplicada. `scripts/level3-check.cjs` vuelve a completar el recorrido de 44 saltos, respawn elevado y boss con los assets cargados. Resultado: 378 tests, typecheck y build correctos. No quedan PNG faltantes de este contrato de Level 3.

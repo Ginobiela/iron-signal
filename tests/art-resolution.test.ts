@@ -24,6 +24,24 @@ async function load(manifest: Record<string, SpriteAsset>): Promise<AssetManager
 }
 
 describe('mixed 1×/2× art, same world', () => {
+  it('loads the 31 delivered tower, dog and gate PNGs at their contracted 2× density', async () => {
+    const { readFileSync } = await vi.importActual<{ readFileSync(url: URL): Uint8Array }>('node:fs');
+    const delivered = Object.entries(ASSETS).filter(([id]) =>
+      id.includes('.tower.') || /^(robotDog|bossGate|bossGateTurret|bossGateHatch)\./.test(id));
+    expect(delivered).toHaveLength(31);
+    for (const [, asset] of delivered) {
+      expect(asset.url).toBe(asset.path);
+      const png = readFileSync(new URL(`../public/${asset.path}`, import.meta.url));
+      const header = new DataView(png.buffer, png.byteOffset, png.byteLength);
+      expect([header.getUint32(16), header.getUint32(20)]).toEqual([
+        asset.sheet.frameWidth * asset.sheet.frameCount, asset.sheet.frameHeight,
+      ]);
+      expect(asset.artScale).toBe(2);
+      expect(asset.visual).toMatchObject({ offsetX: 0, offsetY: 0 });
+    }
+    expect(ASSETS['bossGateTurret.fire']!.includesWeapon).toBe(true);
+  });
+
   it('matches all delivered Turret strips to 48px frames at the original world size', async () => {
     const { readFileSync } = await vi.importActual<{ readFileSync(url: URL): Uint8Array }>('node:fs');
     for (const [clip, frames, fps] of [['idle', 2, 6], ['shoot', 3, 10], ['death', 6, 10]] as const) {

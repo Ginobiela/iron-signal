@@ -167,18 +167,23 @@ for (const [clip, frames, fps, loop] of [['idle',4,6,true],['move',6,10,true],['
 }
 ASSETS['projectile.enemy.missile'] = withArtScale(sprite('sprites/boss/mecha/boss_missile', 12, 6, 2, 12, 'center'), 2);
 ASSETS['projectile.enemy.missile'].url = ASSETS['projectile.enemy.missile'].path;
-// Tower, gate and dog art contracts remain fallbacks until external PNGs are supplied.
+// Approved tower kit uses 2× sources with the original world sizes and anchors.
 for(const [id,asset] of Object.entries(ASSETS))if(id.includes('.underground.')){
   const next=id.replace('.underground.','.tower.');
-  ASSETS[next]={...asset,url:undefined,path:asset.path.replace('/underground/','/tower/').replace('ground_future','ground_tower').replace('bg_underground','bg_tower')};
+  const path=asset.path.replace('/underground/','/tower/').replace('ground_future','ground_tower').replace('bg_underground','bg_tower');
+  ASSETS[next]={...asset,path,url:path};
 }
 for(const [prefix,file,w,h,clips] of [
   ['robotDog','enemies/robotDog/robot_dog',24,16,[['run',6,12,true],['attack',2,12,true],['death',5,10,false]]],
   ['bossGate','boss/gate/boss_gate',64,80,[['idle',1,1,true],['damage',2,12,false],['destroy',6,10,false]]],
   ['bossGateTurret','boss/gate/boss_gate_turret',32,32,[['idle',1,1,true],['fire',3,12,false],['destroy',5,10,false]]],
   ['bossGateHatch','boss/gate/boss_gate_hatch',32,32,[['open',3,10,false],['close',3,10,false]]],
-] as const)for(const [clip,count,fps,loop] of clips)ASSETS[`${prefix}.${clip}`]=withArtScale(sprite(`sprites/${file}_${clip}`,w,h,count,fps,'bottom-center',loop),2);
+] as const)for(const [clip,count,fps,loop] of clips){
+  const asset=withArtScale(sprite(`sprites/${file}_${clip}`,w,h,count,fps,'bottom-center',loop),2);
+  ASSETS[`${prefix}.${clip}`]={...asset,url:asset.path,includesWeapon:prefix==='bossGateTurret'};
+}
 ASSETS['environment.tower.animated.light']=withArtScale(sprite('environment/animated/tower/warning_light',16,16,4,6),2);
+ASSETS['environment.tower.animated.light'].url=ASSETS['environment.tower.animated.light'].path;
 for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
   ASSETS[`flying.carrier.${kind}`] = {
     ...sprite('sprites/enemies/flying/flying_carrier_labels', 3, 5, 3, 1),
