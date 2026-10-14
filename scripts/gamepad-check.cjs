@@ -50,6 +50,8 @@ const assert = require('node:assert/strict');
     await page.evaluate(() => { testPad.buttons[2].pressed = false; testPad.buttons[2].value = 0; window.dispatchEvent(new Event('focus')); });
     await button(0, true); await page.waitForFunction(() => g.states.state === 'PLAYING');
     await page.reload(); await page.waitForFunction(() => window.g?.states.state === 'MENU');
+    await button(13, true); await page.waitForFunction(() => document.activeElement?.textContent === 'SELECT LEVEL');
+    await button(13, false); await page.waitForTimeout(50);
     await button(13, true); await page.waitForFunction(() => document.activeElement?.textContent === 'BOSS RUN');
     await button(13, false); await page.waitForTimeout(50);
     await button(0, true); await page.waitForURL('**/?mode=boss');

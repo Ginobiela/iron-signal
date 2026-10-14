@@ -7,12 +7,17 @@ import type { InputManager } from '../core/InputManager';
 
 export class Menu {
   private lastText = '';
+  private page: 'main' | 'levels' | 'tools' = 'main';
+  private paused = false;
 
   constructor(private readonly element: HTMLElement, private readonly onStart: () => void, private readonly levelName = 'COMPLEJO DE RELEVO') {}
 
-  handleGamepad(input: InputManager): void {
+  handleInput(input: InputManager): void {
     const direction = Number(input.gamepadWasPressed('down')) - Number(input.gamepadWasPressed('up'));
-    const confirm = input.gamepadWasPressed('jump') || input.gamepadWasPressed('pause');
+    if (this.page !== 'main' && input.wasPressed('pause')) {
+      input.clear(); this.showPage('main'); return;
+    }
+    const confirm = input.gamepadWasPressed('jump') || input.gamepadWasPressed('pause') || input.wasPressed('start');
     if (!direction && !confirm) return;
     const items = Array.from(this.element.querySelectorAll<HTMLElement>('button, a'));
     if (!items.length) return;
@@ -38,36 +43,48 @@ export class Menu {
     if (text === this.lastText) return;
     this.lastText = text;
     this.element.dataset.state = states.state;
+    this.page = 'main';
+    this.paused = states.state === 'PAUSED';
     this.element.textContent = text;
-    if (states.state === 'MENU') {
-      const start = document.createElement('button');
-      start.type = 'button'; start.className = 'viewer-link'; start.textContent = 'COMENZAR';
-      start.addEventListener('click', () => { start.blur(); this.onStart(); });
-      this.element.append(document.createElement('br'), start);
-      const bossRun = document.createElement('a');
-      const levelUrl = new URLSearchParams(location.search).get('level');
-      bossRun.href = `./?mode=boss${levelUrl ? `&level=${encodeURIComponent(levelUrl)}` : ''}`;
-      const level1 = document.createElement('a'); level1.href = './'; level1.className = 'viewer-link'; level1.textContent = 'LEVEL 1 · COMPLEJO DE RELEVO';
-      bossRun.className = 'viewer-link';
-      bossRun.textContent = 'BOSS RUN';
-      this.element.append(document.createElement('br'), bossRun);
-      const level2 = document.createElement('a'); level2.href = './?level=levels/level-02.json';
-      level2.className = 'viewer-link'; level2.textContent = 'LEVEL 2 · NEXO SUBTERRÁNEO';
-      this.element.append(document.createElement('br'), level2);
-      this.element.append(document.createElement('br'), level1);
-      const level3=document.createElement('a');level3.href='./?level=levels/level-03.json';level3.className='viewer-link';level3.textContent='LEVEL 3 · TORRE BASTIÓN';this.element.append(document.createElement('br'),level3);
-      if (DEV_TOOLS) {
-        for (const [href, label] of [
-          ['./animation-viewer.html', 'ANIMATION VIEWER'],
-          ['./level-editor.html', 'TOOLS · LEVEL EDITOR'],
-          ['./gameplay-tuner.html', 'TOOLS · GAMEPLAY TUNER'],
-        ] as const) {
-          const link = document.createElement('a');
-          link.href = href; link.className = 'viewer-link'; link.textContent = label;
-          this.element.append(document.createElement('br'), link);
-        }
-      }
-    }
+    if (states.state === 'MENU' || this.paused) this.showPage('main', false);
     this.element.hidden = text === '';
   }
+  private showPage(page: 'main' | 'levels' | 'tools', focus = true): void {
+    this.page = page;
+    this.element.textContent = page === 'main' ? this.lastText : `${this.paused ? 'PAUSA' : 'IRON SIGNAL'}\n${page === 'levels' ? 'SELECT LEVEL' : 'TOOLS'}`;
+    const actions = document.createElement('div');
+    actions.className = 'menu-actions';
+    const button = (label: string, action: () => void): void => {
+      const item = document.createElement('button');
+      item.type = 'button'; item.className = 'viewer-link'; item.textContent = label;
+      item.addEventListener('click', action); actions.append(item);
+    };
+    const link = (label: string, href: string): void => {
+      const item = document.createElement('a');
+      item.className = 'viewer-link'; item.textContent = label; item.href = href; actions.append(item);
+    };
+    if (page === 'main') {
+      button(this.paused ? 'CONTINUAR' : 'COMENZAR', () => {
+        (document.activeElement as HTMLElement | null)?.blur(); this.onStart();
+      });
+      button('SELECT LEVEL', () => this.showPage('levels'));
+      const levelUrl = new URLSearchParams(location.search).get('level');
+      link('BOSS RUN', `./?mode=boss${levelUrl ? `&level=${encodeURIComponent(levelUrl)}` : ''}`);
+      if (DEV_TOOLS) button('TOOLS', () => this.showPage('tools'));
+    } else {
+      if (page === 'levels') {
+        link('LEVEL 1 · COMPLEJO DE RELEVO', './');
+        link('LEVEL 2 · NEXO SUBTERRÁNEO', './?level=levels/level-02.json');
+        link('LEVEL 3 · TORRE BASTIÓN', './?level=levels/level-03.json');
+      } else if (DEV_TOOLS) {
+        link('GAMEPLAY TUNER', './gameplay-tuner.html');
+        link('SPRITE VIEWER', './animation-viewer.html');
+        link('LEVEL EDITOR', './level-editor.html');
+      }
+      button('VOLVER', () => this.showPage('main'));
+    }
+    this.element.append(actions);
+    if (focus) actions.querySelector<HTMLElement>('button, a')?.focus();
+  }
+
 }

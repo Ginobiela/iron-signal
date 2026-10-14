@@ -260,7 +260,7 @@ export class Game {
     this.input.pollGamepads();
     if (DEV_TOOLS && this.devPaused) { this.input.clear(); return; }
     this.ticks++;
-    if (this.states.state === 'MENU') this.menu.handleGamepad(this.input);
+    if (this.states.state === 'MENU' || this.states.state === 'PAUSED') this.menu.handleInput(this.input);
     if (this.input.wasPressed('start') || (this.states.state !== 'PLAYING' && this.input.gamepadWasPressed('jump'))) this.startOrResume();
     if (this.input.wasPressed('pause')) {
       this.states.togglePause();

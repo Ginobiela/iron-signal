@@ -23,7 +23,7 @@ footer p { width: 100%; margin: 0; font-size: 11px; line-height: 1.5; }
 #game-menu:not([hidden]) { animation: menu-enter 120ms ease-out; }
 #game-menu[data-state="PLAYER_DEAD"] { border-color: #ff776b; }
 #game-menu[data-state="LEVEL_COMPLETE"] { border-color: #99edff; }
-#game-menu[data-state="MENU"] { max-height: 95%; overflow-y: auto; pointer-events: auto; }
+#game-menu[data-state="MENU"], #game-menu[data-state="PAUSED"] { max-height: 95%; overflow-y: auto; pointer-events: auto; }
 #powerup-notice:not([hidden]) { animation: notice-enter 100ms ease-out; }
 @keyframes menu-enter { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes notice-enter { from { opacity: 0; } to { opacity: 1; } }
@@ -90,3 +90,6 @@ footer p { width: 100%; margin: 0; font-size: 11px; line-height: 1.5; }
 #app:fullscreen #viewport { width: 100%; height: 100%; }
 #app:fullscreen #touch-controls { position: fixed; bottom: max(14px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); width: auto; z-index: 5; pointer-events: none; }
 #app:fullscreen #touch-controls > * { pointer-events: auto; }
+
+#game-menu .menu-actions { display: grid; gap: 8px; margin-top: 16px; white-space: normal; }
+#game-menu .menu-actions .viewer-link { display: block; margin: 0; width: 100%; }
