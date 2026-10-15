@@ -4,11 +4,15 @@ import type { ScoreManager } from '../core/ScoreManager';
 import type { CheckpointManager } from '../level/Checkpoint';
 import { DEV_TOOLS } from '../config/devtools';
 import type { InputManager } from '../core/InputManager';
+type MenuPage = 'main' | 'levels' | 'tools' | 'controls' | 'sound';
 
 export class Menu {
   private lastText = '';
-  private page: 'main' | 'levels' | 'tools' = 'main';
+  private page: MenuPage = 'main';
   private paused = false;
+  private readonly settings = document.querySelector<HTMLElement>('#menu-settings');
+  private readonly controls = document.querySelector<HTMLElement>('#controls-info');
+  private readonly sound = document.querySelector<HTMLElement>('#sound-settings');
 
   constructor(private readonly element: HTMLElement, private readonly onStart: () => void, private readonly levelName = 'COMPLEJO DE RELEVO') {}
 
@@ -45,13 +49,22 @@ export class Menu {
     this.element.dataset.state = states.state;
     this.page = 'main';
     this.paused = states.state === 'PAUSED';
+    this.parkSettings();
     this.element.textContent = text;
     if (states.state === 'MENU' || this.paused) this.showPage('main', false);
     this.element.hidden = text === '';
   }
-  private showPage(page: 'main' | 'levels' | 'tools', focus = true): void {
+  private parkSettings(): void {
+    // Preserve the actual volume control/listeners and keep it discoverable across level changes.
+    if (this.controls) this.settings?.append(this.controls);
+    if (this.sound) this.settings?.append(this.sound);
+  }
+
+  private showPage(page: MenuPage, focus = true): void {
+    this.parkSettings();
     this.page = page;
-    this.element.textContent = page === 'main' ? this.lastText : `${this.paused ? 'PAUSA' : 'IRON SIGNAL'}\n${page === 'levels' ? 'SELECT LEVEL' : 'TOOLS'}`;
+    const titles = { main: '', levels: 'SELECT LEVEL', tools: 'TOOLS', controls: 'CONTROLES', sound: 'SONIDO' };
+    this.element.textContent = page === 'main' ? this.lastText : `${this.paused ? 'PAUSA' : 'IRON SIGNAL'}\n${titles[page]}`;
     const actions = document.createElement('div');
     actions.className = 'menu-actions';
     const button = (label: string, action: () => void): void => {
@@ -71,15 +84,21 @@ export class Menu {
       const levelUrl = new URLSearchParams(location.search).get('level');
       link('BOSS RUN', `./?mode=boss${levelUrl ? `&level=${encodeURIComponent(levelUrl)}` : ''}`);
       if (DEV_TOOLS) button('TOOLS', () => this.showPage('tools'));
+      button('CONTROLES', () => this.showPage('controls'));
+      button('SONIDO', () => this.showPage('sound'));
     } else {
       if (page === 'levels') {
         link('LEVEL 1 · COMPLEJO DE RELEVO', './');
         link('LEVEL 2 · NEXO SUBTERRÁNEO', './?level=levels/level-02.json');
         link('LEVEL 3 · TORRE BASTIÓN', './?level=levels/level-03.json');
-      } else if (DEV_TOOLS) {
+      } else if (page === 'tools' && DEV_TOOLS) {
         link('GAMEPLAY TUNER', './gameplay-tuner.html');
         link('SPRITE VIEWER', './animation-viewer.html');
         link('LEVEL EDITOR', './level-editor.html');
+      } else if (page === 'controls' && this.controls) {
+        this.element.append(this.controls);
+      } else if (page === 'sound' && this.sound) {
+        this.element.append(this.sound);
       }
       button('VOLVER', () => this.showPage('main'));
     }

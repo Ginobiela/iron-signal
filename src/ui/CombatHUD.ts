@@ -34,7 +34,6 @@ export class CombatHUD {
     this.lastSection = section;
     this.lastWeapon = player.weapon.name;
     this.lastCheckpoint = checkpoint.name;
-    this.element.textContent = `SCORE ${formatScore(score.value)} · RÉCORD ${formatScore(score.highScore)} · VIDAS ${states.lives} · ARMA ${player.weapon.name}\n`
-      + `${section.toUpperCase()} · ${progress}% · CHECKPOINT ${checkpoint.name.toUpperCase()}`;
+    this.element.textContent = `SCORE ${formatScore(score.value)} · VIDAS ${states.lives} · ARMA ${player.weapon.name}`;
   }
 }

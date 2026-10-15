@@ -23,10 +23,28 @@ const assert = require('node:assert/strict');
         assert.equal(await menu.getByRole('link', { name: label, exact: true }).getAttribute('href'), href);
       }
       await menu.getByRole('button', { name: 'VOLVER', exact: true }).click();
+      await menu.getByRole('button', { name: 'CONTROLES', exact: true }).click();
+      assert.equal(await menu.locator('#controls-info').isVisible(), true);
+      assert.match(await menu.locator('#controls-info').innerText(), /mantener K/);
+      await menu.getByRole('button', { name: 'VOLVER', exact: true }).click();
+      await menu.getByRole('button', { name: 'SONIDO', exact: true }).click();
+      assert.equal(await menu.locator('#audio-volume').isVisible(), true);
+      const volume = await menu.locator('#audio-volume').inputValue();
+      await menu.locator('#audio-volume').evaluate(el => { el.value = '0.2'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+      assert.equal(await page.evaluate(() => g.audio.volume), .2);
+      await menu.getByRole('button', { name: 'VOLVER', exact: true }).click();
+      await menu.getByRole('button', { name: 'SONIDO', exact: true }).click();
+      assert.equal(await menu.locator('#audio-volume').inputValue(), '0.2');
+      await menu.locator('#audio-volume').evaluate((el, value) => { el.value = value; el.dispatchEvent(new Event('input', { bubbles: true })); }, volume);
+      await menu.getByRole('button', { name: 'VOLVER', exact: true }).click();
     }
     await checkGroups();
     await menu.getByRole('button', { name: 'COMENZAR', exact: true }).click();
     await page.waitForFunction(() => g.states.state === 'PLAYING');
+    assert.equal(await page.locator('#audio-volume').isVisible(), false);
+    assert.equal(await page.locator('#controls-info').isVisible(), false);
+    assert.equal(await page.locator('footer, .badge').count(), 0);
+    assert.equal(await page.locator('#combat-status').evaluate(el => el.getBoundingClientRect().bottom <= document.querySelector('canvas').getBoundingClientRect().top), true);
     await page.keyboard.press('Escape');
     await menu.getByRole('button', { name: 'CONTINUAR', exact: true }).waitFor();
     const ticks = await page.evaluate(() => g.player.position.x);

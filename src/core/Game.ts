@@ -123,7 +123,7 @@ export class Game {
   private readonly levelPickups = new Set<string>();
 
   constructor(private readonly viewport: HTMLElement, private readonly debug: HTMLElement,
-    status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData,
+    private readonly status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData,
     private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE,
     private readonly onLevelComplete?: (nextLevel: string) => void,
     ephemeralSession = false) {
@@ -606,7 +606,7 @@ export class Game {
 
   private readonly resize = (): void => {
     const fullscreen = document.fullscreenElement?.contains(this.viewport) ?? false;
-    const size = getDisplaySize(this.viewport.clientWidth, this.viewport.clientHeight, !fullscreen);
+    const size = getDisplaySize(this.viewport.clientWidth, this.viewport.clientHeight - this.status.offsetHeight, !fullscreen);
     this.renderer.domElement.style.width = `${size.width}px`;
     this.renderer.domElement.style.height = `${size.height}px`;
   };
