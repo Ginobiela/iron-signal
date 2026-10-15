@@ -5,6 +5,7 @@ import type { VfxConfig } from './vfx';
 import { ENVIRONMENT_ASSETS } from './environment';
 import type { EnvironmentAsset } from './environment';
 import { withArtScale } from '../rendering/artDimensions';
+import { PROJECTILE_ART } from './projectileArt';
 
 export interface AtlasFrame { x: number; y: number; width: number; height: number }
 export interface SpriteSheet {
@@ -190,6 +191,12 @@ for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
     url: 'assets/sprites/enemies/flying/flying_carrier_labels.png',
     visual: { ...visual(3, 5), offsetX: 0.5, offsetY: 3 }, clip: { frames: [frame], frameRate: 1, loop: true },
   };
+}
+
+// Single-frame 2× projectile art; world envelopes match the previous fallback renderer.
+for (const [id, file] of Object.entries(PROJECTILE_ART)) {
+  const asset = withArtScale(sprite(`sprites/projectiles/${file}`, file === 'player_laser' ? 12 : 3, 3, 1, 1, 'center'), 2);
+  ASSETS[id] = { ...asset, url: asset.path };
 }
 
 export const DRAW = {

@@ -8,6 +8,8 @@ export class Projectile {
   damage = 0;
   owner: ProjectileOwner = 'player';
   style: ProjectileStyle = 'bullet';
+  /** Rendering only; never used by collision, damage or steering. */
+  visualId = '';
   active = false;
   lifeRemaining = 0;
   fresh = true;

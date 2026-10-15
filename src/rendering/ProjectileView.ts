@@ -45,7 +45,8 @@ export class ProjectileView {
       if (!projectile || !sprite) continue;
       sprite.root.visible = projectile.active;
       if (!projectile.active) { sprite.reset(); continue; }
-      const textured = sprite.update(`projectile.${projectile.owner}.${projectile.style}`, dt);
+      const fallbackId = `projectile.${projectile.owner}.${projectile.style}`;
+      const textured = sprite.update(projectile.visualId || fallbackId, dt, false, fallbackId);
       sprite.root.position.set(Math.round(projectile.position.x), Math.round(projectile.position.y), DRAW.projectile);
       sprite.root.rotation.z = Math.atan2(projectile.velocity.y, projectile.velocity.x);
       this.transform.position.set(Math.round(projectile.position.x), Math.round(projectile.position.y), DRAW.projectile);

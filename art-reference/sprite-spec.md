@@ -18,6 +18,28 @@ para acomodar ilustraciones. No se necesitan assets definitivos para ejecutar el
 
 ## Origen y dimensiones
 
+### Proyectiles normalizados (octubre 2026)
+
+Los ocho originales de `outputs/disparos-lvl1-lvl3-png/` se conservan intactos.
+Las copias del juego están en `public/assets/sprites/projectiles/`, con los mismos
+filenames: `player_rifle`, `player_machinegun`, `player_spread`, `player_laser`,
+`enemy_soldier`, `enemy_turret`, `boss_lvl1_arena` y `boss_lvl3_gate` (extensión PNG).
+Son RGBA, alpha binario, un frame estático, anchor center, orientación RIGHT y
+densidad 2×. Balas: canvas SOURCE 6×6 → WORLD 3×3; láser: 24×6 → 12×3.
+El contenido conserva proporciones y se centra con padding transparente.
+
+Normalización reproducible: `python scripts/normalize-projectile-art.py` (Pillow).
+Recorta por alpha ≥192, descarta el halo semitransparente, reduce con nearest-neighbor
+y limita a 16 colores sin dithering. A esta escala se pierde detalle del original.
+No crea animaciones ni modifica los originales, muzzle flashes o iluminación.
+
+`config/projectileArt.ts` registra las ocho identidades; `Projectile.visualId` es
+metadata visual que se reinicia en cada spawn del pool. `style` sigue controlando
+el comportamiento de bullet/laser/missile. Soldier y Turret usan su visualPrefix;
+las defensas Gate heredan el disparo de Turret con su propio prefix. Los misiles
+del Level 2 conservan su arte. Si falta el PNG se usa el asset legacy o el quad
+existente. Daño, trayectorias, lifetime, cadencia y colisiones no cambian.
+
 La posición física existente es la esquina inferior izquierda del collider. Las vistas
 convierten esa posición a bottom-center (x + ancho del collider / 2, y) o, para
 voladores, a center (x + ancho / 2, y + alto / 2). Cambiar el PNG nunca mueve esa posición.

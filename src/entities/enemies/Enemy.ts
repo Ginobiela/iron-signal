@@ -126,7 +126,8 @@ export abstract class Enemy implements KinematicBody {
     this.aimAtPlayer(context);
     return context.projectiles.spawn(this.position.x + this.width / 2,
       this.position.y + this.gunPivotY, this.aimDirection.x * speed, this.aimDirection.y * speed,
-      this.config.get().enemies.bulletDamage, 'enemy', this.width / 2 + 4);
+      this.config.get().enemies.bulletDamage, 'enemy', this.width / 2 + 4, 'bullet', undefined, 0,
+      `projectile.enemy.${this.visualPrefix}`);
   }
 
   protected resetBehavior(): void {}

@@ -171,8 +171,10 @@ export class Boss {
       for (const rotation of aimedRotations) {
         const dx = this.aimDirection.x * rotation.cos - this.aimDirection.y * rotation.sin;
         const dy = this.aimDirection.x * rotation.sin + this.aimDirection.y * rotation.cos;
-        context.projectiles.spawn(x, y, dx * speed, dy * speed, this.config.get().enemies.bulletDamage, 'enemy');
+        context.projectiles.spawn(x, y, dx * speed, dy * speed, this.config.get().enemies.bulletDamage, 'enemy',
+          0, 'bullet', undefined, 0, 'projectile.enemy.arena');
       }
-    } else context.projectiles.spawn(x, y, -speed, 0, this.config.get().enemies.bulletDamage, 'enemy');
+    } else context.projectiles.spawn(x, y, -speed, 0, this.config.get().enemies.bulletDamage, 'enemy',
+      0, 'bullet', undefined, 0, 'projectile.enemy.arena');
   }
 }

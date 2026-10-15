@@ -149,7 +149,12 @@ export class Game {
     this.spawner = new EnemySpawner(this.levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
     this.combat = new CombatSystem(this.collision, this.player, this.enemies.items,
     (enemy) => this.onEnemyKilled(enemy), this.boss,
-    (target, x, y, damaged) => this.onImpact(target, x, y, damaged), config);
+    (target, x, y, damaged) => this.onImpact(target, x, y, damaged), config,
+    enemy => {
+      this.fxSprites.spawn('fx.explosion.medium', enemy.position.x + enemy.width / 2,
+        enemy.position.y + enemy.height / 2);
+      this.audio.play('enemyDeath');
+    });
     this.enemyContext = { player: this.player, projectiles: this.projectiles,
     collision: this.collision, solids: this.level.solids, oneWays: this.level.oneWays, worldWidth: this.levelData.width };
     this.cameraController = new CameraController(this.levelData.width, config,this.levelData.height??240,this.levelData.cameraZones);

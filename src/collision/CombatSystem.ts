@@ -18,7 +18,8 @@ export class CombatSystem {
     private readonly enemies: readonly Enemy[], private readonly onEnemyKilled?: (enemy: Enemy | Boss) => void,
     private readonly boss?: Boss,
     private readonly onImpact?: (target: Enemy | Boss | Player | null, x: number, y: number, damaged: boolean) => void,
-    private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {}
+    private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE,
+    private readonly onContactDetonation?: (enemy: Enemy) => void) {}
 
   resolveProjectile(projectile: Projectile, x: number, y: number, solids: readonly AABB[]): boolean {
     let nearest = this.collision.firstSolidHit(projectile.previousPosition.x, projectile.previousPosition.y,
@@ -69,6 +70,11 @@ export class CombatSystem {
       this.setBounds(this.targetBounds, enemy);
       if (overlaps(this.playerBounds, this.targetBounds) && this.player.takeDamage(enemy.contactDamage)) {
         this.playerHits++;
+        if (!this.player.alive && enemy.kind === 'runner') {
+          // The lethal contact already dealt damage; detonation adds no area damage or kill score.
+          enemy.die();
+          this.onContactDetonation?.(enemy);
+        }
       }
     }
     for(const part of this.boss?.damageTargets??[]) if(part.active&&part.alive){

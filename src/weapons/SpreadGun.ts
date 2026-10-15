@@ -25,7 +25,7 @@ export class SpreadGun extends Weapon {
       const dx = aim.x * rotation.cos - aim.y * rotation.sin;
       const dy = aim.x * rotation.sin + aim.y * rotation.cos;
       projectiles.spawn(x, y, dx * this.projectileSpeed, dy * this.projectileSpeed,
-        this.damage, owner, muzzleDistance, this.projectileStyle, this.projectileLifetime);
+        this.damage, owner, muzzleDistance, this.projectileStyle, this.projectileLifetime, 0, this.projectileVisualId);
     }
     return true;
   }

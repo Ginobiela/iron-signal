@@ -26,7 +26,8 @@ export class Turret extends Enemy {
     if (this.attackTimer === 0 && (this.firingMode === 'aimed'
       ? this.fireAtPlayer(context, this.config.get().enemies.turret.bulletSpeed)
       : context.projectiles.spawn(this.position.x + this.width / 2, this.position.y + this.gunPivotY,
-        this.direction * this.config.get().enemies.turret.bulletSpeed, 0, this.config.get().enemies.bulletDamage, 'enemy', this.width / 2 + 4))) {
+        this.direction * this.config.get().enemies.turret.bulletSpeed, 0, this.config.get().enemies.bulletDamage, 'enemy', this.width / 2 + 4,
+        'bullet', undefined, 0, `projectile.enemy.${this.visualPrefix}`))) {
       this.attackTimer = this.config.get().enemies.turret.attackInterval;
     }
   }
