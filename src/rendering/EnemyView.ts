@@ -9,6 +9,7 @@ import { Soldier } from '../entities/enemies/Soldier';
 import { Turret } from '../entities/enemies/Turret';
 
 const placeholderSize = {
+  mecha: { width: 20, height: 14 }, gateTurret: { width: 20, height: 20 }, gateHatch: { width: 20, height: 20 },
   robotDog:{width:18,height:10},
   soldier: { width: 12, height: 24 }, runner: { width: 14, height: 16 },
   turret: { width: 20, height: 20 }, flying: { width: 20, height: 14 },
@@ -33,6 +34,7 @@ export class EnemyView {
   private debugVisible = false;
   private lastAttackTimer: number;
   private shootPoseTimer = 0;
+  private lastFireCount = 0;
 
   constructor(private readonly enemy: Enemy, private readonly assets: AssetManager,
     private readonly onVisualFire?: (enemy: Enemy) => void) {
@@ -68,7 +70,7 @@ export class EnemyView {
       rect(this.body, -7, 5, 14, 9, this.armor);
       rect(this.body, 3, 11, 4, 3, red, DRAW.detail);
       rect(this.body, -4, 14, 2, 2, this.armor);
-    } else if (enemy.kind === 'turret') {
+    } else if (enemy.kind === 'turret' || enemy.kind === 'gateTurret' || enemy.kind === 'gateHatch') {
       rect(this.body, -10, 0, 20, 6, dark);
       rect(this.body, -7, 6, 14, 14, this.armor);
       rect(this.body, -3, 12, 6, 4, red, DRAW.detail);
@@ -80,7 +82,7 @@ export class EnemyView {
     }
     rect(this.gun, 0, -1.5, enemy.width / 2 + 4, 3, this.barrel);
     this.gun.position.set(0, enemy.gunPivotY, DRAW.trim);
-    this.gun.visible = enemy.kind === 'soldier' || enemy.kind === 'turret';
+    this.gun.visible = enemy.kind === 'soldier' || enemy.kind === 'turret' || enemy.kind === 'gateTurret';
     this.bounds = rect(this.root, -enemy.width / 2, 0, enemy.width, enemy.height, outline, DRAW.collider);
     this.bounds.visible = false;
     this.healthTrack = rect(this.root, -enemy.width / 2, enemy.height + 4, enemy.width, 2, dark, DRAW.overlay);
@@ -110,19 +112,20 @@ export class EnemyView {
     const enemy = this.enemy;
     const attackTimer = this.readAttackTimer();
     this.shootPoseTimer = Math.max(0, this.shootPoseTimer - dt);
-    if (enemy.alive && attackTimer > this.lastAttackTimer) {
+    if (enemy.alive && (attackTimer > this.lastAttackTimer || enemy.visualFireCount > this.lastFireCount)) {
       this.shootPoseTimer = GRAPHICS.shootPoseTime;
       this.onVisualFire?.(enemy);
     }
     this.lastAttackTimer = attackTimer;
-    const animation = !enemy.alive ? enemy.deathAnimation : enemy.kind === 'flying'
-      ? (enemy.hitFlashTimer > 0 ? 'hit' : 'fly') : enemy.warning || this.shootPoseTimer > 0 ? enemy.shootAnimation : enemy.velocity.x !== 0 ? 'run' : 'idle';
+    this.lastFireCount = enemy.visualFireCount;
+    const animation = !enemy.alive ? enemy.deathAnimation : enemy.visualAnimation ?? (enemy.kind === 'flying'
+      ? (enemy.hitFlashTimer > 0 ? 'hit' : 'fly') : enemy.warning || this.shootPoseTimer > 0 ? enemy.shootAnimation : enemy.velocity.x !== 0 ? 'run' : 'idle');
     const hasSprite = this.sprite.update(`${enemy.visualPrefix}.${animation}`, dt, enemy.direction < 0,
       enemy.alive ? `${enemy.visualPrefix}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' || enemy.kind === 'robotDog' ? 'run' : 'idle'}` : '');
     this.root.visible = enemy.alive ? enemy.active : hasSprite && !this.sprite.animator.completed;
     this.body.visible = !hasSprite;
     this.sprite.tint(enemy.alive && enemy.hitFlashTimer > 0 ? 0xfff3c4 : 0xffffff);
-    this.gun.visible = enemy.alive && (enemy.kind === 'soldier' || enemy.kind === 'turret')
+    this.gun.visible = enemy.alive && (enemy.kind === 'soldier' || enemy.kind === 'turret' || enemy.kind === 'gateTurret')
       && (!hasSprite || !this.assets.getSpriteSheet(this.sprite.assetId)?.includesWeapon);
     this.bounds.visible = this.debugVisible && enemy.alive;
     this.healthBar.visible = this.healthTrack.visible = enemy.alive && enemy.health < enemy.maxHealth;

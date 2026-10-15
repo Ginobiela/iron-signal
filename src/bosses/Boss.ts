@@ -5,9 +5,10 @@ import type { EnemyContext } from '../entities/enemies/Enemy';
 import type { Enemy } from '../entities/enemies/Enemy';
 import type { AABB } from '../collision/CollisionSystem';
 import { containsPoint } from '../camera/CameraZone';
+import type { GateLayout } from './gateLayout';
 
 export interface PursuitEncounter { type: 'pursuit'; retreatLeft: number; barrierX: number; cameraAnchor: number }
-export interface BossPlacement { x: number; y: number; arenaLeft: number; encounter?: PursuitEncounter;kind?:'gate';arena?:AABB;trigger?:AABB }
+export interface BossPlacement { x: number; y: number; arenaLeft: number; encounter?: PursuitEncounter;kind?:'gate';arena?:AABB;trigger?:AABB;gateLayout?:GateLayout }
 export type BossState = 'DORMANT' | 'INTRO' | 'TELEGRAPH' | 'ATTACK' | 'RECOVER' | 'CHASE' | 'DEAD';
 export type BossPattern = 'HIGH' | 'LOW' | 'AIMED';
 

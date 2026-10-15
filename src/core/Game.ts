@@ -137,7 +137,7 @@ export class Game {
     this.powerupView = new PowerupView(this.powerups, this.assets);
     this.projectiles = new ProjectileManager(this.collision, undefined, (x, y) => this.fxSprites.spawn('fx.explosion.small', x, y));
     this.projectileView = new ProjectileView(this.projectiles.items.length, this.assets);
-    this.enemies = new EnemyManager(config);
+    this.enemies = new EnemyManager(config, (x, y, facing) => this.spawnEnemy({ kind: 'robotDog', x, y, facing }));
     this.level = new Level(this.levelData);
     this.checkpoints = new CheckpointManager({ ...this.levelData.spawn, name: 'Inicio' }, this.levelData.checkpoints);
     this.checkpointView = new CheckpointView(this.checkpoints, this.assets);
@@ -560,7 +560,7 @@ export class Game {
     const boss = enemy.kind === 'boss';
     if (boss && (this.boss.encounter||this.boss instanceof FortifiedGateBoss)) {this.projectiles.clear(false);
       if(this.boss instanceof FortifiedGateBoss)for(const enemy of this.enemies.items)if(enemy.bossOwned)enemy.die();}
-    this.fxSprites.spawn(boss || enemy.kind === 'flying' ? 'fx.explosion.medium' : 'fx.explosion.small',
+    this.fxSprites.spawn(boss || enemy.kind === 'flying' || enemy.kind === 'mecha' ? 'fx.explosion.medium' : 'fx.explosion.small',
       enemy.position.x + enemy.width / 2, enemy.position.y + enemy.height / 2);
     this.audio.play('enemyDeath');
     if (boss) this.shake.trigger(VFX_SHAKE.boss, VFX_SHAKE.bossTime);

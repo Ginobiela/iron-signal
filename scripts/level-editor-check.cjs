@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
   page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
   await page.route('**/src/main.ts*',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:(await r.text()).replace('if (playtest) {','window.__game = game;\n  if (playtest) {')});});
   await page.goto('http://127.0.0.1:5173/level-editor.html');
-  const expectedObjects=255+require('../public/levels/level-01.json').lighting.lights.length;
+  const expectedObjects=255+require('../public/levels/level-01.json').lighting.lights.length+1; // Separate boss spawn handle.
   await page.waitForFunction(count=>document.querySelector('#status').textContent.includes(`Objects ${count} ·`),expectedObjects);
   assert(!requests.some(url=>url.includes('/core/Game.ts')),'Editor must not load Game');
   assert.match(await page.locator('#validation').textContent(),/^0 errors/);

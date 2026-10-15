@@ -28,8 +28,13 @@ export function playerMuzzle(player: Player, assets: AssetManager, out: MuzzlePo
 }
 
 export function enemyMuzzle(enemy: Enemy, assets: AssetManager, out: MuzzlePoint): void {
-  const tip = enemy.kind === 'soldier' || enemy.kind === 'turret' ? ENEMY_MUZZLES[enemy.kind] : null;
-  const baked = tip && (assets.getTexture(`${enemy.kind}.shoot`) || assets.getTexture(`${enemy.kind}.idle`));
+  if (enemy.kind === 'mecha') {
+    out.x = enemy.position.x + (enemy.direction < 0 ? -5 : enemy.width + 5);
+    out.y = enemy.position.y + 34; out.angle = enemy.direction < 0 ? Math.PI : 0; return;
+  }
+  const tip = enemy.kind === 'soldier' ? ENEMY_MUZZLES.soldier
+    : enemy.kind === 'turret' || enemy.kind === 'gateTurret' ? ENEMY_MUZZLES.turret : null;
+  const baked = tip && (assets.getTexture(`${enemy.visualPrefix}.${enemy.shootAnimation}`) || assets.getTexture(`${enemy.visualPrefix}.idle`));
   out.x = Math.round(enemy.position.x + enemy.width / 2) + (baked ? tip.x * enemy.direction : enemy.aimDirection.x * (enemy.width / 2 + 4));
   out.y = Math.round(enemy.position.y) + (baked ? tip.y : enemy.gunPivotY + enemy.aimDirection.y * (enemy.width / 2 + 4));
   out.angle = baked ? (enemy.direction < 0 ? Math.PI : 0) : Math.atan2(enemy.aimDirection.y, enemy.aimDirection.x);

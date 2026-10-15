@@ -7,6 +7,9 @@ import { Runner } from './Runner';
 import { Soldier } from './Soldier';
 import { Turret } from './Turret';
 import { RobotDog } from './RobotDog';
+import { GateTurret } from './GateTurret';
+import { GateHatch } from './GateHatch';
+import { Mecha } from './Mecha';
 import type { PowerupKind } from '../../level/PowerupManager';
 
 export type EnemyPlacement = { x: number; y: number; facing?: -1 | 1 } & (
@@ -15,12 +18,13 @@ export type EnemyPlacement = { x: number; y: number; facing?: -1 | 1 } & (
   { kind: Exclude<EnemyKind, 'flying' | 'turret'> }
 );
 
-const constructors = { soldier: Soldier, runner: Runner, turret: Turret, flying: FlyingEnemy,robotDog:RobotDog };
+const constructors = { soldier: Soldier, runner: Runner, turret: Turret, flying: FlyingEnemy,robotDog:RobotDog, gateTurret: GateTurret, mecha: Mecha };
 
 export class EnemyManager {
   readonly items: Enemy[] = [];
 
-  constructor(private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {}
+  constructor(private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE,
+    private readonly spawnDog?: (x: number, y: number, facing: -1 | 1) => Enemy) {}
 
   spawn(placement: EnemyPlacement): Enemy {
     // Hatch waves are unbounded in time; recycle dead dogs instead of accumulating visuals.
@@ -29,7 +33,9 @@ export class EnemyManager {
       recycled.reset();recycled.position.x=placement.x;recycled.position.y=placement.y;recycled.active=true;
       recycled.direction=placement.facing??-1;recycled.aimDirection.x=recycled.direction;return recycled;
     }
-    const enemy = placement.kind === 'flying' ? new FlyingEnemy(placement.x, placement.y, placement.weaponDrop, this.config)
+    const enemy = placement.kind === 'gateHatch' ? new GateHatch(placement.x, placement.y,
+      this.spawnDog ?? ((x, y, facing) => this.spawn({ kind: 'robotDog', x, y, facing })), this.config)
+      : placement.kind === 'flying' ? new FlyingEnemy(placement.x, placement.y, placement.weaponDrop, this.config)
       : placement.kind === 'turret' ? new Turret(placement.x, placement.y, placement.firingMode, this.config)
       : new constructors[placement.kind](placement.x, placement.y, this.config);
     enemy.active = true;

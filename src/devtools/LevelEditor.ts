@@ -10,6 +10,7 @@ import { ParallaxBackground } from '../rendering/ParallaxBackground';
 import { SpriteVisual } from '../rendering/SpriteVisual';
 import { LevelEditorModel, newId } from './levelEditorModel';
 import type { EditorObject, ObjectType } from './levelEditorModel';
+import { gateLayout } from '../bosses/gateLayout';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
 const RECOVERY = 'iron-signal-editor-recovery-v1', SAVED = 'iron-signal-editor-saved-v1';
@@ -17,7 +18,7 @@ const RECOVERY_DIRTY = 'iron-signal-editor-recovery-dirty-v1';
 type Tool = 'select' | 'pan' | 'terrain' | 'solid' | 'one-way' | 'pit' | 'enemy' | 'decoration' | 'checkpoint' | 'trigger' | 'spawn' | 'boss' | 'camera' | 'camera-zone' | 'kill-zone' | 'light';
 type Layer = 'background' | 'decorations' | 'terrain' | 'collisions' | 'platforms' | 'enemies' | 'triggers' | 'checkpoints' | 'special' | 'lights';
 const layerNames: Layer[] = ['background', 'decorations', 'terrain', 'collisions', 'platforms', 'enemies', 'triggers', 'checkpoints', 'special', 'lights'];
-const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc', pickup: '#ffe3a2',cameraZone:'#bb99ff',killZone:'#ff3355',light:'#ffe3a2' };
+const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc', bossSpawn: '#ff72bc', bossPart: '#ffad72', pickup: '#ffe3a2',cameraZone:'#bb99ff',killZone:'#ff3355',light:'#ffe3a2' };
 export class LevelEditor {
   readonly model = new LevelEditorModel();
   private readonly assets = new AssetManager();
@@ -132,7 +133,7 @@ export class LevelEditor {
     if(!['enemy','terrain','decoration'].includes(this.tool))return;
     if (this.tool === 'enemy') this.input(root, 'Place in trigger', this.groupId, value => { this.groupId = String(value); }, this.model.data.spawnGroups.map(g => g.id));
     const search = $<HTMLInputElement>('search').value.toLowerCase();
-    const entries = this.tool === 'enemy' ? ['soldier.idle', 'runner.run', 'turret.idle', 'flying.fly','robotDog.run'] : Object.keys(ASSETS).filter(id =>
+    const entries = this.tool === 'enemy' ? ['soldier.idle', 'runner.run', 'turret.idle', 'flying.fly','robotDog.run','mecha.idle','gateTurret.idle','gateHatch.idle'] : Object.keys(ASSETS).filter(id =>
       this.tool === 'terrain' ? /^environment\.(?:(?:tower|underground)\.)?(?:ground|platform)\./.test(id) : id.startsWith('environment.') && !id.includes('checkpoint') && !id.includes('.ground.') && !id.includes('.platform.'));
     if (this.tool !== 'enemy' && !entries.includes(this.asset)) this.asset = entries[0]!;
     for (const id of entries.filter(id => id.toLowerCase().includes(search))) {
@@ -155,12 +156,15 @@ export class LevelEditor {
   private bounds(ref: EditorObject): { x: number; y: number; width: number; height: number } {
     const o = ref.value, x = Number(o.x), y = Number(o.y ?? 0);
     if(ref.type==='light')return {x:x-8,y:y-8,width:16,height:16};
+    if (ref.type === 'bossSpawn') return { x, y, width: 56, height: 72 };
+    if (ref.type === 'bossPart') return { x: this.model.data.boss.x + x, y: this.model.data.boss.y + y,
+      width: o.part === 'turrets' ? 20 : 32, height: o.part === 'turrets' ? 20 : 32 };
     if(ref.type==='checkpoint'&&o.area)return o.area as {x:number;y:number;width:number;height:number};
     if (ref.type === 'trigger') return o.y===undefined?{ x:x-2,y:0,width:4,height:this.model.data.height }:{x,y,width:Number(o.width),height:Number(o.height)};
     if (ref.type === 'boss') return this.model.data.boss.arena??{x:Number(o.arenaLeft),y:0,width:256,height:240};
     if (ref.type === 'enemy' || ref.type === 'spawn') {
       const id = ref.type === 'spawn' ? 'player.idle' : `${o.kind}.${o.kind === 'flying' ? 'fly' : o.kind === 'runner'||o.kind==='robotDog' ? 'run' : 'idle'}`;
-      const spec = ASSETS[id]!; return { x: x - 6, y: y - (o.kind === 'flying' ? spec.visual.height / 2 : 0), width: spec.visual.width, height: spec.visual.height };
+      const spec = ASSETS[id]!; return { x: x - (o.kind === 'mecha' ? 4 : o.kind === 'gateHatch' ? 0 : 6), y: y - (o.kind === 'flying' ? spec.visual.height / 2 : 0), width: spec.visual.width, height: spec.visual.height };
     }
     return { x: x - (ref.type === 'decoration' && !o.tiled ? Number(o.width) / 2 : 0), y, width: Number(o.width ?? 16), height: Number(o.height ?? 32) };
   }
@@ -183,12 +187,17 @@ export class LevelEditor {
     }
     this.background?.update(this.pan.x,this.pan.y);
     for (const ref of this.model.objects()) {
-      if (!['enemy', 'spawn', 'checkpoint'].includes(ref.type) || !this.visible.has(this.layer(ref))) continue;
-      const o = ref.value, id = ref.type === 'spawn' ? 'player.idle' : ref.type === 'checkpoint' ? 'environment.checkpoint.waiting'
+      if (!['enemy', 'spawn', 'checkpoint', 'bossSpawn', 'bossPart'].includes(ref.type) || !this.visible.has(this.layer(ref))) continue;
+      const o = ref.value, id = ref.type === 'bossSpawn' ? data.boss.kind === 'gate' ? 'bossGate.idle' : data.boss.encounter ? 'boss.mecha.idle' : 'boss.idle'
+        : ref.type === 'bossPart' ? o.part === 'turrets' ? 'bossGateTurret.idle' : 'bossGateHatch.close'
+        : ref.type === 'spawn' ? 'player.idle' : ref.type === 'checkpoint' ? 'environment.checkpoint.waiting'
         : `${o.kind}.${o.kind === 'flying' ? 'fly' : o.kind === 'runner'||o.kind==='robotDog' ? 'run' : 'idle'}`;
       const spec = ASSETS[id]!, sprite = new SpriteVisual(this.assets, spec.visual);
-      sprite.root.position.set(Number(o.x) + (ref.type === 'enemy' || ref.type === 'spawn' ? 6 : 0), Number(o.y), 0);
-      sprite.update(id, 0, o.facing === -1); this.scene.add(sprite.root); this.sprites.push({ ref, sprite });
+      const b = this.bounds(ref);
+      sprite.root.position.set(ref.type === 'bossSpawn' ? b.x + 28 : ref.type === 'bossPart' ? b.x + b.width / 2
+        : Number(o.x) + (ref.type === 'enemy' ? o.kind === 'mecha' ? 28 : o.kind === 'gateHatch' ? 16 : o.kind === 'gateTurret' ? 10 : 6 : ref.type === 'spawn' ? 6 : 0), ref.type === 'bossPart' || ref.type === 'bossSpawn' ? b.y : Number(o.y), 0);
+      sprite.update(id, 0, o.facing === -1 || ref.type === 'bossSpawn' && !!data.boss.encounter
+        || ref.type === 'bossPart' && o.part === 'turrets'); this.scene.add(sprite.root); this.sprites.push({ ref, sprite });
     }
     this.requestDraw();
   }
@@ -215,7 +224,7 @@ export class LevelEditor {
     if (selected.length !== 1) { root.textContent = `${selected.length} selected. Shift+click to select multiple.`; return; }
     const ref = selected[0]!; root.append(document.createTextNode(`${ref.type.toUpperCase()} · ${ref.id}`));
     if (this.locked.has(this.layer(ref))) { root.append(document.createTextNode(' · LOCKED')); return; }
-    this.input(root, 'id', ref.id, value => { this.model.set(ref, 'id', value); this.model.selection = new Set([String(value)]); });
+    if (!['bossSpawn', 'bossPart'].includes(ref.type)) this.input(root, 'id', ref.id, value => { this.model.set(ref, 'id', value); this.model.selection = new Set([String(value)]); });
     const keys = ref.type === 'trigger'&&ref.value.y===undefined ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft']
       : ['solid','platform','decoration','cameraZone','killZone','trigger'].includes(ref.type) ? ['x', 'y', 'width', 'height'] : ['x', 'y'];
     for (const key of keys) this.input(root, key, ref.value[key], v => this.model.set(ref, key, v));
@@ -229,9 +238,10 @@ export class LevelEditor {
       this.input(root,'transitionDuration',ref.value.transitionDuration??.35,v=>this.model.set(ref,'transitionDuration',v));
     }
     if (ref.type === 'pickup') this.input(root, 'kind', ref.value.kind, v => this.model.set(ref, 'kind', v), ['M','S','L']);
-    if (ref.type === 'boss') {
+    if (ref.type === 'bossPart') root.append(document.createTextNode('X/Y are offsets from the gate origin. Drag this component independently; moving BOSS SPAWN carries all components.'));
+    if (ref.type === 'boss' || ref.type === 'bossSpawn') {
       this.input(root,'boss kind',ref.value.kind??'arena',v=>{
-        const before=this.model.data.boss,after={...before,kind:v==='gate'?'gate' as const:undefined,encounter:undefined,
+        const before=this.model.data.boss,after={...before,kind:v==='gate'?'gate' as const:undefined,encounter:undefined,gateLayout:undefined,
           arena:v==='gate'?{x:before.arenaLeft,y:Math.max(0,Math.min(this.model.data.height-240,before.y-28)),width:256,height:240}:undefined,
           trigger:v==='gate'?{x:before.arenaLeft,y:before.y,width:32,height:64}:undefined};
         this.model.commit([{path:['boss'],before,after}]);
@@ -244,7 +254,21 @@ export class LevelEditor {
       const encounter = this.model.data.boss.encounter;
       if (encounter) for (const key of ['retreatLeft','barrierX','cameraAnchor'] as const) this.input(root, key, encounter[key], value =>
         this.model.commit([{ path: ['boss','encounter',key], before: encounter[key], after: value }]));
-      root.append(document.createTextNode('arenaLeft = activation trigger. x/y = boss spawn. Pursuit limits and exitX are independent editable markers.'));
+      if (this.model.data.boss.kind === 'gate') {
+        const layout = gateLayout(this.model.data.boss.gateLayout);
+        for (const part of ['turrets', 'hatches'] as const) layout[part].forEach((point, i) => {
+          for (const axis of ['x', 'y'] as const) this.input(root, `${part}.${i + 1}.${axis} offset`, point[axis], value => {
+            const before = this.model.data.boss.gateLayout, after = gateLayout(before);
+            after[part][i]![axis] = Number(value);
+            this.model.commit([{ path: ['boss','gateLayout'], before, after }]);
+          });
+        });
+        const reset = document.createElement('button'); reset.textContent = 'RESET COMPONENT POSITIONS';
+        reset.onclick = () => { const before = this.model.data.boss.gateLayout;
+          this.model.commit([{ path: ['boss','gateLayout'], before, after: undefined }]); this.refresh(); };
+        root.append(reset);
+      }
+      root.append(document.createTextNode('BOSS SPAWN x/y move only the boss, keeping trigger/arena separate. Drag BOSS TRIGGER to move the whole encounter. Gate component offsets can be edited here or by selecting/dragging each component. Pursuit limits and exitX remain independent.'));
     }
     if (ref.type === 'checkpoint') {
       this.input(root,'name',ref.value.name,v=>this.model.set(ref,'name',v));
@@ -415,9 +439,9 @@ export class LevelEditor {
         ctx.beginPath();ctx.arc(cx,cy,Math.max(1,Number(ref.value.radius)),0,Math.PI*2);ctx.stroke();
         ctx.beginPath();ctx.moveTo(cx-4,cy);ctx.lineTo(cx+4,cy);ctx.moveTo(cx,cy-4);ctx.lineTo(cx,cy+4);ctx.stroke();
       }else ctx.strokeRect(b.x, b.y, b.width, b.height);
-      if ((z >= .5||selected) && ['enemy', 'trigger', 'boss', 'checkpoint', 'spawn','cameraZone','killZone'].includes(ref.type)) {
+      if ((z >= .5||selected) && ['enemy', 'trigger', 'boss', 'bossSpawn', 'bossPart', 'checkpoint', 'spawn','cameraZone','killZone'].includes(ref.type)) {
         ctx.save(); ctx.translate(b.x, b.y + b.height + 3); ctx.scale(1 / z, -1 / z); ctx.fillStyle = ctx.strokeStyle; ctx.font = '11px monospace';
-        const label = ref.type === 'enemy' ? `${ref.value.kind}${ref.value.weaponDrop ? ' [' + ref.value.weaponDrop + ']' : ''}` : ref.type==='cameraZone'?`${ref.value.mode==='VERTICAL_FOLLOW'?'↑':ref.value.mode==='LOCKED'?'▣':'→'} ${ref.value.mode}`:ref.type === 'boss' ? 'BOSS TRIGGER' : ref.type;
+        const label = ref.type === 'enemy' ? `${ref.value.kind}${ref.value.weaponDrop ? ' [' + ref.value.weaponDrop + ']' : ''}` : ref.type==='cameraZone'?`${ref.value.mode==='VERTICAL_FOLLOW'?'↑':ref.value.mode==='LOCKED'?'▣':'→'} ${ref.value.mode}`:ref.type === 'boss' ? 'BOSS TRIGGER' : ref.type === 'bossSpawn' ? 'BOSS SPAWN' : ref.type === 'bossPart' ? `${ref.value.part} ${Number(ref.value.index) + 1}` : ref.type;
         ctx.fillText(label, 0, 0); ctx.restore();
       }
     }

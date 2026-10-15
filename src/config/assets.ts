@@ -185,6 +185,10 @@ for(const [prefix,file,w,h,clips] of [
 }
 ASSETS['environment.tower.animated.light']=withArtScale(sprite('environment/animated/tower/warning_light',16,16,4,6),2);
 ASSETS['environment.tower.animated.light'].url=ASSETS['environment.tower.animated.light'].path;
+// Placeable variants reference the same definitions/URLs; no duplicate textures.
+for (const [prefix, source] of [['mecha','boss.mecha'],['gateTurret','bossGateTurret'],['gateHatch','bossGateHatch']] as const)
+  for (const [id, asset] of Object.entries(ASSETS)) if (id.startsWith(source + '.')) ASSETS[prefix + id.slice(source.length)] = asset;
+ASSETS['gateHatch.idle'] = ASSETS['bossGateHatch.close']!;
 for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
   ASSETS[`flying.carrier.${kind}`] = {
     ...sprite('sprites/enemies/flying/flying_carrier_labels', 3, 5, 3, 1),

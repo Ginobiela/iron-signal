@@ -6,8 +6,9 @@ import type { EnemyContext } from './Enemy';
 export class Turret extends Enemy {
   attackTimer: number;
 
-  constructor(x: number, y: number, private readonly firingMode: 'aimed' | 'horizontal' = 'aimed', config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE) {
-    super('turret', x, y, config.get().enemies.turret, config);
+  constructor(x: number, y: number, private readonly firingMode: 'aimed' | 'horizontal' = 'aimed', config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE,
+    kind: 'turret' | 'gateTurret' = 'turret') {
+    super(kind, x, y, config.get().enemies.turret, config);
     this.attackTimer = config.get().enemies.turret.firstAttackDelay;
   }
 

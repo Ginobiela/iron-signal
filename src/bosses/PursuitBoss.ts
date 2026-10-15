@@ -4,11 +4,12 @@ import type { EnemyContext } from '../entities/enemies/Enemy';
 import { DEFAULT_CONFIG_SOURCE } from '../config/gameplay';
 import type { GameplayConfigSource } from '../config/gameplay';
 import { ENEMIES } from '../config/constants';
+import { MechaLauncher } from './MechaLauncher';
 
 /** Declarative encounter; uses the same damage, score, collision and projectile pool as arena bosses. */
 export class PursuitBoss extends Boss {
   private readonly spawn: { x: number; y: number };
-  private missileTimer = 0;
+  private readonly launcher = new MechaLauncher();
   get name(): string { return 'CENTINELA DEL SUBSUELO'; }
   get visualPrefix(): string { return 'boss.mecha'; }
   get vulnerable(): boolean { return this.active && this.alive && this.state === 'CHASE'; }
@@ -25,7 +26,7 @@ export class PursuitBoss extends Boss {
     this.position.x = this.spawn.x; this.position.y = this.spawn.y;
     this.health = this.maxHealth = this.config.get().mecha.health;
     this.state = 'INTRO'; this.attackTimer = this.config.get().mecha.introTime;
-    this.missileTimer = 0.6;
+    this.launcher.reset(.6);
     this.hitFlashTimer = this.shieldFlashTimer = 0;
   }
 
@@ -43,12 +44,7 @@ export class PursuitBoss extends Boss {
       if (this.attackTimer <= Number.EPSILON) this.state = 'CHASE';
       return;
     }
-    this.missileTimer -= dt;
-    if (this.missileTimer <= 0) {
-      if (context.projectiles.spawnHoming(this.position.x - 5, this.position.y + 34,
-        -tuning.missileSpeed, 0, tuning.missileDamage, tuning.missileTurnRate, tuning.missileLifetime)) this.visualFireCount++;
-      this.missileTimer = tuning.missileCooldown;
-    }
+    if (this.launcher.update(dt, this.position.x, this.position.y, -1, this.width, context, this.config)) this.visualFireCount++;
   }
 
   takeDamage(damage: number): boolean {
@@ -62,6 +58,6 @@ export class PursuitBoss extends Boss {
     super.reset();
     this.health = this.maxHealth = this.config.get().mecha.health;
     this.position.x = this.spawn.x; this.position.y = this.spawn.y;
-    this.missileTimer = 0;
+    this.launcher.reset();
   }
 }

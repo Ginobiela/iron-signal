@@ -2,7 +2,8 @@ import { defaultLevelLighting } from '../level/LevelLighting';
 import type { LevelLighting, LevelLight } from '../level/LevelLighting';
 import { createLevel, parseLevel } from '../level/LevelDocument';
 import type { LevelDocument } from '../level/LevelDocument';
-export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss' | 'pickup' | 'cameraZone' | 'killZone' | 'light';
+import { gateLayout } from '../bosses/gateLayout';
+export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss' | 'bossSpawn' | 'bossPart' | 'pickup' | 'cameraZone' | 'killZone' | 'light';
 export interface EditorObject { id: string; type: ObjectType; path: string[]; value: Record<string, unknown>; group?: string }
 export interface Patch { path: string[]; before: unknown; after: unknown }
 export class LevelEditorModel {
@@ -29,6 +30,14 @@ export class LevelEditorModel {
       group.enemies.forEach((enemy, j) => add('enemy', ['spawnGroups', String(i), 'enemies', String(j)], enemy, group.id));
     });
     add('spawn', ['spawn'], this.data.spawn); add('boss', ['boss'], this.data.boss);
+    refs.push({ id: `${this.data.boss.id}:spawn`, type: 'bossSpawn', path: ['boss'], value: { ...this.data.boss } });
+    if (this.data.boss.kind === 'gate') {
+      const layout = gateLayout(this.data.boss.gateLayout);
+      for (const key of ['turrets', 'hatches'] as const) layout[key].forEach((point, i) => refs.push({
+        id: `${this.data.boss.id}:${key}:${i}`, type: 'bossPart', path: ['boss','gateLayout',key,String(i)],
+        value: { ...point, part: key, index: i },
+      }));
+    }
     this.data.pickups?.forEach((item, i) => add('pickup', ['pickups', String(i)], item));
     return refs;
   }
@@ -48,6 +57,12 @@ export class LevelEditorModel {
   get canUndo(): boolean { return !!this.undoStack.length; }
   get canRedo(): boolean { return !!this.redoStack.length; }
   set(ref: EditorObject, key: string, value: unknown): void {
+    if (ref.type === 'bossPart') {
+      const before = this.data.boss.gateLayout, after = gateLayout(before);
+      const point = after[ref.value.part as 'turrets' | 'hatches'][Number(ref.value.index)]!;
+      if (key === 'x' || key === 'y') point[key] = Number(value);
+      this.commit([{ path: ['boss','gateLayout'], before, after }]); return;
+    }
     const patches:Patch[]=[{path:[...ref.path,key],before:ref.value[key],after:value}];
     if(ref.type==='checkpoint'&&ref.value.area&&(key==='x'||key==='y')&&typeof value==='number'){
       const box=ref.value.area as Record<string,number>;
@@ -58,9 +73,17 @@ export class LevelEditorModel {
   move(dx: number, dy: number): void {
     const objects = this.objects().filter(o => this.selection.has(o.id));
     const patches: Patch[] = [];
+    const parts = objects.filter(o => o.type === 'bossPart');
+    if (parts.length && !objects.some(o => o.type === 'boss' || o.type === 'bossSpawn')) {
+      const before = this.data.boss.gateLayout, after = gateLayout(before);
+      for (const ref of parts) { const point = after[ref.value.part as 'turrets' | 'hatches'][Number(ref.value.index)]!; point.x += dx; point.y += dy; }
+      patches.push({ path: ['boss','gateLayout'], before, after });
+    }
     for (const ref of objects) {
+      if (ref.type === 'bossPart') continue;
+      if (ref.type === 'bossSpawn' && objects.some(o => o.type === 'boss')) continue;
       const keys = ref.type === 'trigger' && ref.value.y===undefined ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft'] : ['x', 'y'];
-      for(const nested of ['area','arena','trigger'])if(ref.value[nested])for(const axis of ['x','y']){const obj=ref.value[nested] as Record<string,number>;patches.push({path:[...ref.path,nested,axis],before:obj[axis],after:obj[axis]!+(axis==='x'?dx:dy)});}
+      for(const nested of ['area','arena','trigger'])if(ref.type !== 'bossSpawn' && ref.value[nested])for(const axis of ['x','y']){const obj=ref.value[nested] as Record<string,number>;patches.push({path:[...ref.path,nested,axis],before:obj[axis],after:obj[axis]!+(axis==='x'?dx:dy)});}
       for (const key of keys) patches.push({ path: [...ref.path, key], before: ref.value[key], after: Number(ref.value[key]) + (key === 'y' ? dy : dx) });
     }
     this.commit(patches);
@@ -119,7 +142,7 @@ export class LevelEditorModel {
     this.commit(patches); this.selection.clear();
   }
   duplicate(): void {
-    const refs = this.objects().filter(o => this.selection.has(o.id) && !['spawn', 'boss'].includes(o.type));
+    const refs = this.objects().filter(o => this.selection.has(o.id) && !['spawn', 'boss', 'bossSpawn', 'bossPart'].includes(o.type));
     const ids: string[] = [], patches: Patch[] = [], collections = new Map<string, unknown[]>();
     for (const ref of refs) {
       if (ref.type === 'enemy' && refs.some(o => o.type === 'trigger' && o.id === ref.group)) continue;

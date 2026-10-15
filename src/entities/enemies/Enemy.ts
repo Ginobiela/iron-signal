@@ -7,7 +7,7 @@ import type { KinematicBody } from '../Entity';
 import type { Player } from '../Player';
 import type { PowerupKind } from '../../level/PowerupManager';
 
-export type EnemyKind = 'soldier' | 'runner' | 'turret' | 'flying' | 'robotDog';
+export type EnemyKind = 'soldier' | 'runner' | 'turret' | 'flying' | 'robotDog' | 'mecha' | 'gateTurret' | 'gateHatch';
 
 export interface EnemyContext {
   player: Player;
@@ -37,6 +37,8 @@ export abstract class Enemy implements KinematicBody {
   grounded = false;
   active = false;
   bossOwned = false;
+  spawnOwner?: Enemy;
+  visualFireCount = 0;
   direction: -1 | 1 = -1;
   hitFlashTimer = 0;
 
@@ -56,6 +58,7 @@ export abstract class Enemy implements KinematicBody {
   get visualPrefix():string{return this.kind;}
   get deathAnimation():string{return 'death';}
   get shootAnimation():string{return 'shoot';}
+  get visualAnimation(): string | undefined { return undefined; }
 
   get gunPivotY(): number {
     return this.height * 0.6;
@@ -90,10 +93,13 @@ export abstract class Enemy implements KinematicBody {
 
   reset(): void {
     this.bossOwned=false;
+    this.spawnOwner = undefined; this.visualFireCount = 0;
     this.position.x = this.spawnX;
     this.position.y = this.spawnY;
     this.velocity.x = this.velocity.y = 0;
-    this.health = this.maxHealth = this.config.get().enemies[this.kind].health;
+    this.health = this.maxHealth = this.kind === 'mecha' ? this.config.get().mecha.health
+      : this.kind === 'gateTurret' || this.kind === 'gateHatch' ? this.config.get().gate.turretHealth
+      : this.config.get().enemies[this.kind].health;
     this.active = false;
     this.grounded = false;
     this.direction = -1;

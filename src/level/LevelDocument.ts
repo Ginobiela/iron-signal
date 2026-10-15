@@ -104,6 +104,20 @@ export function validateLevel(value: unknown): Validation {
   if(record(value.lighting)&&Array.isArray(value.lighting.lights)&&value.lighting.lights.length>24)warnings.push('More than 24 static lights: check lighting performance.');
   if(record(value.lighting)&&Array.isArray(value.lighting.lights))for(const light of value.lighting.lights)if(record(light))object(light,'light');
   if(record(value.boss)){
+    if (value.boss.gateLayout !== undefined) {
+      const layout = value.boss.gateLayout;
+      if (value.boss.kind !== 'gate' || !record(layout)) errors.push('gateLayout requires a gate boss.');
+      else for (const key of ['turrets', 'hatches']) {
+        const parts = layout[key];
+        if (!Array.isArray(parts) || parts.length !== 2) { errors.push(`gateLayout.${key}: exactly two offsets required.`); continue; }
+        for (const part of parts) {
+          if (!record(part) || !num(part.x) || !num(part.y) || Math.abs(part.x) > 2048 || Math.abs(part.y) > 2048)
+            errors.push(`gateLayout.${key}: finite offsets within ±2048 required.`);
+          else if (!num(value.boss.x) || !num(value.boss.y) || value.boss.x + part.x < 0 || value.boss.x + part.x >= Number(value.width)
+            || value.boss.y + part.y < 0 || value.boss.y + part.y > Number(value.height)) errors.push(`gateLayout.${key}: component outside world.`);
+        }
+      }
+    }
     if(value.boss.kind!==undefined&&value.boss.kind!=='gate')errors.push('Invalid boss kind.');
     if(value.boss.kind==='gate'&&(value.boss.arena===undefined||value.boss.trigger===undefined||value.boss.encounter!==undefined))errors.push('Gate needs arena and trigger.');
     if(value.boss.arena!==undefined)rect(value.boss.arena,'boss arena');
@@ -152,7 +166,7 @@ export function validateLevel(value: unknown): Validation {
     if (!group.enemies.length) warnings.push(`${group.id}: trigger has no enemies.`);
     if (group.enemies.length > 1000) { errors.push('Too many enemies in trigger.'); continue; }
     for (const enemy of group.enemies) if (object(enemy, 'enemy') && record(enemy)) {
-      if (!['soldier', 'runner', 'turret', 'flying','robotDog'].includes(String(enemy.kind))) errors.push('Invalid enemy kind.');
+      if (!['soldier', 'runner', 'turret', 'flying','robotDog','mecha','gateTurret','gateHatch'].includes(String(enemy.kind))) errors.push('Invalid enemy kind.');
       if (enemy.facing !== undefined && enemy.facing !== -1 && enemy.facing !== 1) errors.push('Invalid facing.');
       if (enemy.weaponDrop !== undefined && (enemy.kind !== 'flying' || !['M', 'S', 'L'].includes(String(enemy.weaponDrop)))) errors.push('Invalid FlyingEnemy drop.');
       if (enemy.firingMode !== undefined && (enemy.kind !== 'turret' || !['aimed', 'horizontal'].includes(String(enemy.firingMode)))) errors.push('Invalid Turret firingMode.');
