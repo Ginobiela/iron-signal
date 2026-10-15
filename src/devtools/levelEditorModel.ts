@@ -1,6 +1,8 @@
+import { defaultLevelLighting } from '../level/LevelLighting';
+import type { LevelLighting, LevelLight } from '../level/LevelLighting';
 import { createLevel, parseLevel } from '../level/LevelDocument';
 import type { LevelDocument } from '../level/LevelDocument';
-export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss' | 'pickup' | 'cameraZone' | 'killZone';
+export type ObjectType = 'solid' | 'platform' | 'enemy' | 'trigger' | 'checkpoint' | 'decoration' | 'spawn' | 'boss' | 'pickup' | 'cameraZone' | 'killZone' | 'light';
 export interface EditorObject { id: string; type: ObjectType; path: string[]; value: Record<string, unknown>; group?: string }
 export interface Patch { path: string[]; before: unknown; after: unknown }
 export class LevelEditorModel {
@@ -19,6 +21,7 @@ export class LevelEditorModel {
     for (const [key, type] of [['ground', 'solid'], ['platforms', 'platform'], ['checkpoints', 'checkpoint'], ['decorations', 'decoration']] as const) {
       this.data[key].forEach((item, i) => add(type, [key, String(i)], item));
     }
+    this.data.lighting?.lights.forEach((item,i)=>add('light',['lighting','lights',String(i)],item));
     this.data.cameraZones?.forEach((item,i)=>add('cameraZone',['cameraZones',String(i)],item));
     this.data.killZones?.forEach((item,i)=>add('killZone',['killZones',String(i)],item));
     this.data.spawnGroups.forEach((group, i) => {
@@ -66,6 +69,15 @@ export class LevelEditorModel {
     const before = this.data[collection]??[]; this.commit([{ path: [collection], before: structuredClone(before), after: [...before, item] }]);
     this.selection = new Set([String((item as Record<string, unknown>).id)]);
   }
+  setLighting(key: keyof LevelLighting, value: unknown): void {
+    const before=this.data.lighting,after={...(before??defaultLevelLighting()),[key]:value};
+    this.commit([{path:['lighting'],before,after}]);
+  }
+  insertLight(item: LevelLight): void {
+    const before=this.data.lighting,base=before??{...defaultLevelLighting(),enabled:true,ambient:.75};
+    this.commit([{path:['lighting'],before,after:{...base,lights:[...base.lights,item]}}]);
+    this.selection=new Set([item.id]);
+  }
   insertEnemy(groupId: string, enemy: object): void {
     const i = this.data.spawnGroups.findIndex(g => g.id === groupId);
     if (i < 0) throw new Error('Select an existing spawn trigger first.');
@@ -84,6 +96,7 @@ export class LevelEditorModel {
   }
   deleteSelection(): void {
     const patches: Patch[] = [];
+    if(this.data.lighting){const before=this.data.lighting.lights,after=before.filter(l=>!this.selection.has(l.id));if(after.length!==before.length)patches.push({path:['lighting','lights'],before,after});}
     for(const key of ['cameraZones','killZones'] as const)if(this.data[key]){const before=this.data[key]!,after=before.filter(z=>!this.selection.has(z.id));if(after.length!==before.length)patches.push({path:[key],before,after});}
     if (this.data.pickups) {
       const after = this.data.pickups.filter(p => !this.selection.has(p.id));

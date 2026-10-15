@@ -6,10 +6,12 @@ import type { Platform } from './Platform';
 import type { Checkpoint } from './Checkpoint';
 import type { BossPlacement } from '../bosses/Boss';
 import type { BackgroundLayer, Decoration } from './LevelDocument';
+import type { LevelLighting } from './LevelLighting';
 import type { CameraZone } from '../camera/CameraZone';
 
 export interface LevelData {
   name: string;
+  lighting?: LevelLighting;
   width: number;
   height?:number;
   cameraZones?:readonly CameraZone[];

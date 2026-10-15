@@ -57,6 +57,9 @@ import { AssetManager } from './AssetManager';
 import { FxSpritePool } from '../rendering/FxSpritePool';
 import { enemyMuzzle, playerMuzzle } from '../rendering/vfxOrigins';
 import { VFX_SHAKE, WEAPON_VFX } from '../config/vfx';
+import { CombatLighting } from '../rendering/CombatLighting';
+import { LightingSystem } from '../rendering/LightingSystem';
+import { LightingPanel } from '../devtools/LightingPanel';
 
 const actions = Object.keys(CONTROLS) as Action[];
 const lab = import.meta.env.DEV ? new URLSearchParams(location.search).get('lab') : null;
@@ -68,11 +71,14 @@ export class Game {
   private readonly assets = new AssetManager();
   private readonly camera = new OrthographicCamera(0, VIEW.width, VIEW.height, 0, 0.1, 100);
   private readonly renderer: WebGLRenderer;
+  private readonly lighting = new LightingSystem();
+  private readonly lightingPanel?: LightingPanel;
+  private readonly combatLighting: CombatLighting;
   private readonly input: InputManager;
   private readonly touchControls?: TouchControls;
   private readonly level: Level;
   private readonly states: GameStateManager;
-  private readonly score = new ScoreManager();
+  private readonly score: ScoreManager;
   private readonly audio = new AudioManager();
   private readonly particles = new ParticleManager();
   private readonly particleView = new ParticleView(this.particles);
@@ -119,10 +125,14 @@ export class Game {
   constructor(private readonly viewport: HTMLElement, private readonly debug: HTMLElement,
     status: HTMLElement, notice: HTMLElement, menu: HTMLElement, bossStatus: HTMLElement, private readonly levelData: LevelData = defaultLevelData,
     private readonly config: GameplayConfigSource = DEFAULT_CONFIG_SOURCE,
-    private readonly onLevelComplete?: (nextLevel: string) => void) {
+    private readonly onLevelComplete?: (nextLevel: string) => void,
+    ephemeralSession = false) {
+    this.score = new ScoreManager(ephemeralSession ? null : undefined);
+    this.lighting.loadLevel(this.levelData.lighting);
     this.states = new GameStateManager(config);
     this.shake = new ScreenShakeManager(config);
     this.fxSprites = new FxSpritePool(this.assets, this.particles, this.shake);
+    this.fxSprites.onSpawn=(id,x,y)=>this.lighting?.onVfx(id,x,y);
     this.powerups = new PowerupManager(this.collision, undefined, config);
     this.powerupView = new PowerupView(this.powerups, this.assets);
     this.projectiles = new ProjectileManager(this.collision, undefined, (x, y) => this.fxSprites.spawn('fx.explosion.small', x, y));
@@ -134,6 +144,7 @@ export class Game {
     this.player = new Player(this.levelData.spawn.x, this.levelData.spawn.y, config);
     this.boss = this.levelData.boss.kind==='gate'?new FortifiedGateBoss(this.levelData.boss,config,
       (x,y)=>{this.spawnEnemy({kind:'robotDog',x,y}).bossOwned=true;},()=>this.enemies.items.filter(e=>e.bossOwned&&e.active&&e.alive).length):this.levelData.boss.encounter ? new PursuitBoss(this.levelData.boss, config) : new Boss(this.levelData.boss, config);
+    this.combatLighting = new CombatLighting(this.lighting,this.projectiles.items,this.boss,(id,x,y)=>{this.fxSprites.spawn(id,x,y);});
     this.bossView = new BossView(this.boss, this.assets,this.onEnemyVisualFire);
     this.spawner = new EnemySpawner(this.levelData.spawnGroups, (placement) => this.spawnEnemy(placement));
     this.combat = new CombatSystem(this.collision, this.player, this.enemies.items,
@@ -147,6 +158,14 @@ export class Game {
     this.renderer.setSize(RENDER_VIEW.width, RENDER_VIEW.height, false);
     this.renderer.domElement.setAttribute('aria-label', 'Iron Signal: A/D correr, Space saltar, J disparar, W apuntar arriba, S agacharse, S + Space bajar');
     viewport.prepend(this.renderer.domElement);
+    if (DEV_TOOLS && this.lighting) {
+      // DEV LIGHTING TEST: existing warning prop, otherwise fixed near spawn. No LevelData change.
+      const lamp = this.levelData.decorations?.find(d => d.asset === 'environment.tower.animated.light');
+      this.lightingPanel = new LightingPanel(this.lighting, this.renderer,
+        lamp ? {x:lamp.x,y:lamp.y+8} : {x:this.levelData.spawn.x+60,y:this.levelData.spawn.y+48},
+        () => { const previous=this.devPaused;this.devPaused=true;return()=>{this.devPaused=previous;}; },
+        id=>{playerMuzzle(this.player,this.assets,this.muzzlePoint);this.fxSprites.spawn(id,this.muzzlePoint.x,this.muzzlePoint.y);});
+    }
     this.scene.background = new Color(0x101e2c);
     this.camera.position.z = 10;
     this.background = new ParallaxBackground(this.scene, this.assets, this.levelData.backgrounds,(this.levelData.height??240)>240);
@@ -183,6 +202,13 @@ export class Game {
   developerSession() {
     if (!DEV_TOOLS) throw new Error('Developer tools disabled.');
     return {
+      lightingSettings: () => ({intensity:this.lighting.intensityMultiplier,temporary:this.lighting.temporaryMultiplier,fullAmbient:this.lighting.fullAmbient,enabled:this.lighting.enabled}),
+      setLighting: (key:'intensity'|'temporary'|'fullAmbient'|'enabled',value:number|boolean) => {
+        if((key==='intensity'||key==='temporary')&&typeof value==='number')this.lighting.setMultiplier(key,value);
+        else if(key==='fullAmbient'&&typeof value==='boolean')this.lighting.fullAmbient=value;
+        else if(key==='enabled'&&typeof value==='boolean')this.lighting.enabled=value;
+        this.lightingPanel?.syncFromLighting();
+      },
       pauseEditing: (paused: boolean) => { this.devPaused = paused; this.input.clear(); },
       changed: () => { this.player.health = Math.min(this.player.health, this.config.get().player.maxHealth); },
       snapshot: () => ({
@@ -232,6 +258,8 @@ export class Game {
 
   dispose(): void {
     this.loop.stop();
+    this.lightingPanel?.dispose();
+    this.lighting?.dispose();
     this.touchControls?.dispose();
     this.input.dispose();
     this.resizeObserver.disconnect();
@@ -259,6 +287,7 @@ export class Game {
   private readonly update = (dt: number): void => {
     this.input.pollGamepads();
     if (DEV_TOOLS && this.devPaused) { this.input.clear(); return; }
+    this.lighting?.update(this.states.state === 'PAUSED' || this.states.state === 'MENU' ? 0 : dt);
     this.ticks++;
     if (this.states.state === 'MENU' || this.states.state === 'PAUSED') this.menu.handleInput(this.input);
     if (this.input.wasPressed('start') || (this.states.state !== 'PLAYING' && this.input.gamepadWasPressed('jump'))) this.startOrResume();
@@ -282,6 +311,7 @@ export class Game {
     this.levelView.update(visualStep, this.boss.active, !this.boss.alive);
     this.checkpointView.update(visualStep);
     this.bossView.update(effectStep);
+    this.combatLighting.update(effectStep);
     this.playerView.update(this.player, effectStep);
     this.camera.position.x = Math.round(this.cameraController.x) + this.shake.offset.x;
     this.camera.position.y = Math.round(this.cameraController.y)+this.shake.offset.y;
@@ -451,6 +481,7 @@ export class Game {
     this.audio.silence();
     this.particles.clear();
     this.fxSprites.clear();
+    this.lighting.loadLevel(this.levelData.lighting);this.lightingPanel?.syncFromLighting();
     this.shake.clear();
     this.playerView.resetFeedback();
     this.player.reset(this.levelData.spawn.x, this.levelData.spawn.y);
@@ -459,7 +490,7 @@ export class Game {
     this.levelPickups.clear();
     this.checkpoints.reset();
     this.score.reset();
-    this.boss.reset();
+    this.boss.reset();this.combatLighting.reset();
     this.clearEnemies();
     this.spawner.reset();
     this.combat.reset();
@@ -487,7 +518,8 @@ export class Game {
     } else this.boss.prepareRespawn();
     this.projectiles.clear(false);
     this.powerups.reset(); this.levelPickups.clear();
-    this.particles.clear(); this.fxSprites.clear();
+    this.combatLighting.reset();
+    this.particles.clear(); this.fxSprites.clear(); this.lighting.loadLevel(this.levelData.lighting);this.lightingPanel?.syncFromLighting();
     this.clearEnemies();
     this.cameraController.reset(this.player.position.x+this.player.width/2,this.player.position.y+this.player.height/2);
     if (this.boss.active && !this.boss.encounter) this.cameraController.x = this.boss.arenaLeft;
@@ -560,7 +592,11 @@ export class Game {
   }
 
   private readonly render = (): void => {
-    this.renderer.render(this.scene, this.camera);
+    this.lightingPanel?.beforeRender(this.camera, this.player.position);
+    try {
+      if (this.lighting) this.lighting.render(this.renderer, this.scene, this.camera);
+      else this.renderer.render(this.scene, this.camera);
+    } finally { this.lightingPanel?.afterRender(); }
   };
 
   private readonly resize = (): void => {

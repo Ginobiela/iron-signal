@@ -21,6 +21,7 @@ export class FxSpritePool {
   private debugVisible = false;
   droppedCount = 0;
   spawnedCount = 0;
+  onSpawn?: (id: VfxId, x: number, y: number) => void;
 
   constructor(assets: AssetManager, private readonly particles?: ParticleManager,
     private readonly shake?: ScreenShakeManager, capacity: number = GRAPHICS.fxCapacity) {
@@ -64,6 +65,7 @@ export class FxSpritePool {
       this.particles?.burst(x, y, effect.particles, effect.color, effect.kind === 'burst', slot.duration);
       if (effect.shake) this.shake?.trigger(effect.shake, VFX_SHAKE.flyingTime);
       this.spawnedCount++;
+      this.onSpawn?.(id, x, y);
       return true;
     }
     this.droppedCount++;

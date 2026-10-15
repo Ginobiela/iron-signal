@@ -14,6 +14,11 @@ export function attachGameplayPlaytest(game: Game, store: GameplayConfigStore): 
     <a href="./gameplay-tuner.html">FULL TUNER</a><p id="quick-dirty"></p>
     <label><input id="pause-editing" type="checkbox" checked> PAUSE GAME WHILE OPEN</label>
     <p id="quick-error" role="alert"></p><div id="quick-settings"></div><button id="quick-reset">RESET ALL</button>
+    <h2>LIGHTING COMPARISON (DEV ONLY)</h2>
+    <label>Lighting intensity multiplier <input id="light-intensity" type="range" min="0" max="2" step=".05" value="1"></label>
+    <label>Temporary light multiplier <input id="light-temporary" type="range" min="0" max="2" step=".05" value="1"></label>
+    <label><input id="light-full" type="checkbox"> FULL AMBIENT</label>
+    <label><input id="light-enabled" type="checkbox"> LIGHTING ON</label>
     <h2>DEV COMMANDS</h2><nav id="dev-commands"></nav><h2>LIVE GAME</h2><pre id="live-game"></pre>`;
   const badge = document.createElement('button'); badge.className = 'tuning-badge';
   badge.setAttribute('aria-label', 'Open gameplay tuner panel F3'); document.body.append(panel, badge);
@@ -27,6 +32,10 @@ export function attachGameplayPlaytest(game: Game, store: GameplayConfigStore): 
     session.pauseEditing(!panel.hidden && pause.checked);
     if (panel.hidden && panel.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
   };
+  for(const [id,key] of [['light-intensity','intensity'],['light-temporary','temporary'],['light-full','fullAmbient'],['light-enabled','enabled']] as const){
+    const field=get<HTMLInputElement>('#'+id);
+    field.oninput=()=>session.setLighting(key,field.type==='checkbox'?field.checked:Number(field.value));
+  }
   badge.onclick = toggle; get('#quick-close').onclick = toggle;
   pause.onchange = () => session.pauseEditing(!panel.hidden && pause.checked);
   get('#quick-reset').onclick = () => { try { store.resetAll(); report(''); } catch (error) { report(String(error)); } };
@@ -39,6 +48,10 @@ export function attachGameplayPlaytest(game: Game, store: GameplayConfigStore): 
     get('#dev-commands').append(button);
   }
   function refresh(): void {
+    const light=session.lightingSettings();
+    for(const [id,key] of [['light-intensity','intensity'],['light-temporary','temporary'],['light-full','fullAmbient'],['light-enabled','enabled']] as const){
+      const field=get<HTMLInputElement>('#'+id);if(field!==document.activeElement){if(field.type==='checkbox')field.checked=Boolean(light[key]);else field.value=String(light[key]);}
+    }
     const count = Object.keys(store.getOverrides()).length;
     const label = `${count ? `MODIFIED · ${count} OVERRIDES` : 'DEFAULT'} · F3`;
     badge.textContent = `DEV PLAYTEST · ${label}`; get('#quick-dirty').textContent = label;

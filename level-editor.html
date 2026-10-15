@@ -15,12 +15,15 @@
       <label><input id="camera-preview" type="checkbox" checked> SHOW GAME CAMERA</label>
       <label><input id="autosave" type="checkbox" checked> AUTOSAVE recovery</label>
       <button id="reset-view">RESET VIEW</button><button id="overview">FIT LEVEL</button>
+      <label><input id="lighting-preview" type="checkbox" checked> PREVIEW LIGHTING</label>
+      <label><input id="light-snap" type="checkbox"> LIGHT SNAP (uses grid toggle)</label>
       <h2>Palette</h2><input id="search" placeholder="Search assets" aria-label="Search palette"><div id="palette"></div>
       <h2>Layers · visible / locked</h2><div id="layers"></div>
     </aside>
     <section id="stage" aria-label="Level editor viewport"><canvas id="overlay"></canvas></section>
     <aside><h2>Selection</h2><div id="properties"></div><button id="duplicate">DUPLICATE</button><button id="delete">DELETE</button>
       <h2>Level / World</h2><div id="world-properties"></div><h2>FAR / MID / NEAR</h2><div id="background-properties"></div>
+      <h2>LEVEL LIGHTING</h2><div id="lighting-properties"></div>
       <h2>Validation</h2><pre id="validation" role="status"></pre>
       <p>Middle/right drag: pan · Wheel: zoom · Shift+click: multiselect.<br>CAMERA: move preview · CAMERA-ZONE: drag a zone · KILL-ZONE: drag a hazard.<br>Pit tool: cut ground; existing kill plane applies.</p>
     </aside>

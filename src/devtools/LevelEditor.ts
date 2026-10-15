@@ -1,3 +1,5 @@
+import { LightingSystem } from '../rendering/LightingSystem';
+import { defaultLevelLighting } from '../level/LevelLighting';
 import { Color, OrthographicCamera, Scene, WebGLRenderer } from 'three';
 import { AssetManager } from '../core/AssetManager';
 import { ASSETS } from '../config/assets';
@@ -12,13 +14,14 @@ import type { EditorObject, ObjectType } from './levelEditorModel';
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
 const RECOVERY = 'iron-signal-editor-recovery-v1', SAVED = 'iron-signal-editor-saved-v1';
 const RECOVERY_DIRTY = 'iron-signal-editor-recovery-dirty-v1';
-type Tool = 'select' | 'pan' | 'terrain' | 'solid' | 'one-way' | 'pit' | 'enemy' | 'decoration' | 'checkpoint' | 'trigger' | 'spawn' | 'boss' | 'camera' | 'camera-zone' | 'kill-zone';
-type Layer = 'background' | 'decorations' | 'terrain' | 'collisions' | 'platforms' | 'enemies' | 'triggers' | 'checkpoints' | 'special';
-const layerNames: Layer[] = ['background', 'decorations', 'terrain', 'collisions', 'platforms', 'enemies', 'triggers', 'checkpoints', 'special'];
-const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc', pickup: '#ffe3a2',cameraZone:'#bb99ff',killZone:'#ff3355' };
+type Tool = 'select' | 'pan' | 'terrain' | 'solid' | 'one-way' | 'pit' | 'enemy' | 'decoration' | 'checkpoint' | 'trigger' | 'spawn' | 'boss' | 'camera' | 'camera-zone' | 'kill-zone' | 'light';
+type Layer = 'background' | 'decorations' | 'terrain' | 'collisions' | 'platforms' | 'enemies' | 'triggers' | 'checkpoints' | 'special' | 'lights';
+const layerNames: Layer[] = ['background', 'decorations', 'terrain', 'collisions', 'platforms', 'enemies', 'triggers', 'checkpoints', 'special', 'lights'];
+const colors: Record<ObjectType, string> = { solid: '#85ff98', platform: '#40d9f0', enemy: '#ff8d80', trigger: '#ffc566', checkpoint: '#b8f5b4', decoration: '#829dc0', spawn: '#fff079', boss: '#ff72bc', pickup: '#ffe3a2',cameraZone:'#bb99ff',killZone:'#ff3355',light:'#ffe3a2' };
 export class LevelEditor {
   readonly model = new LevelEditorModel();
   private readonly assets = new AssetManager();
+  private readonly lighting = new LightingSystem();
   private readonly renderer = new WebGLRenderer({ antialias: false });
   private readonly scene = new Scene();
   private readonly scenery = new Scene();
@@ -45,6 +48,7 @@ export class LevelEditor {
   private drag?: { mode: 'pan' | 'move' | 'create' | 'camera'; x: number; y: number; worldX: number; worldY: number; panX: number; panY: number };
   private dragDelta = { x: 0, y: 0 };
   private raf = 0;
+  private lastLightTime = 0;
   private frameRequested = false;
   private readonly observer = new ResizeObserver(() => this.resize());
   private copied: string[] = [];
@@ -72,7 +76,7 @@ export class LevelEditor {
     this.model.load(data); this.model.dirty = recovered && localStorage.getItem(RECOVERY_DIRTY) === 'true'; this.refresh(); this.resetView();
   }
   private setupUI(): void {
-    const tools: Tool[] = ['select', 'pan', 'terrain', 'solid', 'one-way', 'pit', 'enemy', 'decoration', 'checkpoint', 'trigger', 'spawn', 'boss', 'camera','camera-zone','kill-zone'];
+    const tools: Tool[] = ['select', 'pan', 'terrain', 'solid', 'one-way', 'pit', 'enemy', 'decoration', 'checkpoint', 'trigger', 'spawn', 'boss', 'camera','camera-zone','kill-zone','light'];
     for (const tool of tools) {
       const button = document.createElement('button'); button.textContent = tool.toUpperCase(); button.dataset.tool = tool;
       button.onclick = () => { this.tool = tool; this.updateToolUI(); this.palette(); }; $('tools').append(button);
@@ -116,7 +120,7 @@ export class LevelEditor {
     action('duplicate', () => { this.unlockedSelection(); this.model.duplicate(); this.refresh(); }); action('delete', () => { this.unlockedSelection(); this.model.deleteSelection(); this.refresh(); });
     action('reset-view', () => this.resetView()); action('overview', () => { this.zoom = Math.max(.005, Math.min(this.stage.clientWidth / this.model.data.width, this.stage.clientHeight / this.model.data.height)); this.pan = { x: 0, y: 0 }; this.resize(); });
     action('play', () => this.playtest(false)); action('play-here', () => this.playtest(true));
-    for (const id of ['grid', 'snap', 'camera-preview']) $<HTMLInputElement>(id).onchange = () => this.requestDraw();
+    for (const id of ['grid', 'snap', 'camera-preview', 'lighting-preview', 'light-snap']) $<HTMLInputElement>(id).onchange = () => this.requestDraw();
     $<HTMLInputElement>('search').oninput = () => this.palette();
     this.updateToolUI();
   }
@@ -144,12 +148,13 @@ export class LevelEditor {
     }
   }
   private layer(ref: EditorObject): Layer {
-    return ref.type === 'solid' ? 'collisions' : ref.type === 'platform' ? 'platforms' : ref.type === 'enemy' ? 'enemies'
+    return ref.type === 'light' ? 'lights' : ref.type === 'solid' ? 'collisions' : ref.type === 'platform' ? 'platforms' : ref.type === 'enemy' ? 'enemies'
       : ref.type === 'trigger' ? 'triggers' : ref.type === 'checkpoint' ? 'checkpoints' : ref.type === 'decoration'
       ? ref.value.layer === 'terrain' ? 'terrain' : 'decorations' : 'special';
   }
   private bounds(ref: EditorObject): { x: number; y: number; width: number; height: number } {
     const o = ref.value, x = Number(o.x), y = Number(o.y ?? 0);
+    if(ref.type==='light')return {x:x-8,y:y-8,width:16,height:16};
     if(ref.type==='checkpoint'&&o.area)return o.area as {x:number;y:number;width:number;height:number};
     if (ref.type === 'trigger') return o.y===undefined?{ x:x-2,y:0,width:4,height:this.model.data.height }:{x,y,width:Number(o.width),height:Number(o.height)};
     if (ref.type === 'boss') return this.model.data.boss.arena??{x:Number(o.arenaLeft),y:0,width:256,height:240};
@@ -160,6 +165,7 @@ export class LevelEditor {
     return { x: x - (ref.type === 'decoration' && !o.tiled ? Number(o.width) / 2 : 0), y, width: Number(o.width ?? 16), height: Number(o.height ?? 32) };
   }
   private refreshScene(): void {
+    this.lighting.loadLevel(validateLevel(this.model.data).errors.length ? undefined : this.model.data.lighting);
     for (const item of this.sprites) { item.sprite.dispose(); this.scene.remove(item.sprite.root); } this.sprites = [];
     const data = structuredClone(this.model.data);
     if (!this.visible.has('decorations')) data.decorations = data.decorations.filter(d => d.layer === 'terrain');
@@ -195,7 +201,7 @@ export class LevelEditor {
     const row = document.createElement('label'), text = document.createElement('span'); text.textContent = label;
     const field = choices ? document.createElement('select') : document.createElement('input');
     if (choices && field instanceof HTMLSelectElement) for (const choice of choices) { const option = document.createElement('option'); option.value = option.textContent = choice; field.append(option); }
-    if (field instanceof HTMLInputElement) { field.type = typeof value === 'boolean' ? 'checkbox' : typeof value === 'number' ? 'number' : 'text'; field.step = 'any'; field.checked = value === true; }
+    if (field instanceof HTMLInputElement) { field.type = label === 'color' ? 'color' : typeof value === 'boolean' ? 'checkbox' : typeof value === 'number' ? 'number' : 'text'; field.step = 'any'; field.checked = value === true; }
     field.value = String(value ?? ''); field.ariaLabel = label;
     field.onchange = () => {
       const next = field instanceof HTMLInputElement && field.type === 'checkbox' ? field.checked : typeof value === 'number' ? Number(field.value) : field.value;
@@ -213,6 +219,11 @@ export class LevelEditor {
     const keys = ref.type === 'trigger'&&ref.value.y===undefined ? ['x'] : ref.type === 'boss' ? ['x', 'y', 'arenaLeft']
       : ['solid','platform','decoration','cameraZone','killZone','trigger'].includes(ref.type) ? ['x', 'y', 'width', 'height'] : ['x', 'y'];
     for (const key of keys) this.input(root, key, ref.value[key], v => this.model.set(ref, key, v));
+    if(ref.type==='light'){
+      for(const key of ['radius','intensity','color'])this.input(root,key,ref.value[key],v=>this.model.set(ref,key,v));
+      this.input(root,'behavior',ref.value.behavior??'static',v=>this.model.set(ref,'behavior',v),['static','flicker','pulse']);
+      if(ref.value.behavior==='flicker'||ref.value.behavior==='pulse')for(const key of ['speed','amount'])this.input(root,key,ref.value[key]??(key==='speed'?1:.2),v=>this.model.set(ref,key,v));
+    }
     if(ref.type==='cameraZone'){
       this.input(root,'mode',ref.value.mode,v=>this.model.set(ref,'mode',v),['HORIZONTAL_FOLLOW','VERTICAL_FOLLOW','LOCKED']);
       this.input(root,'transitionDuration',ref.value.transitionDuration??.35,v=>this.model.set(ref,'transitionDuration',v));
@@ -267,6 +278,9 @@ export class LevelEditor {
     pickup.onclick = () => { const before = this.model.data.pickups;
       this.model.commit([{ path: ['pickups'], before, after: [...before ?? [], {id:newId('pickup'),kind:'M',x:this.model.data.spawn.x,y:this.model.data.spawn.y}] }]); this.refresh(); };
     root.append(pickup);
+    const lights=$('lighting-properties');lights.replaceChildren();
+    const config=this.model.data.lighting??defaultLevelLighting();
+    for(const key of ['enabled','ambient','mode','quantizationLevels'] as const)this.input(lights,key,config[key]??4,v=>this.model.setLighting(key,v),key==='mode'?['smooth','quantized']:undefined);
     const backgrounds = $('background-properties'); backgrounds.replaceChildren();
     this.model.data.backgrounds.forEach((b, i) => {
       const title = document.createElement('strong'); title.textContent = ['FAR', 'MID', 'NEAR'][i]!; backgrounds.append(title);
@@ -315,7 +329,10 @@ export class LevelEditor {
   private readonly move = (event: PointerEvent): void => {
     this.cursor = this.world(event);
     if (this.drag?.mode === 'pan') { this.pan.x = this.drag.panX - (event.clientX - this.drag.x) / this.zoom; this.pan.y = this.drag.panY + (event.clientY - this.drag.y) / this.zoom; this.resize(); }
-    else if (this.drag?.mode === 'move') this.dragDelta = { x: this.snap(this.cursor.x - this.drag.worldX), y: this.snap(this.cursor.y - this.drag.worldY) };
+    else if (this.drag?.mode === 'move') {
+      const free=this.model.objects().filter(o=>this.model.selection.has(o.id)).every(o=>o.type==='light')&&!$<HTMLInputElement>('light-snap').checked;
+      const delta=(v:number)=>free?v:this.snap(v);this.dragDelta={x:delta(this.cursor.x-this.drag.worldX),y:delta(this.cursor.y-this.drag.worldY)};
+    }
     else if (this.drag?.mode === 'camera') this.preview = { x: this.snap(this.cursor.x), y: this.snap(this.cursor.y) };
     this.refreshStatus(); this.requestDraw();
   };
@@ -336,7 +353,9 @@ export class LevelEditor {
     const x = this.snap(x0), y = this.snap(y0), id = newId(this.tool);
     const width = Math.max(16, Math.abs(this.snap(x1) - x)), height = Math.max(16, Math.abs(this.snap(y1) - y));
     const left = Math.min(x, this.snap(x1)), bottom = Math.min(y, this.snap(y1));
-    if (this.tool === 'solid' && !this.locked.has('collisions')) this.model.insert('ground', { id, x: left, y: bottom, width, height });
+    if(this.tool==='light'&&!this.locked.has('lights')){
+      const free=!$<HTMLInputElement>('light-snap').checked;this.model.insertLight({id,type:'point',x:free?x0:x,y:free?y0:y,radius:64,intensity:.7,color:'#ffcb80'});
+    }else if (this.tool === 'solid' && !this.locked.has('collisions')) this.model.insert('ground', { id, x: left, y: bottom, width, height });
     else if (this.tool === 'one-way' && !this.locked.has('platforms')) this.model.insert('platforms', { id, kind: 'one-way', x: left, y, width, height: 6 });
     else if (this.tool === 'pit' && !this.locked.has('collisions')) this.model.cutPit(left, width);
     else if (this.tool === 'enemy' && !this.locked.has('enemies')) this.model.insertEnemy(this.groupId, { id, kind: this.enemyKind, x, y, facing: -1 });
@@ -372,7 +391,8 @@ export class LevelEditor {
     this.raf = requestAnimationFrame(() => { this.frameRequested = false; this.draw(); });
   }
   private draw(): void {
-    this.renderer.render(this.scene, this.camera);
+    if($<HTMLInputElement>('lighting-preview').checked)this.lighting.render(this.renderer,this.scene,this.camera);
+    else this.renderer.render(this.scene, this.camera);
     const ctx = this.ctx, w = this.overlay.width, h = this.overlay.height, z = this.zoom;
     ctx.clearRect(0, 0, w, h); ctx.save(); ctx.translate(-this.pan.x * z, h + this.pan.y * z); ctx.scale(z, -z);
     ctx.lineWidth = 1 / z;
@@ -390,7 +410,11 @@ export class LevelEditor {
       if (b.x + b.width < this.pan.x || b.x > this.pan.x + w / z) continue;
       ctx.strokeStyle = selected ? '#ffffff' : linked ? '#fff079' : colors[ref.type]; ctx.lineWidth = (selected || linked ? 2 : 1) / z;
       if (ref.type === 'solid' || ref.type === 'platform') { ctx.fillStyle = colors[ref.type] + '25'; ctx.fillRect(b.x, b.y, b.width, b.height); }
-      ctx.strokeRect(b.x, b.y, b.width, b.height);
+      if(ref.type==='light'){
+        const cx=b.x+b.width/2,cy=b.y+b.height/2;ctx.strokeStyle=selected?'#ffffff':String(ref.value.color);
+        ctx.beginPath();ctx.arc(cx,cy,Math.max(1,Number(ref.value.radius)),0,Math.PI*2);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(cx-4,cy);ctx.lineTo(cx+4,cy);ctx.moveTo(cx,cy-4);ctx.lineTo(cx,cy+4);ctx.stroke();
+      }else ctx.strokeRect(b.x, b.y, b.width, b.height);
       if ((z >= .5||selected) && ['enemy', 'trigger', 'boss', 'checkpoint', 'spawn','cameraZone','killZone'].includes(ref.type)) {
         ctx.save(); ctx.translate(b.x, b.y + b.height + 3); ctx.scale(1 / z, -1 / z); ctx.fillStyle = ctx.strokeStyle; ctx.font = '11px monospace';
         const label = ref.type === 'enemy' ? `${ref.value.kind}${ref.value.weaponDrop ? ' [' + ref.value.weaponDrop + ']' : ''}` : ref.type==='cameraZone'?`${ref.value.mode==='VERTICAL_FOLLOW'?'↑':ref.value.mode==='LOCKED'?'▣':'→'} ${ref.value.mode}`:ref.type === 'boss' ? 'BOSS TRIGGER' : ref.type;
@@ -406,6 +430,9 @@ export class LevelEditor {
     }
     if (this.drag?.mode === 'create') { ctx.strokeStyle = '#fff'; ctx.strokeRect(this.snap(this.drag.worldX), this.snap(this.drag.worldY), this.snap(this.cursor.x) - this.snap(this.drag.worldX), this.snap(this.cursor.y) - this.snap(this.drag.worldY)); }
     ctx.restore();
+    const now=performance.now(),dt=this.lastLightTime?Math.min(.1,(now-this.lastLightTime)/1000):0;this.lastLightTime=now;
+    this.lighting.update(dt);
+    if($<HTMLInputElement>('lighting-preview').checked&&this.lighting.enabled&&this.model.data.lighting?.lights.some(l=>l.behavior==='pulse'||l.behavior==='flicker'))this.requestDraw();
   }
   private readonly key = (event: KeyboardEvent): void => {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement) return;
@@ -428,7 +455,7 @@ export class LevelEditor {
   private readonly beforeUnload = (event: BeforeUnloadEvent): void => { if (this.model.dirty) { event.preventDefault(); event.returnValue = ''; } };
   dispose(): void {
     cancelAnimationFrame(this.raf); this.observer.disconnect(); this.levelView?.dispose(); this.background?.dispose();
-    for (const item of this.sprites) item.sprite.dispose(); this.assets.dispose(); this.renderer.dispose();
+    for (const item of this.sprites) item.sprite.dispose(); this.assets.dispose(); this.lighting.dispose(); this.renderer.dispose();
     window.removeEventListener('keydown', this.key); window.removeEventListener('beforeunload', this.beforeUnload);
   }
 }

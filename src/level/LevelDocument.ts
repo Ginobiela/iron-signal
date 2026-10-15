@@ -1,3 +1,4 @@
+import { validateLighting } from './LevelLighting';
 import type { LevelData } from './Level';
 import type { CameraZone } from '../camera/CameraZone';
 import type { AABB } from '../collision/CollisionSystem';
@@ -99,6 +100,9 @@ export function validateLevel(value: unknown): Validation {
         ||(zone.transitionDuration!==undefined&&(!num(zone.transitionDuration)||zone.transitionDuration<0||zone.transitionDuration>2))))errors.push('Invalid camera mode/transition.');}
   }
   if(value.exitArea!==undefined)rect(value.exitArea,'exitArea');
+  errors.push(...validateLighting(value.lighting));
+  if(record(value.lighting)&&Array.isArray(value.lighting.lights)&&value.lighting.lights.length>24)warnings.push('More than 24 static lights: check lighting performance.');
+  if(record(value.lighting)&&Array.isArray(value.lighting.lights))for(const light of value.lighting.lights)if(record(light))object(light,'light');
   if(record(value.boss)){
     if(value.boss.kind!==undefined&&value.boss.kind!=='gate')errors.push('Invalid boss kind.');
     if(value.boss.kind==='gate'&&(value.boss.arena===undefined||value.boss.trigger===undefined||value.boss.encounter!==undefined))errors.push('Gate needs arena and trigger.');

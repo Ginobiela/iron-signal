@@ -2333,5 +2333,61 @@
       "offsetX": 0,
       "offsetY": 0
     }
-  ]
+  ],
+  "lighting": {
+    "enabled": true,
+    "ambient": 0.8,
+    "mode": "smooth",
+    "quantizationLevels": 4,
+    "lights": [
+      {
+        "id": "light-1-1",
+        "type": "point",
+        "x": 792,
+        "y": 112,
+        "radius": 88,
+        "intensity": 0.5,
+        "color": "#ffcb80"
+      },
+      {
+        "id": "light-1-2",
+        "type": "point",
+        "x": 3864,
+        "y": 124,
+        "radius": 88,
+        "intensity": 0.5,
+        "color": "#ffcb80"
+      },
+      {
+        "id": "light-1-3",
+        "type": "point",
+        "x": 5912,
+        "y": 112,
+        "radius": 88,
+        "intensity": 0.5,
+        "color": "#ffcb80"
+      },
+      {
+        "id": "light-1-4",
+        "type": "point",
+        "x": 7960,
+        "y": 112,
+        "radius": 88,
+        "intensity": 0.5,
+        "color": "#ffcb80"
+      },
+      {
+        "id": "light-1-5",
+        "type": "point",
+        "x": 9456,
+        "y": 100,
+        "radius": 88,
+        "intensity": 0.5,
+        "color": "#ffcb80",
+        "behavior": "pulse",
+        "speed": 0.6,
+        "amount": 0.08
+      }
+    ]
+  }
 }

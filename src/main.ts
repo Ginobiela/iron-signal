@@ -18,13 +18,16 @@ async function start(): Promise<void> {
 try {
   const params = new URLSearchParams(location.search), playtest = params.has('playtest') && DEV_TOOLS;
   const tuning = DEV_TOOLS && params.has('tuning');
+  const isLightingLab = DEV_TOOLS && params.get('lighting') === 'lab';
   let tuningStore: GameplayConfigStore | undefined;
   if (import.meta.env.DEV_TOOLS && tuning) tuningStore = (await import('./devtools/gameplayPresets')).restoreTuningSession();
   const levelUrl = params.get('level');
-  const data = playtest ? parseLevel(JSON.parse(sessionStorage.getItem('iron-signal-playtest-v1') ?? 'null'))
+  let data = playtest ? parseLevel(JSON.parse(sessionStorage.getItem('iron-signal-playtest-v1') ?? 'null'))
     : levelUrl ? await loadLevel(new URL(levelUrl, location.href).href) : undefined;
+  if(import.meta.env.DEV_TOOLS && isLightingLab && data)
+    data=(await import('./devtools/lightingLab')).lightingLab(data);
   const createGame = (level: typeof data): Game => new Game(viewport!, debug!, status!, notice!, menu!, bossStatus!, level, tuningStore,
-    playtest || tuning || params.has('lab') ? undefined : nextLevel);
+    playtest || tuning || params.has('lab') || isLightingLab ? undefined : nextLevel, isLightingLab);
   let game = createGame(data);
   const disposeFullscreen = attachFullscreen(document.querySelector<HTMLElement>('#app')!,
     document.querySelector<HTMLButtonElement>('#fullscreen-toggle')!);
