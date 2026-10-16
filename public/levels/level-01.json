@@ -1,6 +1,7 @@
 {
   "name": "Complejo de Relevo",
   "nextLevel": "levels/level-02.json",
+  "completionDelay": 3,
   "width": 9600,
   "spawn": {
     "x": 62,

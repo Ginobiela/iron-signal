@@ -32,7 +32,7 @@ export class Menu {
     if (confirm) { input.clear(); item.click(); }
   }
 
-  update(states: GameStateManager, score: ScoreManager, checkpoints: CheckpointManager): void {
+  update(states: GameStateManager, score: ScoreManager, checkpoints: CheckpointManager, automaticNextLevel = false): void {
     let text = '';
     switch (states.state) {
       case 'BOOT': text = 'INICIANDO…'; break;
@@ -42,7 +42,7 @@ export class Menu {
         ? `CAÍSTE · VIDAS ${states.lives}\nREAPARECIENDO EN\n${checkpoints.current.name.toUpperCase()}`
         : 'CAÍSTE · SIN VIDAS'; break;
       case 'GAME_OVER': text = `GAME OVER\nSCORE ${formatScore(score.value)}\nRÉCORD ${formatScore(score.highScore)}\n\nENTER: NUEVA PARTIDA`; break;
-      case 'LEVEL_COMPLETE': text = `MISIÓN COMPLETA\n${this.levelName.toUpperCase()} LIBERADO\nSCORE ${formatScore(score.value)}\n\nENTER: NUEVA PARTIDA`; break;
+      case 'LEVEL_COMPLETE': text = automaticNextLevel ? '' : `MISIÓN COMPLETA\n${this.levelName.toUpperCase()} LIBERADO\nSCORE ${formatScore(score.value)}\n\nENTER: NUEVA PARTIDA`; break;
     }
     if (text === this.lastText) return;
     this.lastText = text;

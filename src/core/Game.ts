@@ -118,6 +118,7 @@ export class Game {
   private graphicsDebugVisible = false;
   private debugTimer = 0;
   private ticks = 0;
+  private transitionRemaining: number | null = null;
   private readonly volumeControl = document.querySelector<HTMLInputElement>('#audio-volume');
   private readonly gamepadStatus = document.querySelector<HTMLElement>('#gamepad-status');
   private readonly levelPickups = new Set<string>();
@@ -262,6 +263,7 @@ export class Game {
   }
 
   dispose(): void {
+    this.transitionRemaining = null;
     this.loop.stop();
     this.lightingPanel?.dispose();
     this.lighting?.dispose();
@@ -292,6 +294,14 @@ export class Game {
   private readonly update = (dt: number): void => {
     this.input.pollGamepads();
     if (DEV_TOOLS && this.devPaused) { this.input.clear(); return; }
+    if (this.transitionRemaining !== null && this.states.state === 'LEVEL_COMPLETE') {
+      this.transitionRemaining = Math.max(0, this.transitionRemaining - dt);
+      if (this.transitionRemaining <= 1e-9) {
+        this.transitionRemaining = null;
+        this.onLevelComplete?.(this.levelData.nextLevel!);
+        return;
+      }
+    }
     this.lighting?.update(this.states.state === 'PAUSED' || this.states.state === 'MENU' ? 0 : dt);
     this.ticks++;
     if (this.states.state === 'MENU' || this.states.state === 'PAUSED') this.menu.handleInput(this.input);
@@ -315,7 +325,7 @@ export class Game {
     this.powerupView.update(visualStep);
     this.levelView.update(visualStep, this.boss.active, !this.boss.alive);
     this.checkpointView.update(visualStep);
-    this.bossView.update(effectStep);
+    this.bossView.update(effectStep, this.states.state === 'LEVEL_COMPLETE' && !!this.levelData.nextLevel && !!this.onLevelComplete);
     this.combatLighting.update(effectStep);
     this.playerView.update(this.player, effectStep);
     this.camera.position.x = Math.round(this.cameraController.x) + this.shake.offset.x;
@@ -327,6 +337,8 @@ export class Game {
   };
 
   private startOrResume(): void {
+    // Enter/controller confirm must not restart or skip an automatic victory transition.
+    if (this.states.state === 'LEVEL_COMPLETE' && this.levelData.nextLevel && this.onLevelComplete) return;
     this.audio.unlock();
     if (this.states.state === 'PAUSED') {
       this.states.resume();
@@ -419,7 +431,11 @@ export class Game {
         this.states.complete();
         this.projectiles.clear(false);
         this.input.clear();
-        if (this.levelData.nextLevel) this.onLevelComplete?.(this.levelData.nextLevel);
+        if (this.levelData.nextLevel && this.onLevelComplete) {
+          const delay = this.levelData.completionDelay ?? 0;
+          if (delay > 0) this.transitionRemaining = delay;
+          else this.onLevelComplete(this.levelData.nextLevel);
+        }
       }
     }
   }
@@ -483,6 +499,7 @@ export class Game {
   }
 
   private resetRun(): void {
+    this.transitionRemaining = null;
     this.audio.silence();
     this.particles.clear();
     this.fxSprites.clear();
@@ -592,7 +609,7 @@ export class Game {
     this.hud.update(this.states, this.score, this.player, this.checkpoints.current,
       Math.floor(((this.levelData.height??240)>240?this.player.position.y/(this.levelData.height??240):this.player.position.x/this.levelData.width)*100), this.level.sectionAt(this.player.position.x,this.player.position.y),
       this.checkpoints.message || this.powerups.message || (this.boss.encounter && !this.boss.alive ? 'CENTINELA DESTRUIDO · SALIDA / ASCENSOR ←' : ''));
-    this.menu.update(this.states, this.score, this.checkpoints);
+    this.menu.update(this.states, this.score, this.checkpoints, !!this.levelData.nextLevel && !!this.onLevelComplete);
     this.bossHUD.update(this.boss);
   }
 

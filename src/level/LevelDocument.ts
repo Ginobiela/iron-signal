@@ -71,6 +71,7 @@ export function validateLevel(value: unknown): Validation {
   if (typeof value.id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(value.id)) errors.push('Invalid level id.');
   if (typeof value.name !== 'string' || !value.name.trim()) errors.push('Level name required.');
   if (value.nextLevel !== undefined && (typeof value.nextLevel !== 'string' || !/^levels\/[a-zA-Z0-9_-]+\.json$/.test(value.nextLevel))) errors.push('Invalid nextLevel: expected levels/<id>.json.');
+  if (value.completionDelay !== undefined && (!num(value.completionDelay) || value.completionDelay < 0 || value.completionDelay > 30)) errors.push('completionDelay must be 0–30 seconds.');
   if (!num(value.width) || value.width < 256 || value.width > 100000) errors.push('World width must be 256–100000.');
   if (!num(value.height)||value.height<240||value.height>10000) errors.push('World height must be 240–10000.');
   if (typeof value.automaticTerrain !== 'boolean') errors.push('automaticTerrain must be boolean.');

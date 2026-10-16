@@ -38,6 +38,7 @@ it('arena boss uses its 2× idle/attack/damage/death assets at the original worl
   boss.takeDamage(boss.health); view.update(); expect(sprite.assetId).toBe('boss.death');
   expect(view.root.visible).toBe(true);
   view.update(.61); expect(sprite.animator.completed).toBe(true); expect(view.root.visible).toBe(false);
+  view.update(1, true); expect(view.root.visible).toBe(true); expect(sprite.animator.frame).toBe(5);
   expect(boss.visualFireCount).toBe(0); expect(boss.width).toBe(56); expect(boss.height).toBe(72);
   boss.reset(); boss.activate(0); view.update(); expect(sprite.assetId).toBe('boss.idle');
   expect(view.root.visible).toBe(true);

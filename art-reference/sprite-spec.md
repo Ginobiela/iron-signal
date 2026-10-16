@@ -109,6 +109,11 @@ offsets 0/0, PNG RGBA con alpha binario. IDs: `boss.idle`, `boss.attack`,
 `boss.damage`, `boss.death`. FPS conservados: 6/10/12/10; death non-loop.
 Se usan en juego, editor y Animation Viewer sin duplicar texturas. La animación
 refleja el estado existente: no controla disparos, daño ni avance de campaña.
+Level 1 declara `completionDelay: 3`: tras la victoria, el juego espera tres
+segundos antes de cargar Level 2, conserva el último frame de muerte y no cubre
+al boss con el menú final. La espera usa el update loop y se limpia al reiniciar
+o destruir Game; no depende del final de la animación. Otros niveles sin este
+campo conservan su transición inmediata.
 
 ```text
 public/assets/

@@ -30,6 +30,8 @@ export interface LevelData {
   automaticTerrain?: boolean;
   environmentSkin?: 'underground'|'tower';
   nextLevel?: string;
+  /** Presentation time after victory before an automatic campaign transition. */
+  completionDelay?: number;
   pickups?: readonly { id: string; kind: 'M' | 'S' | 'L'; x: number; y: number }[];
 }
 

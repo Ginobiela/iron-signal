@@ -14,7 +14,7 @@ import type { LevelData } from '../src/level/Level';
 describe('versioned levels / Level 1 migration', () => {
   it('preserves every legacy gameplay value and generated decoration in canonical JSON', () => {
     const {lighting,...gameplayAndArt}=SIGNAL_WORKS;
-    expect(gameplayAndArt).toEqual({ ...convertLegacyLevel(legacy as LevelData), nextLevel: 'levels/level-02.json' });
+    expect(gameplayAndArt).toEqual({ ...convertLegacyLevel(legacy as LevelData), nextLevel: 'levels/level-02.json', completionDelay: 3 });
     expect(lighting).toMatchObject({enabled:true,ambient:.8,mode:'smooth'});
     expect(lighting!.lights).toHaveLength(5);
     expect(validateLevel(SIGNAL_WORKS).errors).toEqual([]);
@@ -50,6 +50,7 @@ describe('versioned levels / Level 1 migration', () => {
       { ...SIGNAL_WORKS, spawnGroups: [{ id: 'group', x: 0, enemies: [{ id: 'e', x: 20, y: 44, kind: 'unknown' }] }] },
       { ...SIGNAL_WORKS, spawnGroups: [{ id: 'group', x: 0, enemies: [{ id: 'e', x: 20, y: 44, kind: 'runner', weaponDrop: 'M' }] }] },
       { ...SIGNAL_WORKS, boss: { ...SIGNAL_WORKS.boss, arenaLeft: -1 } },
+      ...[-1, 31, NaN, Infinity, '3'].map(completionDelay => ({ ...SIGNAL_WORKS, completionDelay })),
       { ...SIGNAL_WORKS, backgrounds: [{ asset: '__proto__', speed: 1, offsetX: 0, offsetY: 0 }] }];
     for (const input of invalid) expect(() => parseLevel(input)).toThrow();
     const fresh = createLevel('level-02', 'Test level', 2048);

@@ -70,7 +70,7 @@ export class BossView {
     }
   }
 
-  update(dt = 0): void {
+  update(dt = 0, keepDeathFrame = false): void {
     this.root.visible = this.boss.state !== 'DORMANT';
     if (!this.root.visible) { this.fireTimer = 0; this.lastFireCount = this.boss.visualFireCount; return; }
     this.fireTimer = Math.max(0, this.fireTimer - dt);
@@ -83,7 +83,7 @@ export class BossView {
       : this.boss instanceof FortifiedGateBoss ? 'idle' : this.boss.state === 'ATTACK' || this.boss.state === 'TELEGRAPH' ? 'attack' : 'idle';
     this.placeholder.visible = !this.sprite.update(`${this.boss.visualPrefix}.${animation}`, dt, !!this.boss.encounter, dead ? '' : `${this.boss.visualPrefix}.idle`);
     if(dead&&this.boss instanceof FortifiedGateBoss&&!this.sprite.available)this.placeholder.visible=false;
-    if (dead && !this.boss.encounter && this.sprite.available && this.sprite.animator.completed) this.root.visible = false;
+    if (dead && !keepDeathFrame && !this.boss.encounter && this.sprite.available && this.sprite.animator.completed) this.root.visible = false;
     const flash = !dead && (this.boss.hitFlashTimer > 0 || this.boss.shieldFlashTimer > 0);
     this.sprite.tint(flash ? 0xfff3c4 : 0xffffff);
     this.armor.color.setHex(flash ? 0xfff3c4 : dead ? 0x273b49 : 0x456260);
