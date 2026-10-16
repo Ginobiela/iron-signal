@@ -13,8 +13,36 @@ import { Runner } from '../src/entities/enemies/Runner';
 import { EnemyView } from '../src/rendering/EnemyView';
 import { CollisionSystem } from '../src/collision/CollisionSystem';
 import { PursuitBoss } from '../src/bosses/PursuitBoss';
+import { Boss } from '../src/bosses/Boss';
 import { BossView } from '../src/rendering/BossView';
 import { ProjectileManager } from '../src/projectiles/ProjectileManager';
+
+it('arena boss uses its 2× idle/attack/damage/death assets at the original world size', async () => {
+  const ids = ['boss.idle', 'boss.attack', 'boss.damage', 'boss.death'];
+  vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    const asset = Object.values(ASSETS).find(a => a.url === url)!;
+    return new Texture({ width: asset.sheet.frameWidth * asset.sheet.frameCount, height: 160 } as HTMLImageElement);
+  });
+  const assets = new AssetManager(Object.fromEntries(ids.map(id => [id, ASSETS[id]!])));
+  await assets.preload();
+  for (const id of ids) {
+    expect(ASSETS[id]!.sheet.frameWidth).toBe(128); expect(ASSETS[id]!.sheet.frameHeight).toBe(160);
+    expect(ASSETS[id]!.visual).toMatchObject({ width: 64, height: 80, offsetX: 0, offsetY: 0, anchor: 'bottom-center' });
+    expect(assets.getTexture(id)?.magFilter).toBe(NearestFilter);
+  }
+  const boss = new Boss({ x: 200, y: 44, arenaLeft: 0 }), view = new BossView(boss, assets);
+  const sprite = (view as unknown as { sprite: SpriteVisual }).sprite;
+  boss.activate(0); view.update(); expect(sprite.assetId).toBe('boss.idle');
+  boss.state = 'ATTACK'; view.update(.1); expect(sprite.assetId).toBe('boss.attack');
+  boss.state = 'RECOVER'; boss.takeDamage(1); view.update(); expect(sprite.assetId).toBe('boss.damage');
+  boss.takeDamage(boss.health); view.update(); expect(sprite.assetId).toBe('boss.death');
+  expect(view.root.visible).toBe(true);
+  view.update(.61); expect(sprite.animator.completed).toBe(true); expect(view.root.visible).toBe(false);
+  expect(boss.visualFireCount).toBe(0); expect(boss.width).toBe(56); expect(boss.height).toBe(72);
+  boss.reset(); boss.activate(0); view.update(); expect(sprite.assetId).toBe('boss.idle');
+  expect(view.root.visible).toBe(true);
+  view.dispose(); assets.dispose();
+});
 
 it('mecha visuals reflect missile fire and retain the final death frame without generating gameplay attacks', async () => {
   vi.spyOn(TextureLoader.prototype, 'loadAsync').mockImplementation(async () =>

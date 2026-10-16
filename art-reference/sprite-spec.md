@@ -102,6 +102,14 @@ del proyectil. Todavía no es necesario producir todas las variantes.
 
 ## Archivos y registro
 
+Boss del nivel 1 integrado: `sprites/boss/boss_idle.png` (1 frame),
+`boss_attack.png` (4), `boss_damage.png` (2) y `boss_death.png` (6).
+Frames SOURCE 128×160, densidad 2×, visual WORLD 64×80, anchor bottom-center,
+offsets 0/0, PNG RGBA con alpha binario. IDs: `boss.idle`, `boss.attack`,
+`boss.damage`, `boss.death`. FPS conservados: 6/10/12/10; death non-loop.
+Se usan en juego, editor y Animation Viewer sin duplicar texturas. La animación
+refleja el estado existente: no controla disparos, daño ni avance de campaña.
+
 ```text
 public/assets/
   sprites/player/player_idle.png, player_run.png, player_jump.png, ...

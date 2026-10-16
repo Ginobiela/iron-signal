@@ -166,6 +166,11 @@ for (const [clip, frames, fps, loop] of [['idle',4,6,true],['move',6,10,true],['
   ASSETS[`boss.mecha.${clip}`] = withArtScale(sprite(`sprites/boss/mecha/boss_mecha_${clip}`, 64, 80, frames, fps, 'bottom-center', loop), 2);
   ASSETS[`boss.mecha.${clip}`]!.url = ASSETS[`boss.mecha.${clip}`]!.path;
 }
+// Approved arena boss strips: 128×160 source cells, unchanged 64×80 world visuals.
+for (const id of ['boss.idle', 'boss.attack', 'boss.damage', 'boss.death']) {
+  const asset = withArtScale(ASSETS[id]!, 2);
+  ASSETS[id] = { ...asset, url: asset.path };
+}
 ASSETS['projectile.enemy.missile'] = withArtScale(sprite('sprites/boss/mecha/boss_missile', 12, 6, 2, 12, 'center'), 2);
 ASSETS['projectile.enemy.missile'].url = ASSETS['projectile.enemy.missile'].path;
 // Approved tower kit uses 2× sources with the original world sizes and anchors.

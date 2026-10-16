@@ -79,10 +79,10 @@ Cada fila indica dimensiones POR FRAME. New source es una recomendación de arte
 | pickup.M | assets/sprites/weapons/machinegun.png | 16×16 | 32×32 | 16×16 | fallback / previsto 1× |
 | pickup.S | assets/sprites/weapons/spread.png | 16×16 | 32×32 | 16×16 | fallback / previsto 1× |
 | pickup.L | assets/sprites/weapons/laser.png | 16×16 | 32×32 | 16×16 | fallback / previsto 1× |
-| boss.idle | assets/sprites/boss/boss_idle.png | 64×80 | 128×160 | 64×80 | fallback / previsto 1× |
-| boss.attack | assets/sprites/boss/boss_attack.png | 64×80 | 128×160 | 64×80 | fallback / previsto 1× |
-| boss.damage | assets/sprites/boss/boss_damage.png | 64×80 | 128×160 | 64×80 | fallback / previsto 1× |
-| boss.death | assets/sprites/boss/boss_death.png | 64×80 | 128×160 | 64×80 | fallback / previsto 1× |
+| boss.idle | assets/sprites/boss/boss_idle.png | 64×80 | 128×160 | 64×80 | integrado 2× · 1 frame |
+| boss.attack | assets/sprites/boss/boss_attack.png | 64×80 | 128×160 | 64×80 | integrado 2× · 4 frames |
+| boss.damage | assets/sprites/boss/boss_damage.png | 64×80 | 128×160 | 64×80 | integrado 2× · 2 frames |
+| boss.death | assets/sprites/boss/boss_death.png | 64×80 | 128×160 | 64×80 | integrado 2× · 6 frames |
 | projectile.player.bullet | assets/sprites/weapons/rifle.png | 4×4 | 8×8 | 4×4 | fallback / previsto 1× |
 | projectile.enemy.bullet | assets/sprites/weapons/enemy_bullet.png | 4×4 | 8×8 | 4×4 | fallback / previsto 1× |
 | projectile.player.laser | assets/sprites/weapons/laser_bullet.png | 12×4 | 24×8 | 12×4 | fallback / previsto 1× |
