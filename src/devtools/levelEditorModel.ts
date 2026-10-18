@@ -148,7 +148,10 @@ export class LevelEditorModel {
       if (ref.type === 'enemy' && refs.some(o => o.type === 'trigger' && o.id === ref.group)) continue;
       const copy = structuredClone(ref.value); copy.id = newId(ref.type); ids.push(String(copy.id)); copy.x = Number(copy.x) + 16;
       if (ref.type !== 'trigger'||ref.value.y!==undefined) copy.y = Number(copy.y) + 16;
-      else copy.enemies = (copy.enemies as Record<string, unknown>[]).map(e => ({ ...e, id: newId('enemy'), x: Number(e.x) + 16 }));
+      if (ref.type === 'trigger') copy.enemies = (copy.enemies as Record<string, unknown>[]).map(e => ({
+        ...e, id: newId('enemy'), x: Number(e.x) + 16,
+        y: Number(e.y) + (ref.value.y === undefined ? 0 : 16),
+      }));
       if(copy.area){const area=copy.area as Record<string,number>;area.x!+=16;area.y!+=16;}
       if(ref.type==='checkpoint'&&copy.order!==undefined)copy.order=Math.max(...this.data.checkpoints.map(c=>c.order??0))+1;
       const path = ref.path.slice(0, -1), key = path.join('/');

@@ -5,9 +5,12 @@ const assert = require('node:assert/strict');
  try{
   const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],requests=[];
   page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
+  // Keep this coordinate-specific legacy regression stable as the authored map evolves.
+  const baseline=require('../tests/fixtures/level-01-baseline.json');
+  await page.route('**/levels/level-01.json',route=>route.fulfill({json:baseline}));
   await page.route('**/src/main.ts*',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:(await r.text()).replace('if (playtest) {','window.__game = game;\n  if (playtest) {')});});
   await page.goto('http://127.0.0.1:5173/level-editor.html');
-  const expectedObjects=255+require('../public/levels/level-01.json').lighting.lights.length+1; // Separate boss spawn handle.
+  const expectedObjects=255+baseline.lighting.lights.length+1; // Separate boss spawn handle.
   await page.waitForFunction(count=>document.querySelector('#status').textContent.includes(`Objects ${count} ·`),expectedObjects);
   assert(!requests.some(url=>url.includes('/core/Game.ts')),'Editor must not load Game');
   assert.match(await page.locator('#validation').textContent(),/^0 errors/);

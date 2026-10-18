@@ -12,7 +12,7 @@ it('roundtrips real level lighting and accepts older documents without lighting'
   for(const [i,json] of [level1,level2,level3].entries()){
     const level=parseLevel(json);expect(parseLevel(JSON.parse(exportLevel(level)))).toEqual(level);
     expect(level.lighting!.lights).toHaveLength([5,6,10][i]!);
-    expect(level.lighting!.ambient).toBe([.8,.62,.52][i]!);
+    expect(level.lighting!.ambient).toBe([.4,.62,.52][i]!);
     delete level.lighting;expect(validateLevel(level).errors).toEqual([]);
     const light=new LightingSystem();light.loadLevel(parseLevel(level).lighting);expect(light.enabled).toBe(false);expect(light.activeCount).toBe(0);light.dispose();
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import legacy from './level-01-legacy.json';
-import { SIGNAL_WORKS } from '../src/level/signalWorks';
+import { BASELINE_LEVEL_01 as SIGNAL_WORKS } from './fixtures/levelFixtures';
 import { Level } from '../src/level/Level';
 import { convertLegacyLevel, createLevel, exportLevel, parseLevel, validateLevel } from '../src/level/LevelDocument';
 import { LevelEditorModel } from '../src/devtools/levelEditorModel';
@@ -10,8 +10,9 @@ import { CheckpointManager } from '../src/level/Checkpoint';
 import { Player } from '../src/entities/Player';
 import { Boss } from '../src/bosses/Boss';
 import type { LevelData } from '../src/level/Level';
+import vertical from '../public/levels/level-03.json';
 
-describe('versioned levels / Level 1 migration', () => {
+describe('versioned levels / original Level 1 migration', () => {
   it('preserves every legacy gameplay value and generated decoration in canonical JSON', () => {
     const {lighting,...gameplayAndArt}=SIGNAL_WORKS;
     expect(gameplayAndArt).toEqual({ ...convertLegacyLevel(legacy as LevelData), nextLevel: 'levels/level-02.json', completionDelay: 3 });
@@ -64,6 +65,28 @@ describe('versioned levels / Level 1 migration', () => {
   });
 });
 describe('editor commands', () => {
+  it('duplicates a 2D trigger with fresh enemy IDs/relative positions and exact undo/redo', () => {
+    const model = new LevelEditorModel(parseLevel(vertical));
+    const source = structuredClone(model.data.spawnGroups[0]!);
+    const before = structuredClone(model.data);
+    model.selection = new Set([source.id, source.enemies[0]!.id]);
+    model.duplicate();
+    const copy = model.data.spawnGroups.at(-1)!;
+    expect(copy.id).not.toBe(source.id);
+    expect(copy.x).toBe(source.x + 16); expect(copy.y).toBe(source.y! + 16);
+    expect(copy.enemies).toHaveLength(source.enemies.length);
+    copy.enemies.forEach((enemy, i) => {
+      expect(enemy.id).not.toBe(source.enemies[i]!.id);
+      expect(enemy.x).toBe(source.enemies[i]!.x + 16);
+      expect(enemy.y).toBe(source.enemies[i]!.y + 16);
+      expect(enemy.kind).toBe(source.enemies[i]!.kind);
+    });
+    expect(validateLevel(model.data).errors).toEqual([]);
+    expect(parseLevel(JSON.parse(exportLevel(model.data)))).toEqual(model.data);
+    const duplicated = structuredClone(model.data);
+    model.undo(); expect(model.data).toEqual(before);
+    model.redo(); expect(model.data).toEqual(duplicated);
+  });
   it('moves, edits, duplicates and deletes stable IDs, preserving 100 undo operations', () => {
     const model = new LevelEditorModel(SIGNAL_WORKS), ref = model.objects().find(o => o.type === 'enemy')!;
     model.selection.add(ref.id); const x = Number(ref.value.x);

@@ -5,7 +5,7 @@ import { EnemyManager } from '../src/entities/enemies/EnemyManager';
 import { Player } from '../src/entities/Player';
 import { EnemySpawner } from '../src/level/EnemySpawner';
 import { Level } from '../src/level/Level';
-import { SIGNAL_WORKS } from '../src/level/signalWorks';
+import { BASELINE_LEVEL_01 as SIGNAL_WORKS } from './fixtures/levelFixtures';
 import { parallaxPosition } from '../src/rendering/ParallaxBackground';
 
 const dt = TIMING.fixedStep;
@@ -179,7 +179,7 @@ describe('spawn triggers', () => {
   });
 });
 
-describe('level data and parallax', () => {
+describe('baseline level data and parallax regressions', () => {
   const level = new Level(SIGNAL_WORKS);
 
   it('applies the requested health values and includes sixteen grounded Runners', () => {

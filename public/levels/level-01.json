@@ -4,13 +4,13 @@
   "completionDelay": 3,
   "width": 9600,
   "spawn": {
-    "x": 62,
-    "y": 44,
+    "x": 1296,
+    "y": 144,
     "id": "player-spawn"
   },
   "exitX": 9536,
   "boss": {
-    "x": 9500,
+    "x": 9532,
     "y": 44,
     "arenaLeft": 9344,
     "id": "boss"
@@ -98,9 +98,23 @@
     {
       "x": 1182,
       "y": 0,
-      "width": 598,
+      "width": 274,
       "height": 56,
       "id": "ground-3"
+    },
+    {
+      "x": 1488,
+      "y": 0,
+      "width": 112,
+      "height": 56,
+      "id": "ground-b0d338ef-2c35-499a-9138-c6ba1f9cb1ea"
+    },
+    {
+      "x": 1648,
+      "y": 0,
+      "width": 132,
+      "height": 56,
+      "id": "ground-c25c6799-8f4b-4498-97b2-fbdc7e74582c"
     },
     {
       "x": 1824,
@@ -154,16 +168,16 @@
     {
       "x": 7664,
       "y": 0,
-      "width": 596,
+      "width": 338.5286874999965,
       "height": 44,
       "id": "ground-11"
     },
     {
-      "x": 8300,
+      "x": 8462.733765624995,
       "y": 0,
-      "width": 560,
+      "width": 397.2662343750053,
       "height": 56,
-      "id": "ground-12"
+      "id": "ground-1de10b32-d9c5-45f4-a23e-459c5ad13910"
     },
     {
       "x": 8904,
@@ -171,6 +185,27 @@
       "width": 696,
       "height": 44,
       "id": "ground-13"
+    },
+    {
+      "id": "solid-6ee9e93e-c665-48ec-9132-1bd3fb2fdee3",
+      "x": 1344,
+      "y": 32,
+      "width": 112,
+      "height": 96
+    },
+    {
+      "id": "solid-b667c1bd-5a2a-41e4-b30a-0913f13188b4",
+      "x": 1488,
+      "y": 0,
+      "width": 112,
+      "height": 160
+    },
+    {
+      "id": "solid-52049027-1f89-4a93-b18f-70137dc05f26",
+      "x": 1649.3269531249998,
+      "y": 1.4586718750001069,
+      "width": 109.375,
+      "height": 168.1249999999999
     }
   ],
   "platforms": [
@@ -192,8 +227,8 @@
     },
     {
       "kind": "one-way",
-      "x": 620,
-      "y": 68,
+      "x": 652,
+      "y": 84,
       "width": 96,
       "height": 6,
       "id": "platform-3"
@@ -208,7 +243,7 @@
     },
     {
       "kind": "one-way",
-      "x": 1350,
+      "x": 1238,
       "y": 80,
       "width": 96,
       "height": 6,
@@ -216,8 +251,8 @@
     },
     {
       "kind": "solid",
-      "x": 1500,
-      "y": 56,
+      "x": 1836,
+      "y": 40,
       "width": 40,
       "height": 12,
       "id": "platform-6"
@@ -248,8 +283,8 @@
     },
     {
       "kind": "one-way",
-      "x": 3050,
-      "y": 68,
+      "x": 3068.75,
+      "y": 86.125,
       "width": 96,
       "height": 6,
       "id": "platform-10"
@@ -328,8 +363,8 @@
     },
     {
       "kind": "solid",
-      "x": 6230,
-      "y": 56,
+      "x": 6235.46875,
+      "y": 57.5625,
       "width": 32,
       "height": 12,
       "id": "platform-20"
@@ -353,7 +388,7 @@
     {
       "kind": "solid",
       "x": 7460,
-      "y": 44,
+      "y": 46.34375,
       "width": 32,
       "height": 16,
       "id": "platform-23"
@@ -365,14 +400,6 @@
       "width": 100,
       "height": 6,
       "id": "platform-24"
-    },
-    {
-      "kind": "solid",
-      "x": 8100,
-      "y": 44,
-      "width": 56,
-      "height": 24,
-      "id": "platform-25"
     },
     {
       "kind": "one-way",
@@ -400,7 +427,7 @@
     },
     {
       "kind": "one-way",
-      "x": 204,
+      "x": 268,
       "y": 98,
       "width": 64,
       "height": 6,
@@ -408,8 +435,8 @@
     },
     {
       "kind": "one-way",
-      "x": 228,
-      "y": 128,
+      "x": 356,
+      "y": 112,
       "width": 48,
       "height": 6,
       "id": "platform-30"
@@ -461,6 +488,78 @@
       "width": 48,
       "height": 6,
       "id": "platform-36"
+    },
+    {
+      "id": "one-way-b94fde91-7670-44fb-8f2f-07785b3c9016",
+      "kind": "one-way",
+      "x": 7741.4290781249965,
+      "y": 103.28920800781259,
+      "width": 195.3125,
+      "height": 6
+    },
+    {
+      "id": "one-way-9b382ad9-fac0-4f37-937f-29766b10ec19",
+      "kind": "one-way",
+      "x": 7935.3607187499965,
+      "y": 140.75209863281248,
+      "width": 572.5097656249982,
+      "height": 6
+    },
+    {
+      "id": "one-way-fe063703-4a00-4706-91c1-83ccc8bf0be1",
+      "kind": "one-way",
+      "x": 8168.6907968749965,
+      "y": 109.55483300781259,
+      "width": 321.875,
+      "height": 6
+    },
+    {
+      "id": "one-way-9e40e82d-8d4a-4c42-bdd0-d6f8380dce11",
+      "kind": "one-way",
+      "x": 7953.985718749995,
+      "y": 75.76186425781262,
+      "width": 209.375,
+      "height": 6
+    },
+    {
+      "id": "one-way-3f9bd021-f956-483c-89eb-e5cd1ac6755c",
+      "kind": "one-way",
+      "x": 402.4103890409622,
+      "y": 146.9767662124633,
+      "width": 147.70507812499955,
+      "height": 6
+    },
+    {
+      "id": "one-way-6c0049e3-8577-47ac-b4d8-fb4dc2095331",
+      "kind": "one-way",
+      "x": 592.0119515409617,
+      "y": 166.3771568374632,
+      "width": 161.13281249999955,
+      "height": 6
+    },
+    {
+      "id": "one-way-8dcb9691-a325-4537-8a14-031cd710cc86",
+      "kind": "one-way",
+      "x": 1808,
+      "y": 176,
+      "width": 128,
+      "height": 6
+    },
+    {
+      "id": "one-way-cb841c7b-3931-4eb0-a312-ebd7ba14eda2",
+      "kind": "one-way",
+      "x": 1920,
+      "y": 128,
+      "width": 128,
+      "height": 6
+    },
+    {
+      "id": "one-way-d677b892-7cc8-4749-9c4a-f5ac11bfdf55",
+      "kind": "one-way",
+      "x": 1264,
+      "y": 112,
+      "width": 64,
+      "height": 6
     }
   ],
   "spawnGroups": [
@@ -479,6 +578,13 @@
           "y": 92,
           "weaponDrop": "M",
           "id": "enemy-1-2"
+        },
+        {
+          "kind": "flying",
+          "x": 387.3945312499996,
+          "y": 144.6210937499999,
+          "weaponDrop": "M",
+          "id": "enemy-fb9a9f20-4835-4a9a-8c07-5978b4d542e9"
         }
       ],
       "id": "trigger-1"
@@ -494,7 +600,7 @@
         },
         {
           "kind": "runner",
-          "x": 400,
+          "x": 496,
           "y": 44,
           "id": "enemy-2-2"
         },
@@ -519,7 +625,7 @@
         {
           "kind": "flying",
           "x": 810,
-          "y": 100,
+          "y": 116,
           "weaponDrop": "S",
           "id": "enemy-3-2"
         }
@@ -531,20 +637,20 @@
       "enemies": [
         {
           "kind": "turret",
-          "x": 1420,
-          "y": 56,
+          "x": 1656.5,
+          "y": 172.125,
           "id": "enemy-4-1"
         },
         {
           "kind": "runner",
-          "x": 1620,
-          "y": 56,
+          "x": 1588,
+          "y": 184,
           "id": "enemy-4-2"
         },
         {
           "kind": "runner",
-          "x": 1700,
-          "y": 56,
+          "x": 1428,
+          "y": 136,
           "id": "enemy-4-3"
         }
       ],
@@ -616,7 +722,7 @@
         },
         {
           "kind": "runner",
-          "x": 3370,
+          "x": 3460.8,
           "y": 44,
           "id": "enemy-8-3"
         }
@@ -810,14 +916,14 @@
       "enemies": [
         {
           "kind": "soldier",
-          "x": 7960,
-          "y": 44,
+          "x": 8354.09375,
+          "y": 148.09374999999977,
           "id": "enemy-18-1"
         },
         {
           "kind": "flying",
-          "x": 8080,
-          "y": 100,
+          "x": 8386.53125,
+          "y": 191.0624999999999,
           "id": "enemy-18-2"
         }
       ],
@@ -828,8 +934,8 @@
       "enemies": [
         {
           "kind": "turret",
-          "x": 8500,
-          "y": 56,
+          "x": 8421.71875,
+          "y": 87.40624999999994,
           "id": "enemy-19-1"
         },
         {
@@ -877,6 +983,11 @@
         }
       ],
       "id": "trigger-21"
+    },
+    {
+      "id": "trigger-f6801b0b-96bc-4588-86af-ef61f2c6df0a",
+      "x": 690.4963265409614,
+      "enemies": []
     }
   ],
   "version": 1,
@@ -1017,28 +1128,6 @@
       "flipX": false
     },
     {
-      "id": "wall-13",
-      "x": 7904,
-      "y": 44,
-      "width": 128,
-      "height": 64,
-      "asset": "environment.wall.bunker",
-      "layer": "back",
-      "tiled": true,
-      "flipX": false
-    },
-    {
-      "id": "wall-14",
-      "x": 8032,
-      "y": 44,
-      "width": 160,
-      "height": 48,
-      "asset": "environment.wall.concrete",
-      "layer": "back",
-      "tiled": true,
-      "flipX": false
-    },
-    {
       "id": "wall-15",
       "x": 8928,
       "y": 44,
@@ -1072,17 +1161,6 @@
       "flipX": false
     },
     {
-      "id": "decor-1",
-      "asset": "environment.prop.plant",
-      "x": 30,
-      "y": 44,
-      "width": 24,
-      "height": 24,
-      "layer": "back",
-      "tiled": false,
-      "flipX": false
-    },
-    {
       "id": "decor-2",
       "asset": "environment.prop.grass",
       "x": 116,
@@ -1107,8 +1185,8 @@
     {
       "id": "decor-4",
       "asset": "environment.prop.vines",
-      "x": 408,
-      "y": 116,
+      "x": 296,
+      "y": 84,
       "width": 16,
       "height": 32,
       "layer": "back",
@@ -1163,7 +1241,7 @@
       "id": "decor-9",
       "asset": "environment.animated.vent",
       "x": 792,
-      "y": 104,
+      "y": 88,
       "width": 16,
       "height": 16,
       "layer": "back",
@@ -1206,8 +1284,8 @@
     {
       "id": "decor-13",
       "asset": "environment.prop.branch",
-      "x": 744,
-      "y": 214,
+      "x": 840,
+      "y": 102,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -1250,7 +1328,7 @@
     {
       "id": "decor-17",
       "asset": "environment.prop.crate",
-      "x": 1444,
+      "x": 1236,
       "y": 56,
       "width": 16,
       "height": 16,
@@ -1261,7 +1339,7 @@
     {
       "id": "decor-18",
       "asset": "environment.prop.sign",
-      "x": 1510,
+      "x": 1302,
       "y": 56,
       "width": 16,
       "height": 24,
@@ -1272,7 +1350,7 @@
     {
       "id": "decor-19",
       "asset": "environment.prop.grass",
-      "x": 1616,
+      "x": 1712,
       "y": 56,
       "width": 16,
       "height": 8,
@@ -1394,7 +1472,7 @@
       "id": "decor-30",
       "asset": "environment.animated.vent",
       "x": 2840,
-      "y": 104,
+      "y": 78.625,
       "width": 16,
       "height": 16,
       "layer": "back",
@@ -1459,8 +1537,8 @@
     {
       "id": "decor-36",
       "asset": "environment.prop.rock",
-      "x": 3370,
-      "y": 44,
+      "x": 3447.4939453124994,
+      "y": 44.72587890624999,
       "width": 16,
       "height": 12,
       "layer": "back",
@@ -1514,8 +1592,8 @@
     {
       "id": "decor-41",
       "asset": "environment.animated.vent",
-      "x": 3864,
-      "y": 116,
+      "x": 3878.84375,
+      "y": 88.65625000000006,
       "width": 16,
       "height": 16,
       "layer": "back",
@@ -1558,8 +1636,8 @@
     {
       "id": "decor-45",
       "asset": "environment.prop.branch",
-      "x": 3816,
-      "y": 214,
+      "x": 3994.125,
+      "y": 98.37500000000017,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -1646,8 +1724,8 @@
     {
       "id": "decor-53",
       "asset": "environment.animated.vent",
-      "x": 4888,
-      "y": 104,
+      "x": 4888.78125,
+      "y": 77.43750000000006,
       "width": 16,
       "height": 16,
       "layer": "back",
@@ -1679,8 +1757,8 @@
     {
       "id": "decor-56",
       "asset": "environment.prop.branch",
-      "x": 4200,
-      "y": 206,
+      "x": 4414.84375,
+      "y": 66.93750000000017,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -1734,8 +1812,8 @@
     {
       "id": "decor-61",
       "asset": "environment.prop.vines",
-      "x": 5528,
-      "y": 116,
+      "x": 5521.75,
+      "y": 49.59375000000006,
       "width": 16,
       "height": 32,
       "layer": "back",
@@ -1789,8 +1867,8 @@
     {
       "id": "decor-66",
       "asset": "environment.animated.vent",
-      "x": 5912,
-      "y": 104,
+      "x": 5912.78125,
+      "y": 76.65625,
       "width": 16,
       "height": 16,
       "layer": "back",
@@ -1811,8 +1889,8 @@
     {
       "id": "decor-68",
       "asset": "environment.prop.branch",
-      "x": 5224,
-      "y": 206,
+      "x": 5109.9375,
+      "y": 84.12500000000017,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -1822,8 +1900,8 @@
     {
       "id": "decor-69",
       "asset": "environment.prop.branch",
-      "x": 5864,
-      "y": 214,
+      "x": 5877.28125,
+      "y": 101.50000000000017,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -1866,8 +1944,8 @@
     {
       "id": "decor-73",
       "asset": "environment.prop.vines",
-      "x": 6552,
-      "y": 116,
+      "x": 6891.84375,
+      "y": 91.00000000000006,
       "width": 16,
       "height": 32,
       "layer": "back",
@@ -1921,8 +1999,8 @@
     {
       "id": "decor-78",
       "asset": "environment.animated.vent",
-      "x": 6936,
-      "y": 104,
+      "x": 6950.84375,
+      "y": 76.65625,
       "width": 16,
       "height": 16,
       "layer": "back",
@@ -1954,8 +2032,8 @@
     {
       "id": "decor-81",
       "asset": "environment.prop.branch",
-      "x": 6248,
-      "y": 206,
+      "x": 6249.5625,
+      "y": 61.46875000000017,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -1965,8 +2043,8 @@
     {
       "id": "decor-82",
       "asset": "environment.prop.branch",
-      "x": 6888,
-      "y": 214,
+      "x": 7086.4375,
+      "y": 85.87500000000023,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -2009,8 +2087,8 @@
     {
       "id": "decor-86",
       "asset": "environment.prop.vines",
-      "x": 7576,
-      "y": 116,
+      "x": 7485.375,
+      "y": 39.437500000000114,
       "width": 16,
       "height": 32,
       "layer": "back",
@@ -2051,32 +2129,10 @@
       "flipX": false
     },
     {
-      "id": "decor-90",
-      "asset": "environment.animated.vent",
-      "x": 7960,
-      "y": 104,
-      "width": 16,
-      "height": 16,
-      "layer": "back",
-      "tiled": false,
-      "flipX": false
-    },
-    {
-      "id": "decor-91",
-      "asset": "environment.prop.pipe",
-      "x": 8024,
-      "y": 44,
-      "width": 16,
-      "height": 16,
-      "layer": "back",
-      "tiled": false,
-      "flipX": false
-    },
-    {
       "id": "decor-92",
       "asset": "environment.prop.barrier",
-      "x": 8148,
-      "y": 44,
+      "x": 7710.500000000001,
+      "y": 43.21875,
       "width": 32,
       "height": 16,
       "layer": "back",
@@ -2086,8 +2142,8 @@
     {
       "id": "decor-93",
       "asset": "environment.prop.branch",
-      "x": 7272,
-      "y": 206,
+      "x": 7343.09375,
+      "y": 68.50000000000017,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -2097,8 +2153,8 @@
     {
       "id": "decor-94",
       "asset": "environment.prop.branch",
-      "x": 7912,
-      "y": 214,
+      "x": 8315.375,
+      "y": 110,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -2108,21 +2164,10 @@
     {
       "id": "decor-95",
       "asset": "environment.prop.plant",
-      "x": 8222,
-      "y": 44,
+      "x": 7864.1875,
+      "y": 38.53125,
       "width": 24,
       "height": 24,
-      "layer": "back",
-      "tiled": false,
-      "flipX": false
-    },
-    {
-      "id": "decor-96",
-      "asset": "environment.prop.grass",
-      "x": 8308,
-      "y": 56,
-      "width": 16,
-      "height": 8,
       "layer": "back",
       "tiled": false,
       "flipX": false
@@ -2141,8 +2186,8 @@
     {
       "id": "decor-98",
       "asset": "environment.prop.vines",
-      "x": 8600,
-      "y": 128,
+      "x": 8478.125000000002,
+      "y": 63.93750000000006,
       "width": 16,
       "height": 32,
       "layer": "back",
@@ -2273,8 +2318,8 @@
     {
       "id": "decor-110",
       "asset": "environment.prop.branch",
-      "x": 9320,
-      "y": 206,
+      "x": 9176.8,
+      "y": 85.20000000000002,
       "width": 32,
       "height": 12,
       "layer": "front",
@@ -2295,7 +2340,7 @@
     {
       "id": "decor-112",
       "asset": "environment.prop.pipe",
-      "x": 9424,
+      "x": 9456,
       "y": 44,
       "width": 16,
       "height": 16,
@@ -2307,7 +2352,7 @@
       "id": "decor-113",
       "asset": "environment.animated.vent",
       "x": 9456,
-      "y": 92,
+      "y": 76,
       "width": 16,
       "height": 16,
       "layer": "back",
@@ -2337,15 +2382,15 @@
   ],
   "lighting": {
     "enabled": true,
-    "ambient": 0.8,
+    "ambient": 0.4,
     "mode": "smooth",
-    "quantizationLevels": 4,
+    "quantizationLevels": 2,
     "lights": [
       {
         "id": "light-1-1",
         "type": "point",
-        "x": 792,
-        "y": 112,
+        "x": 792.5,
+        "y": 95.5,
         "radius": 88,
         "intensity": 0.5,
         "color": "#ffcb80"
@@ -2390,5 +2435,121 @@
         "amount": 0.08
       }
     ]
-  }
+  },
+  "pickups": [
+    {
+      "id": "pickup-52c7751b-ee16-47de-ab3c-63dd6391ca12",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-e51939dd-c675-4ebd-b12b-004d929df15b",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-861e081c-e94c-4a69-ac9a-0239edecf3ac",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-193f2fc1-562b-4cbb-a90f-ea8136ae9798",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-eda8afa9-6068-47ad-80ee-656271165b00",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-dba426cf-05d7-49f7-95ae-0a17ae277bff",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-ed11cecb-c4bd-44de-b029-a45b4f2770e0",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-55cbd7c6-6ec0-404d-88bf-6ccf7e8aa2c0",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-cf00074e-940b-4a46-964d-66e83c1bca78",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-fc5214ba-767c-49aa-8c02-3775d47496fd",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-faff64e1-99aa-4625-b432-f014ce899c6b",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-710fea5f-b002-45dd-8a3c-8c75e680bec2",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-71422e4a-c416-4920-9558-36e98e5b7fb8",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-e6ce7822-74e8-480c-93db-0a101d6872ed",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-42c9ed74-ebae-4afe-8beb-be38266d6bbf",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-5626b3ec-daec-455f-aba4-4a72da49243f",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-c51644a6-bab5-4bd3-a19e-b4f486a91033",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-13df690b-3658-4a4a-a2ad-19ac4f6b8da9",
+      "kind": "M",
+      "x": 62,
+      "y": 44
+    },
+    {
+      "id": "pickup-20290b3d-aaee-4879-9a0c-07627da6faaa",
+      "kind": "M",
+      "x": 638.599047915963,
+      "y": 185.8670837124634
+    }
+  ]
 }

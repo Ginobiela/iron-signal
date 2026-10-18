@@ -33,7 +33,8 @@ const assert=require('node:assert/strict');
   await page.click('#redo');assert.equal(await page.evaluate(()=>editor.model.data.lighting.lights.length),6);
   await page.getByLabel('Show lights',{exact:true}).uncheck();assert.equal(await page.evaluate(()=>editor.lighting.enabled),true);
   await page.locator('#lighting-preview').uncheck();await page.locator('#lighting-preview').check();
-  await page.locator('#lighting-properties').getByLabel('mode',{exact:true}).selectOption('quantized');assert.equal(await page.evaluate(()=>editor.lighting.quantization),4);
+  const quantization=await page.evaluate(()=>editor.model.data.lighting.quantizationLevels);
+  await page.locator('#lighting-properties').getByLabel('mode',{exact:true}).selectOption('quantized');assert.equal(await page.evaluate(()=>editor.lighting.quantization),quantization);
   await page.locator('#lighting-properties').getByLabel('mode',{exact:true}).selectOption('smooth');
   await page.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'iron-signal-light-editor.png')});
   const downloadPromise=page.waitForEvent('download');await page.click('#export');const download=await downloadPromise;
@@ -46,7 +47,7 @@ const assert=require('node:assert/strict');
   assert.equal(await page.evaluate(()=>g.lighting.temporaryCount),0);
   await page.evaluate(()=>{g.loop.stop();g.lighting.enabled=false;g.lightingPanel.controls.get('enabled').checked=false;g.resetRun();if(!g.lighting.enabled||!g.lightingPanel.controls.get('enabled').checked)throw Error('Stale panel after restart');});
   // Refresh/runtime from authored JSONs uses the same config without the dev panel changing values.
-  for(const [level,count,ambient] of [[1,5,.8],[2,6,.62],[3,10,.52]]){
+  for(const [level,count,ambient] of [[1,5,.4],[2,6,.62],[3,10,.52]]){
    await page.goto(`http://127.0.0.1:5173/?level=levels/level-0${level}.json`);await page.getByRole('button',{name:'COMENZAR',exact:true}).waitFor();
    assert.equal(await page.evaluate(()=>g.lighting.staticLights.length),count);assert.equal(await page.evaluate(()=>g.lighting.ambient),ambient);
    await page.getByRole('button',{name:'COMENZAR',exact:true}).click();await page.evaluate(()=>{g.loop.stop();g.player.invulnerabilityTimer=0;g.update(1/60);g.render();});

@@ -11,6 +11,7 @@ const base = process.env.TUNER_URL || 'http://127.0.0.1:5173';
       const requests = []; page.on('request', request => requests.push(request.url()));
       await page.goto(`${base}/?tuning=1&playtest=1`); await page.waitForSelector('#game-menu[data-state="MENU"]');
       assert.equal(await page.getByRole('link', { name: /TOOLS|ANIMATION VIEWER/ }).count(), 0);
+      assert.equal(await page.getByRole('button', { name: 'TOOLS', exact: true }).count(), 0);
       await page.keyboard.press('F3'); assert.equal(await page.locator('.quick-tuner').count(), 0);
       assert.equal(requests.some(url => /gameplayPlaytest|gameplayPresets|GameplayTuner/.test(url)), false);
       assert.deepEqual(errors, []); console.log('Release: no tools, no tuning requests, F3 disabled.'); return;
@@ -19,7 +20,9 @@ const base = process.env.TUNER_URL || 'http://127.0.0.1:5173';
       const response = await route.fetch();
       await route.fulfill({ response, body: (await response.text()).replace('game.start();', 'window.__game = game; game.start();') });
     });
-    await page.goto(`${base}/`); await page.getByRole('link', { name: 'TOOLS · GAMEPLAY TUNER', exact: true }).click();
+    await page.goto(`${base}/`);
+    await page.getByRole('button', { name: 'TOOLS', exact: true }).click();
+    await page.getByRole('link', { name: 'GAMEPLAY TUNER', exact: true }).click();
     await page.waitForSelector('#settings .tuning-row');
     const set = async (path, value) => {
       const input = page.locator(`[id="tuning-${path}"]`); await input.fill(String(value)); await input.press('Tab');

@@ -6,7 +6,7 @@ import { GameLoop } from '../src/core/GameLoop';
 import { Player } from '../src/entities/Player';
 import { Turret } from '../src/entities/enemies/Turret';
 import { PowerupManager } from '../src/level/PowerupManager';
-import { SIGNAL_WORKS } from '../src/level/signalWorks';
+import { BASELINE_LEVEL_01 as SIGNAL_WORKS } from './fixtures/levelFixtures';
 import { EnemyManager } from '../src/entities/enemies/EnemyManager';
 import { ProjectileManager } from '../src/projectiles/ProjectileManager';
 import { MachineGun } from '../src/weapons/MachineGun';
@@ -224,7 +224,7 @@ describe('weapon pickups', () => {
     expect(laser?.position.y).toBeCloseTo(player.position.y + player.gunPivotY);
   });
 
-  it('campaign starts without pickups and distributes scarce M/S/L carriers among ordinary flyers', () => {
+  it('baseline campaign starts without pickups and distributes scarce M/S/L carriers among ordinary flyers', () => {
     expect('powerups' in SIGNAL_WORKS).toBe(false);
     const enemies = new EnemyManager();
     for (const group of SIGNAL_WORKS.spawnGroups) for (const placement of group.enemies) enemies.spawn(placement);
