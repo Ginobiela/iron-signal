@@ -7,7 +7,7 @@ import { SpriteAnimator } from './SpriteAnimator';
 import { SpriteVisual } from './SpriteVisual';
 import type { AssetManager } from '../core/AssetManager';
 import { DRAW } from '../config/assets';
-import { playerAimMuzzle, playerAimPose } from '../entities/playerAim';
+import { playerAimPose } from '../entities/playerAim';
 import { resolvePlayerSprite } from './playerAnimation';
 
 export class PlayerView {
@@ -95,8 +95,8 @@ export class PlayerView {
     this.silhouette.scale.x = player.direction * PLAYER_VISUAL.width / 12;
     this.silhouette.scale.y = (player.crouching ? PLAYER_VISUAL.crouchHeight : PLAYER_VISUAL.height) / 26;
     this.silhouette.position.set(PLAYER_VISUAL.offsetX, PLAYER_VISUAL.offsetY, 0);
-    this.gun.position.y = player.gunPivotY;
-    this.gun.position.x = playerAimMuzzle(player.aimDirection).offsetX * player.direction
+    this.gun.position.y = player.projectileOriginY - player.position.y;
+    this.gun.position.x = player.projectileOriginX - player.position.x - player.width / 2
       + (this.muzzleTimer > 0 ? -player.aimDirection.x * FEEDBACK.recoilPixels : 0);
     this.gun.scale.x = player.muzzleDistance / PLAYER.muzzleDistance;
     this.bounds.scale.y = player.height;

@@ -8,7 +8,7 @@ export interface LightData { x: number; y: number; radius: number; intensity: nu
 export interface LightSource { position: {x:number;y:number}; readonly active:boolean }
 export interface AttachedLightProfile { radius:number;intensity:number;color:number;offsetX?:number;offsetY?:number }
 export interface AttachedLightSlot extends LightSlot { source?:LightSource; offsetX:number;offsetY:number }
-export interface LightSlot { behavior?:'static'|'flicker'|'pulse';speed?:number;amount?:number;seed?:number; x: number; y: number; radius: number; intensity: number; color: Color; life: number; duration: number; active: boolean; generation: number }
+export interface LightSlot { source?:LightSource;behavior?:'static'|'flicker'|'pulse';speed?:number;amount?:number;seed?:number; x: number; y: number; radius: number; intensity: number; color: Color; life: number; duration: number; active: boolean; generation: number }
 const vertexShader = `varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`;
 const lightShader = `
 varying vec2 vUv;
@@ -99,6 +99,12 @@ export class LightingSystem {
     this.syncAttached();return slot;
   }
   syncAttached():void {
+    for(const s of this.slots)if(s.active&&s.source){
+      if(!s.source.active||!Number.isFinite(s.source.position.x)||!Number.isFinite(s.source.position.y)){
+        s.active=false;s.source=undefined;continue;
+      }
+      s.x=s.source.position.x;s.y=s.source.position.y;
+    }
     for(const s of this.attachedLights)if(s.active){
       const source=s.source;
       if(!source?.active||!Number.isFinite(source.position.x)||!Number.isFinite(source.position.y)){s.active=false;s.source=undefined;continue;}
@@ -125,24 +131,27 @@ export class LightingSystem {
     const slot=this.slots.find(s=>!s.active);
     if(!slot){this.dropped++;return;}
     slot.x=data.x;slot.y=data.y;slot.radius=Math.min(2048,data.radius);slot.intensity=Math.max(0,Math.min(4,data.intensity));
-    slot.color.setHex(data.color);slot.duration=slot.life=data.lifetime??Infinity;slot.active=true;slot.generation++;return slot;
+    slot.color.setHex(data.color);slot.duration=slot.life=data.lifetime??Infinity;slot.source=undefined;slot.active=true;slot.generation++;return slot;
   }
   update(dt:number):void {
     if(!this.enabled||!Number.isFinite(dt)||dt<=0)return;
     this.time+=dt;this.syncAttached();
-    for(const slot of this.slots)if(slot.active&&slot.duration!==Infinity){slot.life=Math.max(0,slot.life-dt);if(slot.life===0)slot.active=false;}
+    for(const slot of this.slots)if(slot.active){
+      if(slot.duration!==Infinity){slot.life=Math.max(0,slot.life-dt);if(slot.life===0){slot.active=false;slot.source=undefined;}}
+    }
   }
-  clear():void {for(const s of this.slots)s.active=false;for(const s of this.attachedLights){s.active=false;s.source=undefined;}}
+  clear():void {for(const s of this.slots){s.active=false;s.source=undefined;}for(const s of this.attachedLights){s.active=false;s.source=undefined;}}
   /** Called by the existing visual effect pool, never Player/Weapon logic. */
-  onVfx(id:string,x:number,y:number):void {
+  onVfx(id:string,x:number,y:number,source?:LightSource):void {
     if(!this.enabled)return;
     const profile=id==='fx.muzzle.rifle'?LIGHT_PROFILES.rifle:id==='fx.muzzle.machineGun'?LIGHT_PROFILES.machineGun
       :id==='fx.muzzle.spread'?LIGHT_PROFILES.spread:id==='fx.muzzle.laser'?LIGHT_PROFILES.laser
       :id==='fx.explosion.small'?LIGHT_PROFILES.small:id==='fx.explosion.medium'?LIGHT_PROFILES.medium:undefined;
-    if(profile)this.addLight({x,y,...profile});
+    if(profile){const slot=this.addLight({x,y,...profile});if(slot)slot.source=source;}
   }
   render(renderer:WebGLRenderer,scene:Scene,camera:OrthographicCamera):void {
     const start=performance.now();
+    this.syncAttached();
     if(!this.enabled||this.fullAmbient){this.visibleCount=this.submittedCount=0;renderer.render(scene,camera);this.drawCalls=renderer.info.render.calls;this.renderMs=performance.now()-start;return;}
     renderer.getDrawingBufferSize(this.size);
     const w=this.size.x,h=this.size.y,scale=this.resolutionScale===1?1:.5;

@@ -41,7 +41,7 @@ it.each([false,true])('resolves lower poses with/without fire (%s) and uses a ro
     expect(internal.silhouette.visible).toBe(true); expect(internal.gun.visible).toBe(true);
     expect(internal.gun.rotation.z).toBe(Math.atan2(player.aimDirection.y,player.aimDirection.x));
     expect(internal.sprite.mesh.scale.y).toBeGreaterThan(0); expect(player.position).toEqual(before); expect(fire).not.toHaveBeenCalled();
-    const tip={x:0,y:0,angle:0}; playerMuzzle(player,assets,tip);
+    const tip={x:0,y:0,angle:0}; playerMuzzle(player,tip);
     expect(tip.x).toBeCloseTo(player.projectileOriginX+player.aimDirection.x*player.muzzleDistance);
     expect(tip.y).toBeCloseTo(player.projectileOriginY+player.aimDirection.y*player.muzzleDistance);
     expect(playerAimName(player.aimDirection)).toBe(diagonal?`${facing===1?'RIGHT':'LEFT'}_DOWN`:'DOWN');
@@ -71,7 +71,7 @@ it.each([1,-1] as const)('places loaded lower muzzle flashes at baked rifle tips
     player.aimDirection.x=diagonal?facing*Math.SQRT1_2:0;
     player.aimDirection.y=diagonal?-Math.SQRT1_2:-1;
     const origin={x:player.projectileOriginX,y:player.projectileOriginY};
-    const tip={x:0,y:0,angle:0}; playerMuzzle(player,assets,tip);
+    const tip={x:0,y:0,angle:0}; playerMuzzle(player,tip);
     expect(tip.x).toBe(106+(diagonal?14:8)*facing);
     expect(tip.y).toBe(100+(diagonal?7:4));
     expect(tip.angle).toBe(Math.atan2(player.aimDirection.y,player.aimDirection.x));

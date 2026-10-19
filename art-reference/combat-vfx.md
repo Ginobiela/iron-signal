@@ -55,8 +55,12 @@ Los contactos se detectan por el contador de golpes del Player y tienen fallback
 en el centro de su collider. Muerte/drop/pickup/respawn conservan sus tiempos y
 condiciones. Drop ocurre inmediatamente; no espera a death/explosion.
 
-Los muzzles de sprites usan offsets relativos al origen visual, con flip y pose;
-los placeholders conservan el cañón geométrico. No cambian projectile origins.
+Player comparte una punta de cañón en WORLD entre proyectiles, flash y luz:
+`PLAYER_MUZZLES` / `PLAYER_LOWER_VISUAL_MUZZLES`, resueltos por `playerMuzzleOffset`.
+El origen de barrido se deriva hacia atrás desde esa punta; una pared fina sigue
+bloqueando el disparo. El cañón geométrico fallback usa el mismo origen.
+Flash y luz temporal siguen esa punta durante su breve lifetime, incluso al correr
+o saltar; se limpian al morir/respawnear. No cambian daño, cadencia ni velocidad.
 Los cañones enemigos dibujados horizontalmente mantienen su punta visual,
 mientras los proyectiles siguen el aimDirection real. Ajustar offsets aquí si
 un sprite nuevo cambia la punta del arma, nunca en Player/Weapon.

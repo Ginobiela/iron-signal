@@ -62,9 +62,9 @@ describe('airborne eight-direction aiming', () => {
     const vertical = new Player(100, 120);
     vertical.updateCombat(dt, { ...idle, down: true, shoot: true }, new ProjectileManager(collision));
     expect(vertical.muzzleDistance).toBe(9);
-    expect(vertical.projectileOriginX).toBeCloseTo(vertical.position.x + vertical.width / 2 + 12);
-    expect(vertical.projectileOriginY).toBeCloseTo(vertical.position.y + vertical.gunPivotY);
-    expect(player.projectileOriginX).toBeCloseTo(player.position.x + player.width / 2 + 4);
+    expect(vertical.projectileOriginX).toBeCloseTo(vertical.position.x + vertical.width / 2 + 8);
+    expect(vertical.projectileOriginY).toBeCloseTo(vertical.position.y + 4 + vertical.muzzleDistance);
+    expect(player.projectileOriginX).toBeCloseTo(player.position.x + player.width / 2 + 14 - Math.SQRT1_2 * player.muzzleDistance);
   });
 
   it('rotates the spread cone around down-right and refuses a partial volley when full', () => {
@@ -171,8 +171,8 @@ describe('grounded down input and muzzle collision', () => {
     const pool = fire(player, { ...idle, down: true, shoot: true });
     const shot = pool.items.find((item) => item.active)!;
     expect(shot.previousPosition).toEqual({ x: player.projectileOriginX, y: player.projectileOriginY });
-    expect(player.projectileOriginX).toBeCloseTo(player.position.x + player.width / 2 + 12);
-    expect(player.projectileOriginY).toBeCloseTo(player.position.y + player.gunPivotY);
+    expect(player.projectileOriginX).toBeCloseTo(player.position.x + player.width / 2 + 8);
+    expect(player.projectileOriginY).toBeCloseTo(player.position.y + 4 + player.muzzleDistance);
     const combat = new CombatSystem(collision, player, []);
     pool.update(dt, [floor], 500, combat);
     expect(pool.activeCount).toBe(1);

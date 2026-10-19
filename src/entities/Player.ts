@@ -6,7 +6,7 @@ import type { KinematicBody } from './Entity';
 import { Rifle } from '../weapons/Rifle';
 import type { Weapon } from '../weapons/Weapon';
 import type { ProjectileManager } from '../projectiles/ProjectileManager';
-import { playerAimMuzzle, resolvePlayerAim } from './playerAim';
+import { playerAimMuzzle, playerMuzzleOffset, resolvePlayerAim } from './playerAim';
 
 export type PlayerState = 'IDLE' | 'RUN' | 'JUMP' | 'FALL' | 'CROUCH' | 'SHOOT' | 'DEAD';
 
@@ -83,10 +83,13 @@ export class Player implements KinematicBody {
   }
 
   get projectileOriginX(): number {
-    return this.position.x + this.width / 2 + playerAimMuzzle(this.aimDirection).offsetX * this.direction;
+    return this.position.x + this.width / 2 + playerMuzzleOffset(this).x * this.direction
+      - this.aimDirection.x * this.muzzleDistance;
   }
 
-  get projectileOriginY(): number { return this.position.y + this.gunPivotY; }
+  get projectileOriginY(): number {
+    return this.position.y + playerMuzzleOffset(this).y - this.aimDirection.y * this.muzzleDistance;
+  }
   get muzzleDistance(): number { return playerAimMuzzle(this.aimDirection).distance; }
 
   die(): void {

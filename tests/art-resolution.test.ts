@@ -121,7 +121,7 @@ describe('mixed 1×/2× art, same world', () => {
       expect(sprite.mesh.position.y).toBe(16); expect(sprite.root.position.toArray()).toEqual([62, 44, 3]);
       expect(assets.getTexture(id)?.magFilter).toBe(NearestFilter); sprite.dispose();
     }
-    expect(PLAYER_MUZZLES.standing.horizontal).toEqual({ x: 9, y: 13 });
+    expect(PLAYER_MUZZLES.standing.horizontal).toEqual({ x: 14, y: 15 });
     assets.dispose();
   });
   it('32 source pixels repeat every 16 world units without changing tile geometry or UV frequency', async () => {

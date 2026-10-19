@@ -221,7 +221,7 @@ describe('weapon pickups', () => {
     expect(bullet?.velocity).toEqual(velocity);
     player.updateCombat(dt, { ...idle, down: true, shoot: true }, pool);
     const laser = pool.items.find((item) => item.active && item.style === 'laser');
-    expect(laser?.position.y).toBeCloseTo(player.position.y + player.gunPivotY);
+    expect(laser?.position.y).toBeCloseTo(player.position.y + 8);
   });
 
   it('baseline campaign starts without pickups and distributes scarce M/S/L carriers among ordinary flyers', () => {

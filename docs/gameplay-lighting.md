@@ -5,7 +5,7 @@ Estado: **COMPLETE**, 14-10-2026. Extiende Fases 21.0/21.1; no reemplaza rendere
 ## Arquitectura y límites
 
 - STATIC: hasta 32 luces persistentes de LevelData, con behavior opcional.
-- TEMPORARY: 32 slots reutilizables; VFX aceptados notifican muzzle/explosion. Perfiles visuales en src/config/lighting.ts.
+- TEMPORARY: 32 slots reutilizables; VFX aceptados notifican muzzle/explosion. Perfiles visuales en src/config/lighting.ts. El muzzle del Player liga su posición al slot VFX, conservando el lifetime del perfil y siguiendo el cañón al moverse; expiración/clear eliminan la referencia.
 - ATTACHED: 16 slots reutilizables; `LightingSystem.attach(source, profile)`, con source `{position, active}`. Sigue world position + offsets, elimina referencias al desactivarse y reutiliza slot/Color. Pool lleno falla de forma segura. Disabled, loadLevel y dispose limpian attached.
 
 LightingSystem no conoce Player, misiles, enemigos o bosses. CombatLighting es el adapter visual que observa el pool de proyectiles, visualFireCount, salud y estado de compuertas. No dispara, genera perros, daña, cambia IA ni controla la muerte. Sources de misiles/compuertas se crean una vez por Game; no hay allocations por frame de estas bindings, targets, shaders, geometría o texturas. Sigue el pipeline Scene → target → lightmap → composite, con uniforms acotados a 80 luces y vectores/colores reutilizados.

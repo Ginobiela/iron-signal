@@ -35,10 +35,12 @@ export const WEAPON_VFX: Readonly<Record<string, VfxId>> = {
 };
 export const VFX_SHAKE = { flyingTime: 0.1, playerDeath: 1.5, playerDeathTime: 0.16, boss: 2, bossTime: 0.3 } as const;
 export const PLAYER_MUZZLES = {
-  standing: { horizontal: { x: 9, y: 13 }, up: { x: 4, y: 21 }, diagonal: { x: 8, y: 17 } },
-  running: { horizontal: { x: 11, y: 13 }, up: { x: 6, y: 21 }, diagonal: { x: 10, y: 17 } },
-  airborne: { horizontal: { x: 11, y: 9 }, up: { x: 6, y: 20 }, diagonal: { x: 10, y: 16 } },
-  crouching: { horizontal: { x: 11, y: 7 }, up: { x: 4, y: 12 }, diagonal: { x: 8, y: 10 } },
+  // Barrel tips in world units from bottom-center of the current 64px Player art.
+  // Shared by projectile origins, muzzle sprites and their temporary lights.
+  standing: { horizontal: { x: 14, y: 15 }, up: { x: 6, y: 26 }, diagonal: { x: 13, y: 24 } },
+  running: { horizontal: { x: 15, y: 14 }, up: { x: 6, y: 26 }, diagonal: { x: 14, y: 21 } },
+  airborne: { horizontal: { x: 13, y: 11 }, up: { x: 5, y: 25 }, diagonal: { x: 14, y: 21 } },
+  crouching: { horizontal: { x: 14, y: 8 }, up: { x: 6, y: 26 }, diagonal: { x: 13, y: 24 } },
 } as const;
 export const ENEMY_MUZZLES = { soldier: { x: 12, y: 13 }, turret: { x: 11, y: 12 } } as const;
 

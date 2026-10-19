@@ -6,10 +6,14 @@ import type { VfxConfig, VfxId } from '../config/vfx';
 import type { ParticleManager } from './ParticleManager';
 import type { ScreenShakeManager } from '../camera/ScreenShakeManager';
 import { SpriteVisual } from './SpriteVisual';
+import type { LightSource } from './LightingSystem';
+
+export interface FxFollowSource extends LightSource { angle: number }
 
 interface FxSlot {
   root: Group; sprite: SpriteVisual; fallback: Group; material: MeshBasicMaterial;
   id: VfxId | null; life: number; duration: number; textured: boolean;
+  follow?: FxFollowSource; lightSource: LightSource;
 }
 
 /** All meshes are allocated at construction. Missing PNGs use the same slots. */
@@ -21,7 +25,7 @@ export class FxSpritePool {
   private debugVisible = false;
   droppedCount = 0;
   spawnedCount = 0;
-  onSpawn?: (id: VfxId, x: number, y: number) => void;
+  onSpawn?: (id: VfxId, x: number, y: number, source?: LightSource) => void;
 
   constructor(assets: AssetManager, private readonly particles?: ParticleManager,
     private readonly shake?: ScreenShakeManager, capacity: number = GRAPHICS.fxCapacity) {
@@ -31,7 +35,8 @@ export class FxSpritePool {
       const material = new MeshBasicMaterial({ transparent: true, depthWrite: false });
       fallback.add(new Mesh(this.geometry, material), new Mesh(this.geometry, material), new Mesh(this.geometry, this.coreMaterial));
       root.add(sprite.root, fallback); root.visible = false;
-      this.slots.push({ root, sprite, fallback, material, id: null, life: 0, duration: 0, textured: false });
+      const lightSource = { position: root.position, get active() { return root.visible; } };
+      this.slots.push({ root, sprite, fallback, material, id: null, life: 0, duration: 0, textured: false, lightSource });
       this.root.add(root);
     }
   }
@@ -43,12 +48,12 @@ export class FxSpritePool {
     return count;
   }
 
-  spawn(id: VfxId, x: number, y: number, angle = 0): boolean {
+  spawn(id: VfxId, x: number, y: number, angle = 0, follow?: FxFollowSource): boolean {
     const effect: VfxConfig = VFX_EFFECTS[id];
     if (!effect) return false;
     for (const slot of this.slots) {
       if (slot.life > 0) continue;
-      slot.id = id; slot.duration = slot.life = effect.frames / effect.fps;
+      slot.id = id; slot.duration = slot.life = effect.frames / effect.fps; slot.follow = follow;
       slot.root.position.set(Math.round(x), Math.round(y), effect.behind ? DRAW.fxBehind : DRAW.fx);
       slot.root.rotation.z = angle; slot.root.visible = true;
       slot.sprite.reset(); slot.textured = slot.sprite.update(id, 0, false, '', '', false);
@@ -65,7 +70,7 @@ export class FxSpritePool {
       this.particles?.burst(x, y, effect.particles, effect.color, effect.kind === 'burst', slot.duration);
       if (effect.shake) this.shake?.trigger(effect.shake, VFX_SHAKE.flyingTime);
       this.spawnedCount++;
-      this.onSpawn?.(id, x, y);
+      this.onSpawn?.(id, slot.root.position.x, slot.root.position.y, follow ? slot.lightSource : undefined);
       return true;
     }
     this.droppedCount++;
@@ -76,6 +81,11 @@ export class FxSpritePool {
     if (dt <= 0) return;
     for (const slot of this.slots) {
       if (slot.life <= 0 || !slot.id) continue;
+      if (slot.follow) {
+        if (!slot.follow.active) { slot.life = 0; slot.root.visible = false; slot.follow = undefined; continue; }
+        slot.root.position.x = Math.round(slot.follow.position.x); slot.root.position.y = Math.round(slot.follow.position.y);
+        slot.root.rotation.z = slot.follow.angle;
+      }
       slot.life = Math.max(0, slot.life - dt);
       if (slot.textured) slot.sprite.update(slot.id, dt);
       else {
@@ -93,7 +103,7 @@ export class FxSpritePool {
     for (const slot of this.slots) { slot.sprite.setDebug(visible); slot.sprite.root.visible = slot.textured || visible; }
   }
   clear(): void {
-    for (const slot of this.slots) { slot.life = 0; slot.root.visible = false; }
+    for (const slot of this.slots) { slot.life = 0; slot.root.visible = false; slot.follow = undefined; }
     this.spawnedCount = this.droppedCount = 0;
   }
   dispose(): void {

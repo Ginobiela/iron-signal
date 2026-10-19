@@ -1,6 +1,7 @@
 import { PLAYER } from '../config/constants';
 import type { Vector2 } from './Entity';
-import type { PlayerControls } from './Player';
+import type { Player, PlayerControls } from './Player';
+import { PLAYER_MUZZLES, PLAYER_LOWER_VISUAL_MUZZLES } from '../config/vfx';
 
 /** Down aims in air or while position is held; otherwise it preserves grounded crouch. */
 export function resolvePlayerAim(out: Vector2, controls: PlayerControls, facing: -1 | 1, grounded: boolean): void {
@@ -15,12 +16,21 @@ export function playerAimPose(aim: Vector2): 'horizontal' | 'up' | 'diagonal' | 
     : aim.y > 0 ? (aim.x === 0 ? 'up' : 'diagonal') : 'horizontal';
 }
 
-// World units relative to the existing gun pivot. Lower origins clear the body,
-// including the ±30° Spread cone. ProjectileManager still sweeps the barrel.
-const defaultMuzzle = { offsetX: 0, distance: PLAYER.muzzleDistance } as const;
+/** Shared barrel tip; visual source density never changes these world offsets. */
+export function playerMuzzleOffset(player: Player): { readonly x: number; readonly y: number } {
+  const aim = playerAimPose(player.aimDirection);
+  if (aim === 'down' || aim === 'diagonalDown') return PLAYER_LOWER_VISUAL_MUZZLES[aim];
+  const pose = player.crouching ? 'crouching' : !player.grounded ? 'airborne'
+    : player.velocity.x !== 0 ? 'running' : 'standing';
+  return PLAYER_MUZZLES[pose][aim];
+}
+
+// Barrel sweep lengths in world units. Origins are derived backwards from the
+// shared tip, so the first collision sweep still covers the barrel.
+const defaultMuzzle = { distance: PLAYER.muzzleDistance } as const;
 export const PLAYER_LOWER_MUZZLES = {
-  down: { offsetX: 12, distance: 9 },
-  diagonalDown: { offsetX: 4, distance: PLAYER.muzzleDistance },
+  down: { distance: 9 },
+  diagonalDown: { distance: PLAYER.muzzleDistance },
 } as const;
 export function playerAimMuzzle(aim: Vector2) {
   const pose = playerAimPose(aim);

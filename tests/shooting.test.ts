@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CollisionSystem, segmentHitsAABB } from '../src/collision/CollisionSystem';
-import { PLAYER, PROJECTILES, RIFLE, TIMING } from '../src/config/constants';
+import { PROJECTILES, RIFLE, TIMING } from '../src/config/constants';
 import { GameLoop } from '../src/core/GameLoop';
 import { Player } from '../src/entities/Player';
 import type { PlayerControls } from '../src/entities/Player';
@@ -149,10 +149,10 @@ describe('player aiming and simultaneous controls', () => {
     expect(Math.hypot(bullet.velocity.x, bullet.velocity.y)).toBeCloseTo(RIFLE.projectileSpeed);
     expect(bullet.velocity.x).toBeCloseTo(x * RIFLE.projectileSpeed);
     expect(bullet.velocity.y).toBeCloseTo(y * RIFLE.projectileSpeed);
-    expect(bullet.position.x).toBeCloseTo(player.position.x + player.width / 2
-      + x * PLAYER.muzzleDistance + bullet.velocity.x * dt);
-    expect(bullet.position.y).toBeCloseTo(player.position.y + PLAYER.gunPivotY
-      + y * PLAYER.muzzleDistance + bullet.velocity.y * dt);
+    expect(bullet.position.x).toBeCloseTo(player.projectileOriginX
+      + x * player.muzzleDistance + bullet.velocity.x * dt);
+    expect(bullet.position.y).toBeCloseTo(player.projectileOriginY
+      + y * player.muzzleDistance + bullet.velocity.y * dt);
   });
 
   it('keeps facing direction after releasing movement and shoots from idle', () => {
@@ -210,7 +210,7 @@ describe('player aiming and simultaneous controls', () => {
     expect(pool.activeCount).toBe(3);
     const heights = pool.items.filter((item) => item.active).map((item) => item.position.y).sort((a, b) => a - b);
     for (let i = 0; i < heights.length; i++) {
-      expect(heights[i]).toBeCloseTo(75 + RIFLE.projectileSpeed * (i + 1) / 6);
+      expect(heights[i]).toBeCloseTo(70 + RIFLE.projectileSpeed * (i + 1) / 6);
     }
   });
 });

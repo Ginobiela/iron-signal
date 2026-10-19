@@ -80,8 +80,8 @@ it('visual muzzle offsets preserve player position, aim, shooting and the projec
   const player = new Player(62, 44); player.height = 12; player.direction = -1; player.aimDirection.x = -1;
   const out = { x: 0, y: 0, angle: 0 }, before = { ...player.position }, aim = { ...player.aimDirection };
   const weapon = player.weapon, pivot = player.gunPivotY;
-  playerMuzzle(player, assets, out);
-  expect(out.x).toBe(57); expect(out.y).toBe(51); expect(out.angle).toBe(Math.PI);
+  playerMuzzle(player, out);
+  expect(out.x).toBe(54); expect(out.y).toBe(52); expect(out.angle).toBe(Math.PI);
   expect(player.position).toEqual(before); expect(player.aimDirection).toEqual(aim);
   expect(player.shooting).toBe(false); expect(player.weapon).toBe(weapon); expect(player.gunPivotY).toBe(pivot);
   assets.dispose();

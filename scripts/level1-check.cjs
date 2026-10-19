@@ -30,7 +30,16 @@ const assert = require('node:assert/strict');
           && s.y + s.height > p.position.y && s.y < p.position.y + p.height);
         const higher = g.level.oneWays.some(s => s.y + s.height > p.position.y + .001
           && s.y + s.height - p.position.y <= jumpHeight && p.position.x < s.x + s.width && p.position.x + p.width > s.x);
-        g.input.setTouchAction('jump', p.grounded && (edge || wall || higher || p.velocity.x === 0));
+        // Wait for an overhead drop instead of relying on a particular flyer kill
+        // happening at exactly the old shot height while the traversal bot jumps.
+        const collect = g.powerups.items.some(item => item.active && Math.abs(item.position.x - p.position.x) < 12
+          && item.position.y >= p.position.y && item.position.y - p.position.y < 80);
+        const carrier = g.enemies.items.some(enemy => enemy.alive && enemy.active && enemy.kind === 'flying' && enemy.weaponDrop
+          && enemy.position.x > p.position.x && enemy.position.x - p.position.x < 100
+          && Math.abs((enemy.position.x - p.position.x) - (enemy.position.y - p.position.y - 15)) < 25);
+        g.input.setTouchAction('up', carrier);
+        g.input.setTouchAction('right', !collect);
+        g.input.setTouchAction('jump', !collect && p.grounded && (edge || wall || higher || p.velocity.x === 0));
         g.update(1 / 60);
         if (!p.alive) throw Error(`Player fell at X=${p.position.x}`);
         if (n % 120 === 0) g.render();
@@ -39,7 +48,7 @@ const assert = require('node:assert/strict');
         throw Error(`Traversal/combat/pickups failed: ${p.position.x}, ${g.combat.kills}, ${g.powerups.collectedCount}`);
       const traversal = { jumps: p.jumpCount, kills: g.combat.kills, pickups: g.powerups.collectedCount,
         checkpoint: g.checkpoints.current.x, bossActivatedAt: p.position.x };
-      g.input.setTouchAction('right', false); g.input.setTouchAction('jump', false);
+      g.input.setTouchAction('right', false); g.input.setTouchAction('jump', false); g.input.setTouchAction('up', false);
       for (let n = 0; n < 12000 && g.boss.alive; n++) { g.update(1 / 60); if (n % 120 === 0) g.render(); }
       if (g.boss.alive || g.states.state !== 'LEVEL_COMPLETE' || g.transitionRemaining !== 3)
         throw Error(`Boss combat failed: health=${g.boss.health}, state=${g.states.state}`);

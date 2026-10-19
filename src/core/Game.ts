@@ -85,6 +85,7 @@ export class Game {
   private readonly shake: ScreenShakeManager;
   private readonly fxSprites: FxSpritePool;
   private readonly muzzlePoint = { x: 0, y: 0, angle: 0 };
+  private readonly playerMuzzleSource = { position: { x: 0, y: 0 }, angle: 0, active: false };
   private readonly playerHitPoint = { x: 0, y: 0 };
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   private readonly checkpoints: CheckpointManager;
@@ -133,7 +134,7 @@ export class Game {
     this.states = new GameStateManager(config);
     this.shake = new ScreenShakeManager(config);
     this.fxSprites = new FxSpritePool(this.assets, this.particles, this.shake);
-    this.fxSprites.onSpawn=(id,x,y)=>this.lighting?.onVfx(id,x,y);
+    this.fxSprites.onSpawn=(id,x,y,source)=>this.lighting?.onVfx(id,x,y,source);
     this.powerups = new PowerupManager(this.collision, undefined, config);
     this.powerupView = new PowerupView(this.powerups, this.assets);
     this.projectiles = new ProjectileManager(this.collision, undefined, (x, y) => this.fxSprites.spawn('fx.explosion.small', x, y));
@@ -170,7 +171,7 @@ export class Game {
       this.lightingPanel = new LightingPanel(this.lighting, this.renderer,
         lamp ? {x:lamp.x,y:lamp.y+8} : {x:this.levelData.spawn.x+60,y:this.levelData.spawn.y+48},
         () => { const previous=this.devPaused;this.devPaused=true;return()=>{this.devPaused=previous;}; },
-        id=>{playerMuzzle(this.player,this.assets,this.muzzlePoint);this.fxSprites.spawn(id,this.muzzlePoint.x,this.muzzlePoint.y);});
+        id=>{playerMuzzle(this.player,this.muzzlePoint);this.fxSprites.spawn(id,this.muzzlePoint.x,this.muzzlePoint.y);});
     }
     this.scene.background = new Color(0x101e2c);
     this.camera.position.z = 10;
@@ -399,12 +400,14 @@ export class Game {
       this.projectiles.update(dt, this.level.solids, this.levelData.width, this.combat, this.playerHitPoint,this.levelData.height??240);
       this.combat.updateContacts();
     }
+    playerMuzzle(this.player, this.muzzlePoint);
+    this.playerMuzzleSource.position.x = this.muzzlePoint.x; this.playerMuzzleSource.position.y = this.muzzlePoint.y;
+    this.playerMuzzleSource.angle = this.muzzlePoint.angle; this.playerMuzzleSource.active = this.player.alive;
     if (this.projectiles.playerSpawned !== shots) {
       this.audio.play(this.player.weapon.name === 'LASER' ? 'laser' : 'shoot');
       this.playerView.flashMuzzle();
-      playerMuzzle(this.player, this.assets, this.muzzlePoint);
       this.fxSprites.spawn(WEAPON_VFX[this.player.weapon.name] ?? 'fx.muzzle.rifle',
-        this.muzzlePoint.x, this.muzzlePoint.y, this.muzzlePoint.angle);
+        this.muzzlePoint.x, this.muzzlePoint.y, this.muzzlePoint.angle, this.playerMuzzleSource);
     }
     if (this.powerups.collectedCount !== collected) {
       this.audio.play('powerup');
