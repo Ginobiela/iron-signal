@@ -6,6 +6,7 @@ import { Player } from '../src/entities/Player';
 import { CollisionSystem } from '../src/collision/CollisionSystem';
 import { ProjectileManager } from '../src/projectiles/ProjectileManager';
 import { ASSETS } from '../src/config/assets';
+import type { SpriteVisual } from '../src/rendering/SpriteVisual';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -88,6 +89,28 @@ describe('supplied player art', () => {
       expect(player.shooting).toBe(shooting); expect(fire).not.toHaveBeenCalled(); expect(cooldown).not.toHaveBeenCalled();
     }
     expect(ASSETS[assetId]?.includesWeapon).toBe(true);
+    view.dispose(); assets.dispose();
+  });
+  it.each(['up', 'diagonal'] as const)('uses the existing airborne %s art while rising/falling with or without fire', async pose => {
+    const id = `player.jumpShoot_${pose}`;
+    vi.spyOn(TextureLoader.prototype, 'loadAsync').mockResolvedValue(new Texture({ width: 128, height: 64 } as HTMLImageElement));
+    const assets = new AssetManager({ [id]: ASSETS[id]! }); await assets.preload();
+    const player = new Player(62, 100), view = new PlayerView(assets);
+    const sprite = (view as unknown as { sprite: SpriteVisual }).sprite;
+    const fire = vi.spyOn(player.weapon, 'fire'), cooldown = vi.spyOn(player.weapon, 'update');
+    player.grounded = false;
+    for (const shooting of [false, true]) for (const verticalSpeed of [120, 0, -120]) for (const facing of [1, -1] as const) {
+      player.shooting = shooting; player.velocity.y = verticalSpeed; player.direction = facing;
+      player.aimDirection.x = pose === 'diagonal' ? facing * Math.SQRT1_2 : 0;
+      player.aimDirection.y = pose === 'diagonal' ? Math.SQRT1_2 : 1;
+      const before = { position: { ...player.position }, velocity: { ...player.velocity }, bounds: { ...player.collisionBounds }, shooting };
+      view.update(player, 1 / 60);
+      expect(view.animation).toBe(shooting ? 'jumpShoot' : verticalSpeed > 0 ? 'jump' : 'fall');
+      expect(sprite.available).toBe(true); expect(sprite.assetId).toBe(id);
+      expect(sprite.mesh.scale.x).toBe(facing * 32); expect(sprite.mesh.scale.y).toBe(32);
+      expect({ position: player.position, velocity: player.velocity, bounds: player.collisionBounds, shooting: player.shooting }).toEqual(before);
+    }
+    expect(fire).not.toHaveBeenCalled(); expect(cooldown).not.toHaveBeenCalled();
     view.dispose(); assets.dispose();
   });
   it.each([[1, 0], [0, 1], [Math.SQRT1_2, Math.SQRT1_2]] as const)(

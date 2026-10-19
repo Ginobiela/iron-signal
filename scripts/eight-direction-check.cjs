@@ -36,16 +36,25 @@ const assert = require('node:assert/strict');
         // Inspect aim with no FIRE, then the same live vector while firing.
         await page.waitForFunction(({x,y})=>Math.abs(__game.player.aimDirection.x-x)<1e-8 && Math.abs(__game.player.aimDirection.y-y)<1e-8,{x,y});
         assert.equal(await page.evaluate(()=>__game.projectiles.playerSpawned),0,label+' aim must not fire');
+        const airborneUpper = !grounded && y > 0 ? `player.jumpShoot_${x === 0 ? 'up' : 'diagonal'}` : null;
+        if (airborneUpper) {
+          await page.waitForFunction(id=>__game.playerView.sprite.available && __game.playerView.sprite.assetId===id,airborneUpper);
+          assert.deepEqual(await page.evaluate(id=>{
+            const texture=__game.assets.getTexture(id);
+            return [texture.image.width,texture.image.height,texture.magFilter,texture.minFilter];
+          },airborneUpper),[128,64,1003,1003]);
+        }
         await page.keyboard.down('j'); await page.waitForFunction(()=>__game.projectiles.playerSpawned>0);
         const shot=await page.evaluate(({x,y})=>{
           const g=__game; g.devPaused=true;
           const active=g.projectiles.items.filter(p=>p.active), speed=g.player.weapon.projectileSpeed;
           const central=active.find(p=>Math.abs(p.velocity.x/speed-x)<1e-8 && Math.abs(p.velocity.y/speed-y)<1e-8);
-          return {velocity:central?{...central.velocity}:null,speed:g.player.weapon.projectileSpeed,crouching:g.player.crouching};
+          return {velocity:central?{...central.velocity}:null,speed:g.player.weapon.projectileSpeed,crouching:g.player.crouching,assetId:g.playerView.sprite.assetId};
         },{x,y});
         assert.ok(shot.velocity,weapon+' '+label);
         assert.ok(Math.abs(shot.velocity.x/shot.speed-x)<1e-8 && Math.abs(shot.velocity.y/shot.speed-y)<1e-8,weapon+' '+label);
         if(label==='ground crouch') assert.equal(shot.crouching,true);
+        if(airborneUpper) assert.equal(shot.assetId,airborneUpper);
       }
       await release();
       // The actual Game/CombatSystem damages an enemy below the Player. Only this QA
