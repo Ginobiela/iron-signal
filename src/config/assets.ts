@@ -6,6 +6,7 @@ import { ENVIRONMENT_ASSETS } from './environment';
 import type { EnvironmentAsset } from './environment';
 import { withArtScale } from '../rendering/artDimensions';
 import { PROJECTILE_ART } from './projectileArt';
+import { TURRET_ART } from './turretArt';
 
 export interface AtlasFrame { x: number; y: number; width: number; height: number }
 export interface SpriteSheet {
@@ -24,6 +25,8 @@ export interface SpriteAsset {
   clip: AnimationClip;
   /** Aim variants include the weapon; plain body sheets retain the aiming gun fallback. */
   includesWeapon?: boolean;
+  /** Internal atlas pieces are used by composed visuals, not standalone viewer clips. */
+  internal?: boolean;
   tileable?: boolean;
 }
 export type AssetManifest = Readonly<Record<string, SpriteAsset>>;
@@ -206,6 +209,26 @@ for (const [frame, kind] of ['M', 'S', 'L'].entries()) {
 for (const [id, file] of Object.entries(PROJECTILE_ART)) {
   const asset = withArtScale(sprite(`sprites/projectiles/${file}`, file === 'player_laser' ? 12 : 3, 3, 1, 1, 'center'), 2);
   ASSETS[id] = { ...asset, url: asset.path };
+}
+
+// Atlas views of existing PNGs: fixed support + rotating head, shared textures.
+for (const [prefix, joint] of Object.entries(TURRET_ART)) for (const animation of ['idle', prefix === 'turret' ? 'shoot' : 'fire']) {
+  const asset = ASSETS[`${prefix}.${animation}`]!;
+  const { frameWidth, frameHeight, frameCount } = asset.sheet;
+  const sx = asset.visual.width / frameWidth, sy = asset.visual.height / frameHeight;
+  for (const part of ['base', 'head'] as const) {
+    const y = part === 'base' ? joint.splitY : 0;
+    const height = part === 'base' ? frameHeight - joint.splitY : joint.splitY;
+    ASSETS[`${prefix}.parts.${animation}.${part}`] = {
+      ...asset, internal: true,
+      sheet: { frameWidth, frameHeight: height, frameCount,
+        atlas: Array.from({ length: frameCount }, (_, i) => ({ x: i * frameWidth, y, width: frameWidth, height })) },
+      visual: { ...asset.visual, height: height * sy,
+        anchor: part === 'head' ? 'center' : 'bottom-center',
+        offsetX: part === 'head' ? (frameWidth / 2 - joint.pivotX) * sx : 0,
+        offsetY: part === 'head' ? (joint.pivotY - height / 2) * sy : 0 },
+    };
+  }
 }
 
 export const DRAW = {

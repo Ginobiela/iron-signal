@@ -13,7 +13,7 @@ const assert = require('node:assert/strict');
    const {NearestFilter}=await import('/node_modules/three/build/three.module.js');
    const {SpriteVisual}=await import('/src/rendering/SpriteVisual.ts');
    g.loop.stop();g.player.invulnerabilityTimer=0;
-   const entries=Object.entries(g.assets.manifest).filter(([id])=>id.includes('.tower.')||/^(robotDog|bossGate|bossGateTurret|bossGateHatch)\./.test(id));
+   const entries=Object.entries(g.assets.manifest).filter(([id,asset])=>!asset.internal&&(id.includes('.tower.')||/^(robotDog|bossGate|bossGateTurret|bossGateHatch)\./.test(id)));
    for(const [id,asset] of entries){
     const texture=g.assets.getTexture(id);if(!texture)throw Error(`Missing texture ${id}`);
     if(texture.image.width!==asset.sheet.frameWidth*asset.sheet.frameCount||texture.image.height!==asset.sheet.frameHeight)throw Error(`Dimensions ${id}`);

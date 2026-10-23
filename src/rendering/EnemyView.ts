@@ -7,6 +7,7 @@ import { SpriteVisual } from './SpriteVisual';
 import { DRAW, GRAPHICS } from '../config/assets';
 import { Soldier } from '../entities/enemies/Soldier';
 import { Turret } from '../entities/enemies/Turret';
+import { TurretAimVisual } from './TurretAimVisual';
 
 const placeholderSize = {
   mecha: { width: 20, height: 14 }, gateTurret: { width: 20, height: 20 }, gateHatch: { width: 20, height: 20 },
@@ -31,6 +32,7 @@ export class EnemyView {
   private elapsed = 0;
   private readonly cargo: FlyingCargoVisual | null;
   private readonly sprite: SpriteVisual;
+  private readonly turretAim?: TurretAimVisual;
   private debugVisible = false;
   private lastAttackTimer: number;
   private shootPoseTimer = 0;
@@ -43,6 +45,10 @@ export class EnemyView {
     this.sprite = new SpriteVisual(assets, visual, `${enemy.visualPrefix}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' || enemy.kind === 'robotDog' ? 'run' : 'idle'}`);
     this.sprite.setEntityOrigin(-enemy.width / 2, visual.anchor === 'center' ? -enemy.height / 2 : 0);
     this.root.add(this.sprite.root);
+    if (enemy.kind === 'turret' || enemy.kind === 'gateTurret') {
+      this.turretAim = new TurretAimVisual(assets, enemy.kind === 'turret' ? 'turret' : 'bossGateTurret');
+      this.root.add(this.turretAim.root);
+    }
     this.armor = new MeshBasicMaterial({ color: enemy.color });
     this.barrel = new MeshBasicMaterial({ color: 0xe4dbc5 });
     const dark = new MeshBasicMaterial({ color: 0x1a2531 });
@@ -120,11 +126,16 @@ export class EnemyView {
     this.lastFireCount = enemy.visualFireCount;
     const animation = !enemy.alive ? enemy.deathAnimation : enemy.visualAnimation ?? (enemy.kind === 'flying'
       ? (enemy.hitFlashTimer > 0 ? 'hit' : 'fly') : enemy.warning || this.shootPoseTimer > 0 ? enemy.shootAnimation : enemy.velocity.x !== 0 ? 'run' : 'idle');
-    const hasSprite = this.sprite.update(`${enemy.visualPrefix}.${animation}`, dt, enemy.direction < 0,
+    const wholeSprite = this.sprite.update(`${enemy.visualPrefix}.${animation}`, dt, enemy.direction < 0,
       enemy.alive ? `${enemy.visualPrefix}.${enemy.kind === 'flying' ? 'fly' : enemy.kind === 'runner' || enemy.kind === 'robotDog' ? 'run' : 'idle'}` : '');
+    const directed = enemy.alive && this.turretAim?.update(animation, dt, enemy.aimDirection, enemy.direction);
+    if (this.turretAim && !enemy.alive) this.turretAim.root.visible = false;
+    this.sprite.root.visible = !directed;
+    const hasSprite = !!directed || wholeSprite;
     this.root.visible = enemy.alive ? enemy.active : hasSprite && !this.sprite.animator.completed;
     this.body.visible = !hasSprite;
     this.sprite.tint(enemy.alive && enemy.hitFlashTimer > 0 ? 0xfff3c4 : 0xffffff);
+    this.turretAim?.tint(enemy.alive && enemy.hitFlashTimer > 0 ? 0xfff3c4 : 0xffffff);
     this.gun.visible = enemy.alive && (enemy.kind === 'soldier' || enemy.kind === 'turret' || enemy.kind === 'gateTurret')
       && (!hasSprite || !this.assets.getSpriteSheet(this.sprite.assetId)?.includesWeapon);
     this.bounds.visible = this.debugVisible && enemy.alive;
@@ -156,11 +167,12 @@ export class EnemyView {
     this.debugVisible = visible; this.bounds.visible = visible && this.enemy.alive;
   }
 
-  setGraphicsDebug(visible: boolean): void { this.sprite.setDebug(visible); this.cargo?.setGraphicsDebug(visible); }
+  setGraphicsDebug(visible: boolean): void { this.sprite.setDebug(visible); this.turretAim?.setDebug(visible); this.cargo?.setGraphicsDebug(visible); }
 
   dispose(): void {
     this.geometry.dispose();
     this.sprite.dispose();
+    this.turretAim?.dispose();
     for (const material of this.materials) material.dispose();
     this.cargo?.dispose();
   }

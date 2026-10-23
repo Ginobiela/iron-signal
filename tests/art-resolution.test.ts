@@ -26,8 +26,8 @@ async function load(manifest: Record<string, SpriteAsset>): Promise<AssetManager
 describe('mixed 1×/2× art, same world', () => {
   it('loads the 31 delivered tower, dog and gate PNGs at their contracted 2× density', async () => {
     const { readFileSync } = await vi.importActual<{ readFileSync(url: URL): Uint8Array }>('node:fs');
-    const delivered = Object.entries(ASSETS).filter(([id]) =>
-      id.includes('.tower.') || /^(robotDog|bossGate|bossGateTurret|bossGateHatch)\./.test(id));
+    const delivered = Object.entries(ASSETS).filter(([id, asset]) => !asset.internal &&
+      (id.includes('.tower.') || /^(robotDog|bossGate|bossGateTurret|bossGateHatch)\./.test(id)));
     expect(delivered).toHaveLength(31);
     for (const [, asset] of delivered) {
       expect(asset.url).toBe(asset.path);

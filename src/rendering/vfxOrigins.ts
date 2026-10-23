@@ -3,6 +3,7 @@ import type { Player } from '../entities/Player';
 import type { Enemy } from '../entities/enemies/Enemy';
 import { ENEMY_MUZZLES } from '../config/vfx';
 import { playerMuzzleOffset } from '../entities/playerAim';
+import { TURRET_ART, turretAimAngle } from '../config/turretArt';
 
 export interface MuzzlePoint { x: number; y: number; angle: number }
 export function playerMuzzle(player: Player, out: MuzzlePoint): void {
@@ -16,6 +17,18 @@ export function enemyMuzzle(enemy: Enemy, assets: AssetManager, out: MuzzlePoint
   if (enemy.kind === 'mecha') {
     out.x = enemy.position.x + (enemy.direction < 0 ? -5 : enemy.width + 5);
     out.y = enemy.position.y + 34; out.angle = enemy.direction < 0 ? Math.PI : 0; return;
+  }
+  if (enemy.kind === 'turret' || enemy.kind === 'gateTurret') {
+    const prefix = enemy.kind === 'turret' ? 'turret' : 'bossGateTurret';
+    const asset = assets.getSpriteSheet(`${prefix}.idle`);
+    if (asset && assets.getTexture(`${prefix}.idle`)) {
+      const joint = TURRET_ART[prefix], sx = asset.visual.width / asset.sheet.frameWidth;
+      const sy = asset.visual.height / asset.sheet.frameHeight, angle = turretAimAngle(enemy.aimDirection);
+      out.x = Math.round(enemy.position.x + enemy.width / 2)
+        + (joint.pivotX - asset.sheet.frameWidth / 2) * sx * enemy.direction + Math.cos(angle) * joint.muzzleLength * sx;
+      out.y = Math.round(enemy.position.y) + (asset.sheet.frameHeight - joint.pivotY) * sy + Math.sin(angle) * joint.muzzleLength * sx;
+      out.angle = angle; return;
+    }
   }
   const tip = enemy.kind === 'soldier' ? ENEMY_MUZZLES.soldier
     : enemy.kind === 'turret' || enemy.kind === 'gateTurret' ? ENEMY_MUZZLES.turret : null;

@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { Mesh, MeshBasicMaterial, Texture, TextureLoader } from 'three';
+import { Mesh, MeshBasicMaterial, Texture, TextureLoader, Vector3 } from 'three';
 import { ASSETS } from '../src/config/assets';
 import { AssetManager } from '../src/core/AssetManager';
 import { Turret } from '../src/entities/enemies/Turret';
@@ -16,7 +16,7 @@ it('selects turret sheets, mirrors only the visual and completes death without a
   const view = new EnemyView(enemy, assets);
   const sprite = (): Mesh<import('three').BufferGeometry, MeshBasicMaterial> => {
     let found: Mesh<import('three').BufferGeometry, MeshBasicMaterial> | undefined;
-    view.root.traverse(node => {
+    view.root.traverseVisible(node => {
       if (node instanceof Mesh && node.visible && node.material instanceof MeshBasicMaterial && node.material.map) found = node;
     });
     expect(found).toBeDefined(); return found!;
@@ -25,12 +25,14 @@ it('selects turret sheets, mirrors only the visual and completes death without a
   view.update(0); expect(sprite().material.map).toBe(assets.getTexture('turret.idle'));
   view.update(0.18); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(48.5 / 96);
   for (const facing of [1, -1] as const) {
-    enemy.direction = facing; view.update(0); expect(sprite().scale.x).toBe(facing * 24);
+    enemy.direction = facing; view.update(0); view.root.updateMatrixWorld(true);
+    expect(Math.abs(sprite().scale.x)).toBe(24);
+    expect(Math.sign(sprite().matrixWorld.determinant())).toBe(facing);
   }
   expect(enemy.position).toEqual(position); expect(enemy.aimDirection).toEqual(aim); expect(enemy.attackTimer).toBe(timer);
   expect(enemy.width).toBe(20); expect(enemy.height).toBe(20);
   expect(view.root.position.x).toBe(130); expect(view.root.position.y).toBe(44);
-  expect(sprite().position.y).toBe(12);
+  expect(sprite().getWorldPosition(new Vector3()).y).toBe(59.5);
   enemy.attackTimer = 0; view.update(0); enemy.attackTimer = 2; view.update(0);
   expect(sprite().material.map).toBe(assets.getTexture('turret.shoot'));
   view.update(0.11); expect(sprite().geometry.getAttribute('uv').getX(0)).toBeCloseTo(48.5 / 144);
